@@ -35,12 +35,15 @@ const FIT_PADDING = 56;
 export function FlowCanvas({
   scenario,
   selectedId,
+  branchFocusId,
   hierarchyMode,
   onHierarchyModeChange,
   onSelect
 }: {
   scenario: ISchemeScenario;
   selectedId: string;
+  /** Branch used for auto-mode culling; independent of sidebar selection. */
+  branchFocusId: string;
   hierarchyMode: HierarchyMode;
   onHierarchyModeChange: (mode: HierarchyMode) => void;
   onSelect: (id: string) => void;
@@ -64,8 +67,8 @@ export function FlowCanvas({
   }, []);
 
   const layout = useMemo(
-    () => buildFlowLayout(scenario, hierarchyMode, transform.zoom, selectedId),
-    [scenario, hierarchyMode, transform.zoom, selectedId]
+    () => buildFlowLayout(scenario, hierarchyMode, transform.zoom, branchFocusId),
+    [scenario, hierarchyMode, transform.zoom, branchFocusId]
   );
   const schemeTotalPaise = scenario.nodes.find((node) => node.level === 'national')?.receivedPaise
     ?? scenario.nodes[0]?.receivedPaise

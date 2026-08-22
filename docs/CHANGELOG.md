@@ -9,6 +9,7 @@
 - Tree: three-segment bar (gold / teal / amber) + teal amount chip; no new card paragraphs or layout-node kind.
 - Ledger: Sent onward · Used here · What’s left; inspector teal bar + one scheme-aware remark.
 - Updated calibration, decisions, and status docs.
+- Flow map: node tap only updates the sidebar; auto-mode branch focus stays put (search still moves the branch). National focus no longer culls the visible band.
 
 ### Verified
 

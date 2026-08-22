@@ -331,11 +331,13 @@ function isNearFocusBranch(
   if (focusPath.has(node.id)) return true;
   if (node.parentId && focusPath.has(node.parentId)) return true;
   const focus = scenario.nodes.find((candidate) => candidate.id === focusNodeId);
-  if (!focus) return true;
+  // National (or unknown) focus has no state branch — keep the visible band intact.
+  if (!focus || focus.level === 'national') return true;
   // Same state branch as the focus node.
   const focusState = pathFor(scenario, focus).find((step) => step.level === 'state');
   const nodeState = pathFor(scenario, node).find((step) => step.level === 'state');
-  return Boolean(focusState && nodeState && focusState.id === nodeState.id);
+  if (!focusState) return true;
+  return Boolean(nodeState && focusState.id === nodeState.id);
 }
 
 function shouldShowAwaiting(

@@ -28,6 +28,8 @@ export function App(): ReactElement {
   const [schemeId, setSchemeId] = useState(DEFAULT_SCHEME_ID);
   const [scenario, setScenario] = useState<ISchemeScenario>();
   const [selectedId, setSelectedId] = useState('piprahi-paani');
+  /** Stable branch used by auto layout; tap/select only updates the sidebar. */
+  const [branchFocusId, setBranchFocusId] = useState('piprahi-paani');
   const [query, setQuery] = useState('');
   const [view, setView] = useState<'flow' | 'ledger'>('flow');
   const [hierarchyMode, setHierarchyMode] = useState<HierarchyMode>('auto');
@@ -42,6 +44,7 @@ export function App(): ReactElement {
     void ledgerService.load(schemeId).then((next) => {
       setScenario(next);
       setSelectedId(next.defaultFocusNodeId);
+      setBranchFocusId(next.defaultFocusNodeId);
       setHierarchyMode('auto');
       setQuery('');
       setMenuOpen(false);
@@ -166,6 +169,7 @@ export function App(): ReactElement {
                 role="option"
                 onClick={() => {
                   setSelectedId(node.id);
+                  setBranchFocusId(node.id);
                   setQuery('');
                   setView('flow');
                   if (node.level === 'agency' || node.level === 'block' || node.level === 'district') {
@@ -204,6 +208,7 @@ export function App(): ReactElement {
             <FlowCanvas
               scenario={scenario}
               selectedId={selectedId}
+              branchFocusId={branchFocusId}
               hierarchyMode={hierarchyMode}
               onHierarchyModeChange={setHierarchyMode}
               onSelect={setSelectedId}
