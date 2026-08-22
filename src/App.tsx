@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactElement } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type MouseEvent as ReactMouseEvent, type ReactElement } from 'react';
 import { FlowCanvas } from './components/flow-canvas';
 import { ThemeToggle } from './components/theme-toggle';
 import { DEFAULT_SCHEME_ID } from './data/fixtures/catalog';
@@ -10,6 +10,7 @@ import type {
   ISchemeSummary,
   ITransfer
 } from './domain/fund-flow';
+import { citizenStanding } from './domain/citizen-standing';
 import { bodyKindLabel, schemeKindDescription } from './domain/fund-flow';
 import {
   computeSchemeMetrics,
@@ -183,17 +184,17 @@ export function App(): ReactElement {
       </header>
 
       <section className="metrics">
-        <Metric label="Central release" value={formatCrore(metrics.centralReleasePaise)} />
+        <Metric label="Received at centre" value={formatCrore(metrics.centralReleasePaise)} />
         <Metric label="Traced onward" value={formatCrore(metrics.tracedOnwardPaise)} tone="gold" />
         <Metric
-          label="Awaiting details"
+          label="What's left"
           value={formatCrore(metrics.awaitingDetailsPaise)}
           tone="amber"
           detail={`${metrics.awaitingSharePercent}% of scheme`}
         />
         <p>
-          Amber marks money whose onward destination is not yet published — a data gap, not a verdict.
-          Independent hackathon prototype · all figures synthetic.
+          What’s left is the centre row’s leftover: either still on that ledger, or sent with no named next office.
+          Open a row for the one-line explanation. Independent prototype · all figures synthetic.
         </p>
       </section>
 
@@ -225,8 +226,8 @@ export function App(): ReactElement {
               ))}
             </div>
             <div className="legend">
-              <span><i /> Allocated</span>
-              <span><i className="amber" /> Awaiting details</span>
+              <span><i /> Received</span>
+              <span><i className="amber" /> Next office not named</span>
             </div>
           </div>
         </div>
@@ -273,10 +274,85 @@ function LedgerTable({
   query: string;
   onSelect: (id: string) => void;
 }): ReactElement {
-  const rows = ledgerRows(scenario, query);
+  const byParent = useMemo(() => {
+    const map = new Map<string, IFundingNode[]>();
+    for (const node of scenario.nodes) {
+      if (!node.parentId) continue;
+      const list = map.get(node.parentId) ?? [];
+      list.push(node);
+      map.set(node.parentId, list);
+    }
+    return map;
+  }, [scenario.nodes]);
+
+  const roots = useMemo(
+    () => scenario.nodes.filter((node) => !node.parentId),
+    [scenario.nodes]
+  );
+
+  const [expanded, setExpanded] = useState<ReadonlySet<string>>(() => new Set());
+
+  useEffect(() => {
+    setExpanded(() => {
+      const next = new Set<string>();
+      for (const root of scenario.nodes.filter((node) => !node.parentId)) {
+        next.add(root.id);
+      }
+      const selected = scenario.nodes.find((node) => node.id === selectedId);
+      if (selected) {
+        for (const step of pathFor(scenario, selected)) {
+          if (step.id !== selected.id) next.add(step.id);
+        }
+      }
+      return next;
+    });
+  }, [scenario]);
+
+  useEffect(() => {
+    const selected = scenario.nodes.find((node) => node.id === selectedId);
+    if (!selected) return;
+    setExpanded((prev) => {
+      let changed = false;
+      const next = new Set(prev);
+      for (const step of pathFor(scenario, selected)) {
+        if (step.id === selected.id) continue;
+        if (!next.has(step.id)) {
+          next.add(step.id);
+          changed = true;
+        }
+      }
+      return changed ? next : prev;
+    });
+  }, [scenario, selectedId]);
+
+  const rows = useMemo(() => {
+    const q = query.trim();
+    if (q) return ledgerRows(scenario, q);
+
+    const ordered: IFundingNode[] = [];
+    const walk = (node: IFundingNode): void => {
+      ordered.push(node);
+      if (!expanded.has(node.id)) return;
+      for (const child of byParent.get(node.id) ?? []) walk(child);
+    };
+    for (const root of roots) walk(root);
+    return ordered;
+  }, [scenario, query, expanded, byParent, roots]);
+
   const depthOf = (node: IFundingNode): number => pathFor(scenario, node).length - 1;
   const levelLabel = (node: IFundingNode): string =>
     node.level === 'agency' ? scenario.lastMileLabel.toLowerCase() : node.level;
+  const searching = query.trim().length > 0;
+
+  const toggleExpanded = (nodeId: string, event: ReactMouseEvent<HTMLButtonElement>): void => {
+    event.stopPropagation();
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      if (next.has(nodeId)) next.delete(nodeId);
+      else next.add(nodeId);
+      return next;
+    });
+  };
 
   return (
     <div className="ledger-wrap">
@@ -284,38 +360,79 @@ function LedgerTable({
         <thead>
           <tr>
             <th>Node</th>
-            <th>Allocated</th>
-            <th>Disbursed</th>
-            <th>Awaiting</th>
+            <th>Received</th>
+            <th>Reported sent</th>
+            <th>What&apos;s left</th>
           </tr>
         </thead>
         <tbody>
-          {rows.map((node) => (
-            <tr
-              key={node.id}
-              className={node.id === selectedId ? 'selected' : ''}
-              onClick={() => onSelect(node.id)}
-            >
-              <td style={{ paddingLeft: `${20 + depthOf(node) * 18}px` }}>
-                <strong>{node.shortName}</strong>
-                <span>
-                  {levelLabel(node)}
-                  {node.workLabel ? ` · ${node.workLabel}` : ''}
-                </span>
-              </td>
-              <td>{formatCrore(node.receivedPaise)}</td>
-              <td>
-                {formatCrore(node.reportedPaise)}
-                <small>{Math.round(percentOf(node.reportedPaise, node.receivedPaise))}%</small>
-              </td>
-              <td className={node.unpublishedPaise ? 'amber-text' : ''}>
-                {node.unpublishedPaise ? formatCrore(node.unpublishedPaise) : '—'}
-              </td>
-            </tr>
-          ))}
+          {rows.map((node) => {
+            const childCount = byParent.get(node.id)?.length ?? 0;
+            const isBranch = childCount > 0;
+            const isOpen = searching || expanded.has(node.id);
+            return (
+              <tr
+                key={node.id}
+                className={node.id === selectedId ? 'selected' : ''}
+                onClick={() => onSelect(node.id)}
+              >
+                <td style={{ paddingLeft: `${12 + depthOf(node) * 18}px` }}>
+                  <div className="ledger-node">
+                    {isBranch ? (
+                      <button
+                        type="button"
+                        className={`ledger-toggle ${isOpen ? 'open' : ''}`}
+                        aria-expanded={isOpen}
+                        aria-label={isOpen ? `Collapse ${node.shortName}` : `Expand ${node.shortName}`}
+                        title={isOpen ? 'Hide constituent nodes' : 'Show constituent nodes'}
+                        onClick={(event) => toggleExpanded(node.id, event)}
+                      >
+                        <span aria-hidden="true">▸</span>
+                      </button>
+                    ) : (
+                      <span className="ledger-toggle-spacer" aria-hidden="true" />
+                    )}
+                    <div className="ledger-node-copy">
+                      <strong>{node.shortName}</strong>
+                      <span>
+                        {levelLabel(node)}
+                        {node.workLabel ? ` · ${node.workLabel}` : ''}
+                        {isBranch && !searching ? ` · ${childCount}` : ''}
+                      </span>
+                    </div>
+                  </div>
+                </td>
+                <td>{formatCrore(node.receivedPaise)}</td>
+                <td>
+                  {formatCrore(node.reportedPaise)}
+                  <small>{Math.round(percentOf(node.reportedPaise, node.receivedPaise))}%</small>
+                </td>
+                <LedgerOpenCell scenario={scenario} node={node} />
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>
+  );
+}
+
+function LedgerOpenCell({
+  scenario,
+  node
+}: {
+  scenario: ISchemeScenario;
+  node: IFundingNode;
+}): ReactElement {
+  const standing = citizenStanding(scenario, node);
+  if (standing.ledgerOpenKind === 'none') {
+    return <td>—</td>;
+  }
+  return (
+    <td className={standing.ledgerOpenKind === 'next-unnamed' ? 'amber-text' : ''}>
+      {formatCrore(standing.ledgerOpenPaise)}
+      <small>{standing.ledgerHint}</small>
+    </td>
   );
 }
 
@@ -332,6 +449,7 @@ function Inspector({
 }): ReactElement {
   const crumbs = pathFor(scenario, node);
   const reportedPercentage = percentOf(node.reportedPaise, node.receivedPaise);
+  const standing = citizenStanding(scenario, node);
   const levelWord = node.level === 'agency'
     ? scenario.lastMileLabel.toLowerCase()
     : node.level;
@@ -368,22 +486,30 @@ function Inspector({
 
       <section>
         <h2>Financial standing</h2>
-        <FinancialBar label="Allocated to this node" value={formatCrore(node.receivedPaise)} percent={100} />
+        <FinancialBar label="Received here" value={formatCrore(standing.receivedPaise)} percent={100} />
         <FinancialBar
-          label="Reported disbursed"
-          value={formatCrore(node.reportedPaise)}
+          label="Reported as sent"
+          value={formatCrore(standing.reportedSentPaise)}
           percent={reportedPercentage}
           soft
         />
-        {node.unpublishedPaise ? (
+        {standing.stillOnBooksPaise > 0 ? (
           <FinancialBar
-            label="Awaiting onward details"
-            value={formatCrore(node.unpublishedPaise)}
-            percent={percentOf(node.unpublishedPaise, node.receivedPaise)}
+            label="Still on this ledger"
+            value={formatCrore(standing.stillOnBooksPaise)}
+            percent={percentOf(standing.stillOnBooksPaise, standing.receivedPaise)}
+          />
+        ) : null}
+        {standing.showUnnamedBar ? (
+          <FinancialBar
+            label="Next office not named"
+            value={formatCrore(standing.unnamedNextPaise)}
+            percent={percentOf(standing.unnamedNextPaise, standing.receivedPaise)}
             amber
           />
         ) : null}
-        <p className="full-amount">Allocation in full · {formatPaiseFull(node.receivedPaise)}</p>
+        <p className="standing-summary">{standing.inspectorSummary}</p>
+        <p className="full-amount">Received in full · {formatPaiseFull(node.receivedPaise)}</p>
       </section>
 
       {reconciliation && (

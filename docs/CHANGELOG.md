@@ -1,5 +1,21 @@
 # Changelog
 
+## Session 7 — 2026-08-22
+
+### Built
+
+- Explained leftovers the way a citizen already subtracts: Received − Reported sent = What’s left.
+- “What’s left” is still-on-this-ledger when those numbers differ; amber “next office not named” only when that is a different story.
+- Inspector always adds one plain-language sentence; scheme headline leftover is the centre row only (no child-flag double count).
+
+### Verified
+
+- `npm run build` completes successfully with TypeScript strict checking.
+
+### Deferred
+
+- Automated tests for citizen-standing copy, public deployment.
+
 ## Session 6 — 2026-08-22
 
 ### Built

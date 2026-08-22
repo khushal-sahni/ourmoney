@@ -190,8 +190,7 @@ button, input { font: inherit; }
 .node-level,
 .inspector h2,
 .map-node > span,
-.awaiting-node > span,
-th {
+.awaiting-node > span {
   display: block;
   font: 500 0.69rem 'DM Mono';
   letter-spacing: 0.16em;
@@ -538,6 +537,7 @@ th {
   overflow: hidden;
   position: relative;
   touch-action: none;
+  overscroll-behavior: none;
   cursor: grab;
   user-select: none;
   -webkit-user-select: none;
@@ -588,7 +588,7 @@ th {
 }
 
 .hierarchy-switcher,
-.canvas-help button {
+.map-controls {
   pointer-events: auto;
 }
 
@@ -619,24 +619,70 @@ th {
   border-color: var(--border-strong);
 }
 
-.canvas-help {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
+.canvas-band {
+  display: inline-flex;
   align-items: center;
+  gap: 8px;
+  padding: 7px 11px;
+  border: 1px solid var(--border-ui);
+  border-radius: 999px;
+  background: var(--bg-toolbar);
+  backdrop-filter: blur(8px);
   color: var(--text-muted);
-  font-size: 0.69rem;
+  font-size: 0.68rem;
 }
 
-.canvas-help b { color: var(--gold-strong); font-weight: 600; }
+.canvas-band b {
+  color: var(--gold-strong);
+  font-weight: 600;
+}
 
-.canvas-help button {
+.map-controls {
+  position: absolute;
+  right: 16px;
+  bottom: 78px;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
   border: 1px solid var(--border-ui);
-  border-radius: 7px;
-  background: var(--bg-canvas-btn);
-  color: var(--text-inverse-soft);
-  padding: 7px 9px;
-  font-size: 0.68rem;
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--bg-toolbar);
+  backdrop-filter: blur(8px);
+  box-shadow: var(--shadow-node);
+}
+
+.map-control-btn {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-bottom: 1px solid var(--border-ui);
+  background: transparent;
+  color: var(--text-primary);
+  font-size: 1.25rem;
+  font-weight: 500;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.map-control-btn:last-child {
+  border-bottom: 0;
+}
+
+.map-control-btn:hover {
+  background: var(--bg-active);
+}
+
+.map-control-btn:active {
+  background: var(--bg-active);
+}
+
+.map-control-fit,
+.map-control-focus {
+  font-size: 0;
 }
 
 .map-node,
@@ -879,8 +925,15 @@ th {
   font-size: 0.69rem;
 }
 
-.full-amount {
+.standing-summary {
   margin: 18px 0 0;
+  color: var(--text-secondary);
+  font-size: 0.86rem;
+  line-height: 1.45;
+}
+
+.full-amount {
+  margin: 10px 0 0;
   color: var(--text-muted);
   font-size: 0.72rem;
 }
@@ -976,7 +1029,10 @@ th {
   padding: 17px 20px;
   text-align: left;
   border-bottom: 1px solid var(--border-ui);
-  font-size: 0.66rem;
+  font: 500 0.66rem 'DM Mono';
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-muted);
 }
 
 .ledger-wrap th:not(:first-child),
@@ -1004,6 +1060,69 @@ th {
   font-size: 0.68rem;
   margin-top: 4px;
   text-transform: capitalize;
+}
+
+.ledger-node {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.ledger-node-copy {
+  min-width: 0;
+}
+
+.ledger-node-copy strong {
+  display: block;
+}
+
+.ledger-node-copy span {
+  display: block;
+  color: var(--text-muted);
+  font-size: 0.68rem;
+  margin-top: 4px;
+  text-transform: capitalize;
+}
+
+.ledger-toggle,
+.ledger-toggle-spacer {
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  margin-top: 1px;
+}
+
+.ledger-toggle {
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid var(--border-ui);
+  border-radius: 6px;
+  background: var(--bg-input);
+  color: var(--text-secondary);
+  cursor: pointer;
+  line-height: 1;
+}
+
+.ledger-toggle span {
+  display: block;
+  margin: 0;
+  font-size: 0.72rem;
+  line-height: 1;
+  color: inherit;
+  text-transform: none;
+  transform: rotate(0deg);
+  transition: transform 0.15s ease;
+}
+
+.ledger-toggle.open span {
+  transform: rotate(90deg);
+}
+
+.ledger-toggle:hover {
+  border-color: var(--border-strong);
+  color: var(--text-primary);
+  background: var(--bg-active);
 }
 
 .ledger-wrap td small {
@@ -1110,8 +1229,11 @@ th {
     right: 10px;
   }
 
-  .canvas-help span:nth-child(2) { display: none; }
   .hierarchy-switcher button { padding: 6px 8px; font-size: 0.62rem; }
+  .map-controls {
+    right: 10px;
+    bottom: calc(49vh + 58px);
+  }
   .map-node { width: 210px; }
 
   .ledger-wrap { padding: 28px 12px 55vh; }

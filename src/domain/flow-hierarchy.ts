@@ -93,8 +93,11 @@ export function activeBandLabel(levels: readonly NodeLevel[], lastMileLabel = 'A
 
 export function computeSchemeMetrics(scenario: ISchemeScenario): ISchemeMetrics {
   const root = scenario.nodes.find((node) => node.level === 'national') ?? scenario.nodes[0];
-  const awaitingDetailsPaise = scenario.nodes.reduce((sum, node) => sum + (node.unpublishedPaise ?? 0), 0);
   const centralReleasePaise = root?.receivedPaise ?? 0;
+  const stillOnBooks = root ? Math.max(0, root.receivedPaise - root.reportedPaise) : 0;
+  const unnamedNext = root?.unpublishedPaise ?? 0;
+  // Headline leftover is the centre row only — do not sum child flags (that double-counts).
+  const awaitingDetailsPaise = stillOnBooks > 0 ? stillOnBooks : unnamedNext;
   const tracedOnwardPaise = Math.max(0, centralReleasePaise - awaitingDetailsPaise);
   const awaitingSharePercent = centralReleasePaise === 0
     ? 0

@@ -1,11 +1,11 @@
 import {
+  useCallback,
   useEffect,
   useMemo,
   useRef,
   useState,
   type PointerEvent,
-  type ReactElement,
-  type WheelEvent
+  type ReactElement
 } from 'react';
 import type { ISchemeScenario } from '../domain/fund-flow';
 import {
@@ -29,6 +29,8 @@ interface IPoint {
 }
 
 const NODE_WIDTH = 240;
+const BUTTON_ZOOM_STEP = 1.18;
+const FIT_PADDING = 56;
 
 export function FlowCanvas({
   scenario,
@@ -44,13 +46,22 @@ export function FlowCanvas({
   onSelect: (id: string) => void;
 }): ReactElement {
   const stageRef = useRef<HTMLDivElement>(null);
-  const [transform, setTransform] = useState<ITransform>({ x: 48, y: 36, zoom: 0.82 });
+  const transformRef = useRef<ITransform>({ x: 48, y: 36, zoom: 0.82 });
+  const [transform, setTransform] = useState<ITransform>(transformRef.current);
   const drag = useRef<{ readonly pointerId: number; readonly point: IPoint; readonly transform: ITransform } | undefined>(undefined);
   const touches = useRef(new Map<number, IPoint>());
   const pinch = useRef<{ readonly distance: number; readonly centre: IPoint; readonly transform: ITransform } | undefined>(undefined);
   const pendingWheel = useRef<{ anchor: IPoint; factor: number } | undefined>(undefined);
   const wheelRaf = useRef<number | undefined>(undefined);
   const bandOptions = useMemo(() => hierarchyOptions(scenario.lastMileLabel), [scenario.lastMileLabel]);
+
+  const applyTransform = useCallback((next: ITransform | ((current: ITransform) => ITransform)): void => {
+    setTransform((current) => {
+      const resolved = typeof next === 'function' ? next(current) : next;
+      transformRef.current = resolved;
+      return resolved;
+    });
+  }, []);
 
   const layout = useMemo(
     () => buildFlowLayout(scenario, hierarchyMode, transform.zoom, selectedId),
@@ -65,40 +76,119 @@ export function FlowCanvas({
     return { x: clientX - (rect?.left ?? 0), y: clientY - (rect?.top ?? 0) };
   };
 
-  const onWheel = (event: WheelEvent<HTMLDivElement>): void => {
-    event.preventDefault();
-    const pixels = normalizeWheelDelta(event.deltaY, event.deltaMode);
-    const clamped = Math.max(-80, Math.min(80, pixels));
-    const factor = Math.exp(-clamped * 0.0016);
-    const anchor = pointFromClient(event.clientX, event.clientY);
-    if (pendingWheel.current) {
-      pendingWheel.current = {
-        anchor,
-        factor: pendingWheel.current.factor * factor
+  const zoomAt = useCallback((anchor: IPoint, nextZoom: number): void => {
+    applyTransform((current) => {
+      const zoom = clampZoom(nextZoom);
+      const ratio = zoom / current.zoom;
+      return {
+        zoom,
+        x: anchor.x - (anchor.x - current.x) * ratio,
+        y: anchor.y - (anchor.y - current.y) * ratio
       };
-    } else {
-      pendingWheel.current = { anchor, factor };
-    }
-    if (wheelRaf.current !== undefined) return;
-    wheelRaf.current = requestAnimationFrame(() => {
-      const pending = pendingWheel.current;
-      pendingWheel.current = undefined;
-      wheelRaf.current = undefined;
-      if (!pending) return;
-      setTransform((current) => {
+    });
+  }, [applyTransform]);
+
+  const stageCentre = useCallback((): IPoint => {
+    const rect = stageRef.current?.getBoundingClientRect();
+    return { x: (rect?.width ?? 800) / 2, y: (rect?.height ?? 600) / 2 };
+  }, []);
+
+  const zoomByButton = useCallback((direction: 1 | -1): void => {
+    const current = transformRef.current;
+    const factor = direction > 0 ? BUTTON_ZOOM_STEP : 1 / BUTTON_ZOOM_STEP;
+    zoomAt(stageCentre(), current.zoom * factor);
+  }, [stageCentre, zoomAt]);
+
+  const fitToView = useCallback((): void => {
+    const rect = stageRef.current?.getBoundingClientRect();
+    if (!rect || layout.nodes.length === 0) return;
+    const minX = Math.min(...layout.nodes.map((node) => node.x));
+    const minY = Math.min(...layout.nodes.map((node) => node.y));
+    const maxX = Math.max(...layout.nodes.map((node) => node.x + NODE_WIDTH));
+    const maxY = Math.max(...layout.nodes.map((node) => node.y + 160));
+    const contentW = Math.max(1, maxX - minX);
+    const contentH = Math.max(1, maxY - minY);
+    const zoom = clampZoom(
+      Math.min(
+        (rect.width - FIT_PADDING * 2) / contentW,
+        (rect.height - FIT_PADDING * 2) / contentH
+      )
+    );
+    applyTransform({
+      zoom,
+      x: rect.width / 2 - ((minX + maxX) / 2) * zoom,
+      y: rect.height / 2 - ((minY + maxY) / 2) * zoom
+    });
+  }, [applyTransform, layout.nodes]);
+
+  const focusSelected = useCallback((): void => {
+    const target = layout.nodes.find((node) => node.fundingNodeId === selectedId && node.kind === 'funding');
+    if (!target) return;
+    const rect = stageRef.current?.getBoundingClientRect();
+    const zoom = Math.max(transformRef.current.zoom, 1.05);
+    applyTransform({
+      zoom,
+      x: (rect?.width ?? 800) / 2 - (target.x + NODE_WIDTH / 2) * zoom,
+      y: (rect?.height ?? 600) / 2 - (target.y + 70) * zoom
+    });
+  }, [applyTransform, layout.nodes, selectedId]);
+
+  useEffect(() => {
+    const stage = stageRef.current;
+    if (!stage) return;
+
+    const onWheel = (event: WheelEvent): void => {
+      // Non-passive listener so we can stop page scroll and browser pinch-zoom.
+      event.preventDefault();
+      event.stopPropagation();
+      const pixels = normalizeWheelDelta(event.deltaY, event.deltaMode);
+      const clamped = Math.max(-80, Math.min(80, pixels));
+      const factor = Math.exp(-clamped * 0.0016);
+      const anchor = {
+        x: event.clientX - stage.getBoundingClientRect().left,
+        y: event.clientY - stage.getBoundingClientRect().top
+      };
+      if (pendingWheel.current) {
+        pendingWheel.current = {
+          anchor,
+          factor: pendingWheel.current.factor * factor
+        };
+      } else {
+        pendingWheel.current = { anchor, factor };
+      }
+      if (wheelRaf.current !== undefined) return;
+      wheelRaf.current = requestAnimationFrame(() => {
+        const pending = pendingWheel.current;
+        pendingWheel.current = undefined;
+        wheelRaf.current = undefined;
+        if (!pending) return;
+        const current = transformRef.current;
         const zoom = clampZoom(current.zoom * pending.factor);
         const ratio = zoom / current.zoom;
-        return {
+        applyTransform({
           zoom,
           x: pending.anchor.x - (pending.anchor.x - current.x) * ratio,
           y: pending.anchor.y - (pending.anchor.y - current.y) * ratio
-        };
+        });
       });
-    });
-  };
+    };
+
+    const blockBrowserGesture = (event: Event): void => {
+      event.preventDefault();
+    };
+
+    stage.addEventListener('wheel', onWheel, { passive: false });
+    stage.addEventListener('gesturestart', blockBrowserGesture, { passive: false });
+    stage.addEventListener('gesturechange', blockBrowserGesture, { passive: false });
+    return () => {
+      stage.removeEventListener('wheel', onWheel);
+      stage.removeEventListener('gesturestart', blockBrowserGesture);
+      stage.removeEventListener('gesturechange', blockBrowserGesture);
+      if (wheelRaf.current !== undefined) cancelAnimationFrame(wheelRaf.current);
+    };
+  }, [applyTransform]);
 
   const onPointerDown = (event: PointerEvent<HTMLDivElement>): void => {
-    // Suppress browser text selection while interacting with the canvas.
     window.getSelection()?.removeAllRanges();
     if ((event.target as HTMLElement).closest('button, article')) return;
     event.preventDefault();
@@ -106,7 +196,7 @@ export function FlowCanvas({
     const next = pointFromClient(event.clientX, event.clientY);
     touches.current.set(event.pointerId, next);
     if (touches.current.size === 1) {
-      drag.current = { pointerId: event.pointerId, point: next, transform };
+      drag.current = { pointerId: event.pointerId, point: next, transform: transformRef.current };
     }
     if (touches.current.size === 2) startPinch();
   };
@@ -121,7 +211,7 @@ export function FlowCanvas({
       const centre = midpoint(a, b);
       const base = pinch.current.transform;
       const zoom = clampZoom(base.zoom * (distance / pinch.current.distance));
-      setTransform({
+      applyTransform({
         zoom,
         x: centre.x - (pinch.current.centre.x - base.x) * (zoom / base.zoom),
         y: centre.y - (pinch.current.centre.y - base.y) * (zoom / base.zoom)
@@ -131,7 +221,7 @@ export function FlowCanvas({
 
     if (drag.current?.pointerId === event.pointerId) {
       const start = drag.current;
-      setTransform({
+      applyTransform({
         ...start.transform,
         x: start.transform.x + next.x - start.point.x,
         y: start.transform.y + next.y - start.point.y
@@ -152,49 +242,32 @@ export function FlowCanvas({
     pinch.current = {
       distance: Math.hypot(a.x - b.x, a.y - b.y),
       centre: midpoint(a, b),
-      transform
+      transform: transformRef.current
     };
   };
 
-  const focusSelected = (): void => {
-    const target = layout.nodes.find((node) => node.fundingNodeId === selectedId && node.kind === 'funding');
-    if (!target) return;
-    const rect = stageRef.current?.getBoundingClientRect();
-    const zoom = Math.max(transform.zoom, 1.05);
-    setTransform({
-      zoom,
-      x: (rect?.width ?? 800) / 2 - (target.x + NODE_WIDTH / 2) * zoom,
-      y: (rect?.height ?? 600) / 2 - (target.y + 70) * zoom
-    });
-  };
-
   useEffect(() => {
-    // Keep the selected node framed when hierarchy band changes.
     const target = layout.nodes.find((node) => node.fundingNodeId === selectedId && node.kind === 'funding');
     if (!target || !stageRef.current) return;
     const rect = stageRef.current.getBoundingClientRect();
-    const screenX = transform.x + (target.x + NODE_WIDTH / 2) * transform.zoom;
-    const screenY = transform.y + (target.y + 70) * transform.zoom;
+    const current = transformRef.current;
+    const screenX = current.x + (target.x + NODE_WIDTH / 2) * current.zoom;
+    const screenY = current.y + (target.y + 70) * current.zoom;
     const padded = 72;
     if (screenX > padded && screenX < rect.width - padded && screenY > padded && screenY < rect.height - padded) {
       return;
     }
-    setTransform((current) => ({
+    applyTransform({
       ...current,
       x: rect.width / 2 - (target.x + NODE_WIDTH / 2) * current.zoom,
       y: rect.height / 2 - (target.y + 70) * current.zoom
-    }));
-  }, [layout.activeBand, selectedId]);
-
-  useEffect(() => () => {
-    if (wheelRaf.current !== undefined) cancelAnimationFrame(wheelRaf.current);
-  }, []);
+    });
+  }, [applyTransform, layout.activeBand, selectedId]);
 
   return (
     <div
       className="flow-stage"
       ref={stageRef}
-      onWheel={onWheel}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerEnd}
@@ -213,16 +286,37 @@ export function FlowCanvas({
             </button>
           ))}
         </div>
-        <div className="canvas-help">
-          <span>
-            Showing <b>{layout.activeBand}</b>
-            {hierarchyMode === 'auto' ? ' · auto from zoom' : ''}
-          </span>
-          <span>Scroll to zoom · drag to pan · pinch on trackpad/touch</span>
-          <button type="button" onClick={focusSelected}>
-            Focus selected
-          </button>
+        <div className="canvas-band" aria-live="polite">
+          <b>{layout.activeBand}</b>
+          {hierarchyMode === 'auto' ? <span>auto</span> : null}
         </div>
+      </div>
+
+      <div className="map-controls" role="group" aria-label="Map controls">
+        <button type="button" className="map-control-btn" onClick={() => zoomByButton(1)} aria-label="Zoom in" title="Zoom in">
+          <span aria-hidden="true">+</span>
+        </button>
+        <button type="button" className="map-control-btn" onClick={() => zoomByButton(-1)} aria-label="Zoom out" title="Zoom out">
+          <span aria-hidden="true">−</span>
+        </button>
+        <button
+          type="button"
+          className="map-control-btn map-control-fit"
+          onClick={fitToView}
+          aria-label="Fit map to view"
+          title="Fit to view"
+        >
+          <FitIcon />
+        </button>
+        <button
+          type="button"
+          className="map-control-btn map-control-focus"
+          onClick={focusSelected}
+          aria-label="Focus selected node"
+          title="Focus selected"
+        >
+          <FocusIcon />
+        </button>
       </div>
 
       <div
@@ -257,6 +351,23 @@ export function FlowCanvas({
         )}
       </div>
     </div>
+  );
+}
+
+function FitIcon(): ReactElement {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+      <path d="M2 6V2h4M10 2h4v4M14 10v4h-4M6 14H2v-4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function FocusIcon(): ReactElement {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+      <circle cx="8" cy="8" r="2.2" stroke="currentColor" strokeWidth="1.6" />
+      <path d="M8 1.5v2.2M8 12.3v2.2M1.5 8h2.2M12.3 8h2.2" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+    </svg>
   );
 }
 
@@ -333,11 +444,11 @@ function AwaitingNode({ node, zoom }: { node: IFlowLayoutNode; zoom: number }): 
     <article
       className={`awaiting-node ${zoom < 0.62 ? 'compact' : ''}`}
       style={{ left: node.x, top: node.y }}
-      aria-label={`Awaiting details ${formatCrore(node.amountPaise)}`}
+      aria-label={`Next office not named ${formatCrore(node.amountPaise)}`}
     >
-      <span>Awaiting details</span>
+      <span>Next office not named</span>
       <strong>{zoom < 0.45 ? '△' : formatCrore(node.amountPaise)}</strong>
-      {zoom >= 0.62 && <p>Onward split not yet published — a data gap, not a verdict.</p>}
+      {zoom >= 0.62 && <p>This slice left the books, but the next office is not in the published record yet.</p>}
     </article>
   );
 }
