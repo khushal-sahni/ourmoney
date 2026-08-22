@@ -98,7 +98,10 @@ export function FlowCanvas({
   };
 
   const onPointerDown = (event: PointerEvent<HTMLDivElement>): void => {
+    // Suppress browser text selection while interacting with the canvas.
+    window.getSelection()?.removeAllRanges();
     if ((event.target as HTMLElement).closest('button, article')) return;
+    event.preventDefault();
     event.currentTarget.setPointerCapture(event.pointerId);
     const next = pointFromClient(event.clientX, event.clientY);
     touches.current.set(event.pointerId, next);
