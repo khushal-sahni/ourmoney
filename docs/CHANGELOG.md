@@ -13,6 +13,7 @@
 ### Verified
 
 - `npm run build` passes.
+- Live at [ourmoney.fyi](https://ourmoney.fyi). Build paused for interview prep; Stage 1 judged competition-ready as a synthetic-data prototype.
 
 ## Session 10 — 2026-08-22
 

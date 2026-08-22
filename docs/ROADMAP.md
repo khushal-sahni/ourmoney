@@ -26,9 +26,10 @@ Deliver a live, independent, mobile-first prototype that lets a citizen trace a 
 - [x] Progressive map/tree drill-down across the synthetic fund flow.
 - [x] District/agency detail with transfer timeline and reconciliation explanation.
 - [x] Multiple synthetic scheme archetypes with a working switcher (works SNA, demand wage, central DBT, matching society).
-- [ ] Evidence/provenance drawer identifying every record as synthetic.
 - [x] Responsive, accessible, low-bandwidth-friendly interface.
-- [ ] Scenario tests and a public deployment.
+- [x] Public deployment ([ourmoney.fyi](https://ourmoney.fyi)).
+- [ ] Scenario tests.
+- [ ] Evidence/provenance drawer identifying every record as synthetic.
 
 ## Stage 2 — Credibility and polish `[ ]`
 
