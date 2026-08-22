@@ -103,7 +103,7 @@ export function App(): ReactElement {
       <header className="app-header">
         <div className="scheme-switcher" ref={switcherRef}>
           <div className="scheme-switcher-title">
-            <span>Scheme explorer</span>
+            <span>ourmoney</span>
             <button
               type="button"
               aria-label="Scheme"

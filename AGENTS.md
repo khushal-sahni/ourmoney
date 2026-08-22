@@ -2,7 +2,7 @@
 
 ## Project
 
-- **Working name:** Nagrik Ledger
+- **Working name:** ourmoney
 - **Purpose:** An independent, citizen-facing prototype that makes the reported flow of public-scheme funds easier to understand, without asserting wrongdoing.
 - **Competition:** Build What Moves India, submission deadline 28 August 2026, 8:00 PM IST.
 - **Stage 1 scope:** A mobile-first, fully working synthetic-data journey through one fictional scheme, one state, and several districts.

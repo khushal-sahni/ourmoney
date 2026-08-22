@@ -1,6 +1,6 @@
 export type ThemeMode = 'dark' | 'light';
 
-export const THEME_STORAGE_KEY = 'nagrik-theme';
+export const THEME_STORAGE_KEY = 'ourmoney-theme';
 
 export function readStoredTheme(): ThemeMode | undefined {
   try {

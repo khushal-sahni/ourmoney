@@ -1,5 +1,16 @@
 # Changelog
 
+## Session 10 — 2026-08-22
+
+### Built
+
+- Renamed product to **ourmoney**; header title, page meta, package name, and theme storage key updated.
+- Added a simple SVG favicon (gold / teal / amber flow bands) under `public/favicon.svg`.
+
+### Verified
+
+- Favicon linked from `index.html`; ready for Cloudflare Pages deploy to `ourmoney.fyi`.
+
 ## Session 9 — 2026-08-22
 
 ### Built

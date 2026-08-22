@@ -1,10 +1,10 @@
 # Project Status
 
-> Last updated: 2026-08-22 · Session 9
+> Last updated: 2026-08-22 · Session 10
 
 ## Current state
 
-Stage 1 citizen journey runs locally as a full-bleed scheme explorer with **four cardinally different synthetic scheme archetypes**, a shared fictional Indian gazetteer, a five-level flow tree (National → State → District → Block → last-mile), scheme-specific implementing bodies, **used-here office consumption** on tree and ledger, and a persisted day/night theme.
+Stage 1 citizen journey for **ourmoney** runs locally as a full-bleed scheme explorer with **four cardinally different synthetic scheme archetypes**, a shared fictional Indian gazetteer, a five-level flow tree (National → State → District → Block → last-mile), scheme-specific implementing bodies, **used-here office consumption** on tree and ledger, and a persisted day/night theme. Favicon + product rename done; public deploy to `ourmoney.fyi` is the remaining last step.
 
 ## What works
 
@@ -18,14 +18,14 @@ Stage 1 citizen journey runs locally as a full-bleed scheme explorer with **four
 - Ledger columns: Node · Received · Sent onward · Used here · What’s left; inspector one-line used-here remark.
 - Scheme switcher loads catalog + scenario by id and focuses each scheme’s highlight node.
 - Flow map: five-column adaptive hierarchy, work labels on nodes, quieter pan/zoom, collision-aware layout, ledger alternate view, detail inspector with official body name + scheme-kind copy. Node tap updates the inspector only; auto branch focus changes on scheme load / search. Double-tap toggles immediate child branches.
-- Light and dark themes via a header day/night toggle (`nagrik-theme` in localStorage).
+- Light and dark themes via a header day/night toggle (`ourmoney-theme` in localStorage).
 - Metrics derived from scenario data; every surface labels the prototype and data as synthetic.
 - Calibration note documents public sources used for topology/vocabulary only ([docs/SYNTHETIC-CALIBRATION.md](SYNTHETIC-CALIBRATION.md)).
 
 ## In progress
 
-- Unit tests for hierarchy layout, money formatting, and reconciliation presentation.
-- Public deployment and a tight first-minute demo path across schemes.
+- Public deployment to Cloudflare Pages (`ourmoney.fyi`).
+- Unit tests for hierarchy layout, money formatting, and reconciliation presentation (optional / later).
 
 ## Blockers
 
@@ -33,7 +33,7 @@ Stage 1 citizen journey runs locally as a full-bleed scheme explorer with **four
 
 ## Next concrete step
 
-Add focused unit tests (especially five-level layout / awaiting placement / used-here math), then deploy a public reviewable build and rehearse a two-minute walkthrough that switches archetypes once.
+Deploy to Cloudflare Pages on `ourmoney.fyi`. Optional later: unit tests and evidence drawer.
 
 ## Architecture snapshot
 
