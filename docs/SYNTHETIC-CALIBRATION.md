@@ -1,57 +1,70 @@
 # Synthetic calibration note
 
-> Independent hackathon prototype. Fixtures are fictional. Public documents informed **topology and distribution recipes only** — no live portal rows, beneficiary lists, officer names, or real district rupee figures were copied into the app.
+> Independent hackathon prototype. Fixtures are fictional. Public documents informed **topology, institutional vocabulary, and distribution recipes only** — no live portal rows, beneficiary lists, officer names, or real district rupee figures were copied into the app. The product does not scrape or connect to government systems.
 
-## Sources consulted (one-time citizen research)
+## Sources consulted (one-time authoring research)
 
 | Source | What we used | What we refused |
 | --- | --- | --- |
-| [Union Budget Expenditure Profile](https://www.indiabudget.gov.in/) and [SNA / SPARSH statement (`stat4aa`)](https://www.indiabudget.gov.in/doc/eb/stat4aa.pdf) | CSS vs Central Sector distinction; SNA float vs just-in-time SPARSH; order-of-magnitude scheme envelopes | Exact BE/RE rows, state-wise SNA balances, real scheme names in product copy |
-| PFMS / SNA / SPARSH public notes (CGA, DoE) | Topology: Centre → State treasury / SNA → Zero Balance Subsidiary Accounts; SPARSH is claim-based | PFMS APIs, dashboards behind login, transaction lists |
-| [DBT Bharat](https://dbtbharat.gov.in/) | Cash-to-account last mile vs works agency | Scheme registries, beneficiary counts |
-| CBGA “Fund Flow Routes in Social Sectors” | Four routes: treasury, society, DBT, dual-stream wage/material | District case-study figures |
-| PRS / budget analysis notes | Relative utilisation stories (works underspend, DBT near-full, matching-share delays) | Any claim that our demo numbers are real |
-| Scheme MIS portal structure (NREGA, AwaasSoft, JJM IMIS) | Installment waves, rejected-credit concepts, wage vs material split | Scraped MIS tables |
+| [Union Budget Expenditure Profile](https://www.indiabudget.gov.in/) and [SNA / SPARSH statement (`stat4aa`)](https://www.indiabudget.gov.in/doc/eb/stat4aa.pdf) | CSS vs Central Sector; SNA float vs just-in-time SPARSH; ZBSA drawing-limit language | Exact BE/RE rows, state-wise SNA balances, real scheme names in product copy |
+| DoE / PFMS public notes on SNA procedure | Centre → Single Nodal Account → Zero Balance Subsidiary Accounts | PFMS APIs, dashboards behind login, transaction lists |
+| [JJM institutional bodies](https://jaljeevanmission.gov.in/institutional-bodies-content) / PIB operational guidelines | SWSM → DWSM → block resource centre → Paani Samiti / PHED bulk | IMIS tables, village FHTC counts |
+| MGNREGA operational / e-FMS manuals (public PDFs) | SEGF → DPC → Block PO → Gram Panchayat; wage FTO dual-signatory; ~60:40 wage:material | NREGASoft scrapes, muster rolls, real FTOs |
+| [DBT Bharat](https://dbtbharat.gov.in/) / public installment-status vocabulary | APBS credit files; returned credit / re-issue categories | Scheme registries, beneficiary counts, live installment rows |
+| NHM / CBGA / CAG fund-flow notes | SHS → DHS → BPMU → PHC/CHC; 60:40 matching; genericised flexipools | District PIP figures, real society bank balances |
+| Scheme MIS portal *structure* only (NREGA, AwaasSoft, JJM IMIS) | Installment waves, rejected-credit concepts, wage vs material split | Scraped MIS tables |
+
+## Shared fictional gazetteer
+
+Geography is shared across schemes; implementing **bodies** differ by archetype.
+
+| Level | Places |
+| --- | --- |
+| States | Kanak Pradesh (plains / high demand), Girikhand (hills), Meera Coast (smaller envelope) |
+| Districts | Raital, Chandanpur Kalan, Morwa East · Patharwadi, Sitabari · Dhowli, Nirmalbandh |
+| Raital blocks (dense drill-down) | Raital Sadar, Kharonda, Uttar Raital |
+
+Canvas `shortName` is the place; long `name` / `workLabel` / `bodyKind` describe the implementing body (e.g. “Raital District Water and Sanitation Mission”). Names are compound/administrative and are not real Indian districts.
+
+Density rule: fully expand **Raital** (blocks + several last-mile units). Other districts stay shallower so the demo stays readable.
 
 ## Recipes used in fixtures
 
-Shared fictional geography: Sundar Pradesh, Aravali, Malwa, plus shared district names (Nadi, Pahar, Maidan, Teer, Khet, Ghat, Ridge).
-
 ### 1. Community Water Access Mission (`works-sna`)
 
-- **Shape:** CSS works with SNA-style float.
+- **Shape:** CSS works with SNA + ZBSA float.
+- **Bodies:** SWSM (SNA) → DWSM → block resource centre → Paani Samiti (in-village) / PHED division (bulk).
 - **National:** ₹140 cr (toy scale).
-- **Distribution:** Relatively even district splits.
-- **Gaps:** Unpublished onward split at state (~5–10%); late agency utilisation; unmatched transfer.
-- **Last mile:** Works agency.
+- **Gaps:** Unpublished onward split at state (~5–10%); late Paani Samiti utilisation at Piprahi.
+- **Refs:** `SNA/KANAK/CWAM/…`, `ZBSA/…`, `IA/…/IV|BULK/…`
 
 ### 2. Rural Works Guarantee (`demand-wage`)
 
-- **Shape:** Demand-driven dual stream (wage + material ≈ 62:38).
-- **National:** ₹420 cr (larger, lumpy).
-- **Distribution:** Steep power law — drought district Nadi ≈ 40% of Sundar; Malwa districts small.
-- **Gaps:** Late wage-credit file + pending material bill at Bakul panchayat.
-- **Last mile:** Panchayat.
+- **Shape:** Demand-driven dual stream (wage + material ≈ 60:40) plus small admin.
+- **Bodies:** SEGF (SNA) → District Programme Coordinator → Block Programme Officer → Gram Panchayat.
+- **National:** ₹420 cr (larger, lumpy); Raital ≈ 40% of Kanak.
+- **Gaps:** FTO pending second signatory + pending material bill at Bakul GP.
+- **Refs:** `FTO-W-…`, `MAT-BILL-…`, `ADM-…`
 
 ### 3. Landholder Income Support (`central-dbt`)
 
 - **Shape:** Central Sector direct credit; thin state DBT cells.
-- **National:** ₹95 cr.
-- **Distribution:** Enrollment-weighted districts; three installment waves.
-- **Gaps:** ~2% returned credits / awaiting re-issue; almost no parked float.
-- **Last mile:** District credit batch.
+- **Bodies:** DBT cell → District Agriculture Office → block enrollment file → Installment 2 APBS credit file.
+- **National:** ₹95 cr; three installment waves.
+- **Gaps:** ~returned credits / awaiting re-issue (account mismatch / NPCI seeding language); almost no parked float.
+- **Refs:** `APBS/I2/…`, `DAO/…/ENR-…`, `BLK/…/ENR-…`
 
 ### 4. Neighbourhood Health Mission (`matching-society`)
 
 - **Shape:** CSS 60:40 matching; society route.
-- **National centre share:** ₹108 cr; scenario also records synthetic state-share total ₹72 cr.
-- **Distribution:** Even-ish districts (per facility); Sundar/Aravali fully merged; Malwa holds centre share only.
-- **Gaps:** State share not yet released (~₹12 cr) at Malwa; awaiting society report.
-- **Last mile:** Facility.
+- **Bodies:** State Health Society → District Health Society → BPMU → PHC / CHC / village health committee.
+- **Pools (genericised):** `family-health`, `disease-control`, `infrastructure` — not real programme acronyms.
+- **National centre share:** ₹108 cr; synthetic state-share total ₹72 cr.
+- **Gaps:** Meera Coast state share not yet released (~₹12 cr); awaiting society report.
 
 ## Product rules that still apply
 
 - Every surface labels data as **synthetic**.
-- Gaps use `unreconciled` / `late report` / `returned credit` / `state share not yet released` — never corruption language.
+- Gaps use `unreconciled` / `late report` / `returned credit` / `state share not yet released` / `FTO pending second signatory` — never corruption language.
 - No government branding that implies endorsement.
 - Future live adapters remain a deliberate Stage 3 decision after licensing review — not an unapproved scraper.

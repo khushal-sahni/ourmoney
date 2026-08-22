@@ -1,13 +1,20 @@
 import type { IFundingNode, ISchemeScenario, NodeLevel } from './fund-flow';
 
-export type HierarchyMode = 'auto' | 'national-state' | 'state-district' | 'district-agency' | 'full';
+export type HierarchyMode =
+  | 'auto'
+  | 'national-state'
+  | 'state-district'
+  | 'district-block'
+  | 'block-agency'
+  | 'full';
 
 export function hierarchyOptions(lastMileLabel: string): readonly { readonly id: HierarchyMode; readonly label: string }[] {
   return [
     { id: 'auto', label: 'Auto' },
     { id: 'national-state', label: 'National → State' },
     { id: 'state-district', label: 'State → District' },
-    { id: 'district-agency', label: `District → ${lastMileLabel}` },
+    { id: 'district-block', label: 'District → Block' },
+    { id: 'block-agency', label: `Block → ${lastMileLabel}` },
     { id: 'full', label: 'Full tree' }
   ];
 }
@@ -15,7 +22,7 @@ export function hierarchyOptions(lastMileLabel: string): readonly { readonly id:
 /** @deprecated Prefer hierarchyOptions(scenario.lastMileLabel). */
 export const HIERARCHY_OPTIONS = hierarchyOptions('Agency');
 
-const LEVEL_ORDER: readonly NodeLevel[] = ['national', 'state', 'district', 'agency'];
+const LEVEL_ORDER: readonly NodeLevel[] = ['national', 'state', 'district', 'block', 'agency'];
 
 export interface ISchemeMetrics {
   readonly centralReleasePaise: number;
@@ -30,6 +37,7 @@ export interface IFlowLayoutNode {
   readonly fundingNodeId: string;
   readonly label: string;
   readonly levelLabel: string;
+  readonly workLabel?: string;
   readonly amountPaise: number;
   readonly reportedPaise?: number;
   readonly level: NodeLevel;
@@ -54,8 +62,8 @@ export interface IFlowLayout {
   readonly activeBand: string;
 }
 
-const COLUMN_X = [80, 460, 840, 1220] as const;
-const NODE_HEIGHT = 176;
+const COLUMN_X = [80, 420, 760, 1100, 1440] as const;
+const NODE_HEIGHT = 192;
 const ROW_GAP = 48;
 const NODE_PITCH = NODE_HEIGHT + ROW_GAP;
 
@@ -66,11 +74,13 @@ export function levelIndex(level: NodeLevel): number {
 export function resolveVisibleLevels(mode: HierarchyMode, zoom: number): readonly NodeLevel[] {
   if (mode === 'national-state') return ['national', 'state'];
   if (mode === 'state-district') return ['state', 'district'];
-  if (mode === 'district-agency') return ['district', 'agency'];
+  if (mode === 'district-block') return ['district', 'block'];
+  if (mode === 'block-agency') return ['block', 'agency'];
   if (mode === 'full') return LEVEL_ORDER;
-  if (zoom < 0.58) return ['national', 'state'];
-  if (zoom < 1.05) return ['state', 'district'];
-  return ['district', 'agency'];
+  if (zoom < 0.5) return ['national', 'state'];
+  if (zoom < 0.78) return ['state', 'district'];
+  if (zoom < 1.05) return ['district', 'block'];
+  return ['block', 'agency'];
 }
 
 export function activeBandLabel(levels: readonly NodeLevel[], lastMileLabel = 'Agency'): string {
@@ -106,7 +116,7 @@ export function buildFlowLayout(
       // Keep the focus path visible so search/select never strands the user.
       return focusPath.has(node.id);
     }
-    if (mode === 'auto' && zoom >= 0.85) {
+    if (mode === 'auto' && zoom >= 0.78) {
       return isNearFocusBranch(scenario, node, focusNodeId, focusPath);
     }
     return true;
@@ -129,6 +139,7 @@ export function buildFlowLayout(
     fundingNodeId: string;
     label: string;
     levelLabel: string;
+    workLabel?: string;
     amountPaise: number;
     reportedPaise?: number;
     level: NodeLevel;
@@ -146,7 +157,8 @@ export function buildFlowLayout(
       kind: 'funding',
       fundingNodeId: node.id,
       label: node.shortName,
-      levelLabel: node.level === 'agency' ? scenario.lastMileLabel.toLowerCase() : node.level,
+      levelLabel: levelLabelFor(node, scenario.lastMileLabel),
+      workLabel: node.workLabel,
       amountPaise: node.receivedPaise,
       reportedPaise: node.reportedPaise,
       level: node.level,
@@ -208,7 +220,7 @@ export function buildFlowLayout(
   }
 
   const layoutNodes: IFlowLayoutNode[] = mutableNodes.map((node) => ({ ...node }));
-  const maxX = layoutNodes.reduce((max, node) => Math.max(max, node.x + 260), 1200);
+  const maxX = layoutNodes.reduce((max, node) => Math.max(max, node.x + 260), 1600);
   const maxY = layoutNodes.reduce((max, node) => Math.max(max, node.y + 180), 700);
   return { nodes: layoutNodes, edges: layoutEdges, width: maxX + 80, height: maxY + 80, activeBand: band };
 }
@@ -242,7 +254,10 @@ export function ledgerRows(scenario: ISchemeScenario, query: string): readonly I
 
   const matches = new Set(
     scenario.nodes
-      .filter((node) => node.name.toLowerCase().includes(q) || node.shortName.toLowerCase().includes(q))
+      .filter((node) => {
+        const hay = `${node.name} ${node.shortName} ${node.workLabel ?? ''}`.toLowerCase();
+        return hay.includes(q);
+      })
       .map((node) => node.id)
   );
   const keep = new Set<string>();
@@ -262,6 +277,11 @@ export function ledgerRows(scenario: ISchemeScenario, query: string): readonly I
 function levelDisplayName(level: NodeLevel, lastMileLabel: string): string {
   if (level === 'agency') return lastMileLabel;
   return level.charAt(0).toUpperCase() + level.slice(1);
+}
+
+function levelLabelFor(node: IFundingNode, lastMileLabel: string): string {
+  if (node.level === 'agency') return lastMileLabel.toLowerCase();
+  return node.level;
 }
 
 function ancestorIds(scenario: ISchemeScenario, nodeId: string): Set<string> {
@@ -347,6 +367,7 @@ interface IMutableLayoutNode {
   fundingNodeId: string;
   label: string;
   levelLabel: string;
+  workLabel?: string;
   amountPaise: number;
   reportedPaise?: number;
   level: NodeLevel;
@@ -378,7 +399,7 @@ function recenterParents(
   childrenByParent: Map<string, IFundingNode[]>
 ): void {
   const byId = new Map(nodes.map((node) => [node.id, node]));
-  // Bottom-up: agency → district → state → national so parents follow shifted children.
+  // Bottom-up so parents follow shifted children.
   const funding = nodes.filter((node) => node.kind === 'funding');
   funding.sort((a, b) => levelIndex(b.level) - levelIndex(a.level));
   for (const parent of funding) {

@@ -314,6 +314,7 @@ function FlowNode({
     >
       <span>{node.levelLabel}</span>
       <strong>{node.label}</strong>
+      {!compact && !dot && node.workLabel ? <em className="node-work">{node.workLabel}</em> : null}
       {!dot && (
         <>
           <b>{formatCrore(node.amountPaise)}</b>

@@ -1,5 +1,27 @@
 # Changelog
 
+## Session 6 — 2026-08-22
+
+### Built
+
+- Replaced cartoon place-noun geography with a shared fictional gazetteer (Kanak Pradesh / Girikhand / Meera Coast; Raital dense branch).
+- Extended the canonical tree to National → State → District → Block → last-mile; hierarchy bands and five-column layout follow.
+- Rewrote all four scenarios with scheme-specific implementing bodies (`bodyKind` / `workLabel`) and SNA / ZBSA / FTO / APBS-style transfer references.
+- Inspector and ledger now show place name, work label, and official body name; canvas nodes show work labels when zoomed in.
+- Expanded calibration, decisions, and status docs; product still ships local fixtures only (no scraper).
+
+### Verified
+
+- `npm run build` completes successfully with TypeScript strict checking.
+
+### Deferred
+
+- Automated layout tests, public deployment, and submission assets.
+
+### Tech debt
+
+- Matching state share is explained in reconciliations rather than a separate national-parent transfer edge.
+
 ## Session 5 — 2026-08-22
 
 ### Built
@@ -37,6 +59,7 @@
 ### Deferred
 
 - Automated tests, public deployment, and submission assets.
+
 
 ### Tech debt
 

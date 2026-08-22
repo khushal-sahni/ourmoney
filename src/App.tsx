@@ -10,7 +10,7 @@ import type {
   ISchemeSummary,
   ITransfer
 } from './domain/fund-flow';
-import { schemeKindDescription } from './domain/fund-flow';
+import { bodyKindLabel, schemeKindDescription } from './domain/fund-flow';
 import {
   computeSchemeMetrics,
   ledgerRows,
@@ -26,7 +26,7 @@ export function App(): ReactElement {
   const [catalog, setCatalog] = useState<readonly ISchemeSummary[]>([]);
   const [schemeId, setSchemeId] = useState(DEFAULT_SCHEME_ID);
   const [scenario, setScenario] = useState<ISchemeScenario>();
-  const [selectedId, setSelectedId] = useState('nadi');
+  const [selectedId, setSelectedId] = useState('piprahi-paani');
   const [query, setQuery] = useState('');
   const [view, setView] = useState<'flow' | 'ledger'>('flow');
   const [hierarchyMode, setHierarchyMode] = useState<HierarchyMode>('auto');
@@ -78,8 +78,10 @@ export function App(): ReactElement {
     [scenario, selectedId]
   );
   const matches = useMemo(
-    () => scenario?.nodes.filter((node) => node.name.toLowerCase().includes(query.toLowerCase())
-      || node.shortName.toLowerCase().includes(query.toLowerCase())) ?? [],
+    () => scenario?.nodes.filter((node) => {
+      const hay = `${node.name} ${node.shortName} ${node.workLabel ?? ''}`.toLowerCase();
+      return hay.includes(query.toLowerCase());
+    }) ?? [],
     [scenario, query]
   );
   const metrics = useMemo(
@@ -165,13 +167,14 @@ export function App(): ReactElement {
                   setSelectedId(node.id);
                   setQuery('');
                   setView('flow');
-                  if (node.level === 'agency' || node.level === 'district') {
+                  if (node.level === 'agency' || node.level === 'block' || node.level === 'district') {
                     setHierarchyMode('auto');
                   }
                 }}
               >
                 <span>{node.level === 'agency' ? scenario.lastMileLabel.toLowerCase() : node.level}</span>
-                {node.name}
+                {node.shortName}
+                {node.workLabel ? ` · ${node.workLabel}` : ''}
                 <b>{formatCrore(node.receivedPaise)}</b>
               </button>
             )) : <p>No matching record</p>}
@@ -295,7 +298,10 @@ function LedgerTable({
             >
               <td style={{ paddingLeft: `${20 + depthOf(node) * 18}px` }}>
                 <strong>{node.shortName}</strong>
-                <span>{levelLabel(node)}</span>
+                <span>
+                  {levelLabel(node)}
+                  {node.workLabel ? ` · ${node.workLabel}` : ''}
+                </span>
               </td>
               <td>{formatCrore(node.receivedPaise)}</td>
               <td>
@@ -329,6 +335,7 @@ function Inspector({
   const levelWord = node.level === 'agency'
     ? scenario.lastMileLabel.toLowerCase()
     : node.level;
+  const bodyLabel = bodyKindLabel(node.bodyKind);
 
   return (
     <aside className="inspector">
@@ -342,6 +349,11 @@ function Inspector({
       </div>
       <span className="node-level">{levelWord}</span>
       <h1>{node.shortName}</h1>
+      {node.workLabel ? <p className="work-label">{node.workLabel}</p> : null}
+      {bodyLabel && bodyLabel !== node.workLabel ? (
+        <p className="body-kind">{bodyLabel}</p>
+      ) : null}
+      <p className="official-name">{node.name}</p>
       <p className="scheme-kind-blurb">{schemeKindDescription(scenario.schemeKind)}</p>
       <p>
         {node.level === 'national'
