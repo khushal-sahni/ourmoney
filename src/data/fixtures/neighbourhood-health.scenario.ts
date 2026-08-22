@@ -62,12 +62,11 @@ export const NEIGHBOURHOOD_HEALTH_SCENARIO: ISchemeScenario = {
       level: 'state',
       bodyKind: 'shs',
       workLabel: 'State Health Society',
-      // Centre share only so far; matching state share (~12 cr) not yet released.
+      // Centre share only so far; matching state share is explained in reconciliations, not as a row leftover.
       receivedPaise: 21.6 * CRORE,
       reportedPaise: 21.6 * CRORE,
       reportedAt: '20 Jul 2026',
-      parentId: 'india',
-      unpublishedPaise: 12 * CRORE
+      parentId: 'india'
     },
     // Districts
     {
@@ -78,7 +77,7 @@ export const NEIGHBOURHOOD_HEALTH_SCENARIO: ISchemeScenario = {
       bodyKind: 'dhs',
       workLabel: 'District Health Society',
       receivedPaise: 32 * CRORE,
-      reportedPaise: 31.2 * CRORE,
+      reportedPaise: 32 * CRORE,
       reportedAt: '28 Jul 2026',
       parentId: 'kanak'
     },
@@ -138,9 +137,10 @@ export const NEIGHBOURHOOD_HEALTH_SCENARIO: ISchemeScenario = {
       bodyKind: 'dhs',
       workLabel: 'District Health Society',
       receivedPaise: 12.6 * CRORE,
-      reportedPaise: 12.2 * CRORE,
+      reportedPaise: 7 * CRORE,
       reportedAt: '30 Jul 2026',
-      parentId: 'meera'
+      parentId: 'meera',
+      unpublishedPaise: 5.6 * CRORE
     },
     {
       id: 'nirmalbandh',
@@ -150,9 +150,10 @@ export const NEIGHBOURHOOD_HEALTH_SCENARIO: ISchemeScenario = {
       bodyKind: 'dhs',
       workLabel: 'District Health Society',
       receivedPaise: 9 * CRORE,
-      reportedPaise: 8.7 * CRORE,
+      reportedPaise: 5.5 * CRORE,
       reportedAt: '31 Jul 2026',
-      parentId: 'meera'
+      parentId: 'meera',
+      unpublishedPaise: 3.5 * CRORE
     },
     // Raital BPMUs (dense)
     {
@@ -163,7 +164,7 @@ export const NEIGHBOURHOOD_HEALTH_SCENARIO: ISchemeScenario = {
       bodyKind: 'bpmu',
       workLabel: 'BPMU',
       receivedPaise: 11 * CRORE,
-      reportedPaise: 10.7 * CRORE,
+      reportedPaise: 11 * CRORE,
       reportedAt: '01 Aug 2026',
       parentId: 'raital'
     },
@@ -175,7 +176,7 @@ export const NEIGHBOURHOOD_HEALTH_SCENARIO: ISchemeScenario = {
       bodyKind: 'bpmu',
       workLabel: 'BPMU',
       receivedPaise: 13 * CRORE,
-      reportedPaise: 12.6 * CRORE,
+      reportedPaise: 13 * CRORE,
       reportedAt: '01 Aug 2026',
       parentId: 'raital'
     },
@@ -187,7 +188,7 @@ export const NEIGHBOURHOOD_HEALTH_SCENARIO: ISchemeScenario = {
       bodyKind: 'bpmu',
       workLabel: 'BPMU',
       receivedPaise: 8 * CRORE,
-      reportedPaise: 7.8 * CRORE,
+      reportedPaise: 8 * CRORE,
       reportedAt: '02 Aug 2026',
       parentId: 'raital'
     },

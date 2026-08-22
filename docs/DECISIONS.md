@@ -2,10 +2,10 @@
 
 ## 2026-08-22 — Citizen leftover: still on ledger vs next office not named
 
-- **Status:** Accepted
-- **Context:** Ledger columns Allocated / Disbursed / Awaiting invited subtraction. Citizens expected Dhowli’s ₹0.3 Cr (10 − 9.7) in Awaiting. Awaiting was `unpublishedPaise` (next hop not published). On several parent rows those two numbers were the same leftover; on leaf rows the same leftover was hidden. Confusion was a labeling problem, not a data-model problem.
-- **Decision:** Every node exposes Received, Reported sent, and What’s left. What’s left is always Received − Reported sent when that difference is positive (“still on this ledger”). Amber “next office not named” appears only when unpublished is a *different* story (reported sent already matches received, or unpublished ≠ the difference). Inspector states this in one sentence. Scheme headline leftover uses the centre row only so child flags are not summed twice.
-- **Consequences:** The UI matches the subtraction citizens already do. It does not call a leftover theft or delay by a person. Two leftover kinds stay distinct without forcing people to learn `unpublishedPaise`.
+- **Status:** Accepted (tightened)
+- **Context:** Ledger columns invited subtraction. Showing Received 140 / Reported sent 140 / What’s left 5 looked broken even when ₹5 Cr was a real untraced-to-children gap.
+- **Decision:** For any node with named children, Reported sent = sum of those children, and What’s left = Received − that sum (“next office not named”). Leaf rows use Reported sent = utilisation on that ledger (“still on this ledger”). Fixtures must obey the same rule; `findStandingInconsistencies` checks it. Matching-society national is exempt from child ≤ parent because state match merges below.
+- **Consequences:** Centre row always reads as 140 − 135 = 5. Citizens can verify every parent row with the same finger math.
 
 ## 2026-08-22 — Realistic synthetic gazetteer and five-level last-mile
 

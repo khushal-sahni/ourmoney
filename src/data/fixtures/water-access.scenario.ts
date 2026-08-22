@@ -25,7 +25,7 @@ export const WATER_ACCESS_SCENARIO: ISchemeScenario = {
       bodyKind: 'national-account',
       workLabel: 'Programme account',
       receivedPaise: 140 * CRORE,
-      reportedPaise: 140 * CRORE,
+      reportedPaise: 135 * CRORE,
       reportedAt: '12 Jul 2026',
       unpublishedPaise: 5 * CRORE
     },
@@ -37,7 +37,7 @@ export const WATER_ACCESS_SCENARIO: ISchemeScenario = {
       bodyKind: 'swsm',
       workLabel: 'SWSM · SNA',
       receivedPaise: 78 * CRORE,
-      reportedPaise: 78 * CRORE,
+      reportedPaise: 70 * CRORE,
       reportedAt: '19 Jul 2026',
       parentId: 'india',
       unpublishedPaise: 8 * CRORE
@@ -75,7 +75,7 @@ export const WATER_ACCESS_SCENARIO: ISchemeScenario = {
       bodyKind: 'dwsm',
       workLabel: 'DWSM',
       receivedPaise: 28 * CRORE,
-      reportedPaise: 24.2 * CRORE,
+      reportedPaise: 28 * CRORE,
       reportedAt: '02 Aug 2026',
       parentId: 'kanak'
     },
@@ -161,9 +161,10 @@ export const WATER_ACCESS_SCENARIO: ISchemeScenario = {
       bodyKind: 'block-resource-centre',
       workLabel: 'Block resource centre',
       receivedPaise: 9.5 * CRORE,
-      reportedPaise: 9.1 * CRORE,
+      reportedPaise: 4.2 * CRORE,
       reportedAt: '28 Jul 2026',
-      parentId: 'raital'
+      parentId: 'raital',
+      unpublishedPaise: 5.3 * CRORE
     },
     {
       id: 'kharonda',
@@ -173,7 +174,7 @@ export const WATER_ACCESS_SCENARIO: ISchemeScenario = {
       bodyKind: 'block-resource-centre',
       workLabel: 'Block resource centre',
       receivedPaise: 12.2 * CRORE,
-      reportedPaise: 8.8 * CRORE,
+      reportedPaise: 11.7 * CRORE,
       reportedAt: '29 Jul 2026',
       parentId: 'raital',
       unpublishedPaise: 0.5 * CRORE
@@ -201,8 +202,7 @@ export const WATER_ACCESS_SCENARIO: ISchemeScenario = {
       receivedPaise: 5.4 * CRORE,
       reportedPaise: 4.1 * CRORE,
       reportedAt: '26 Jul 2026',
-      parentId: 'kharonda',
-      unpublishedPaise: 1.3 * CRORE
+      parentId: 'kharonda'
     },
     {
       id: 'tengra-paani',

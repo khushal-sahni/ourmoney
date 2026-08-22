@@ -1,5 +1,17 @@
 # Changelog
 
+## Session 8 — 2026-08-22
+
+### Built
+
+- Fixed the “140 sent / 5 left” confusion: Reported sent for parents is now the named-children total, so What’s left = Received − Reported sent.
+- Audited and corrected all four fixtures to that rule; leaves no longer misuse `unpublishedPaise`.
+- Added `findStandingInconsistencies` so mock data can be checked for the same citizen math.
+
+### Verified
+
+- Coherence check clean on all four scenarios; `npm run build` passes.
+
 ## Session 7 — 2026-08-22
 
 ### Built

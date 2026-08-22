@@ -24,7 +24,7 @@ export const RURAL_WORKS_GUARANTEE_SCENARIO: ISchemeScenario = {
       bodyKind: 'national-account',
       workLabel: 'Programme account',
       receivedPaise: 420 * CRORE,
-      reportedPaise: 420 * CRORE,
+      reportedPaise: 408 * CRORE,
       reportedAt: '08 Jul 2026',
       unpublishedPaise: 12 * CRORE
     },
@@ -36,7 +36,7 @@ export const RURAL_WORKS_GUARANTEE_SCENARIO: ISchemeScenario = {
       bodyKind: 'segf',
       workLabel: 'SEGF · SNA',
       receivedPaise: 248 * CRORE,
-      reportedPaise: 248 * CRORE,
+      reportedPaise: 242 * CRORE,
       reportedAt: '14 Jul 2026',
       parentId: 'india',
       unpublishedPaise: 6 * CRORE
@@ -74,7 +74,7 @@ export const RURAL_WORKS_GUARANTEE_SCENARIO: ISchemeScenario = {
       bodyKind: 'district-programme-coordinator',
       workLabel: 'District Programme Coordinator',
       receivedPaise: 99 * CRORE,
-      reportedPaise: 91 * CRORE,
+      reportedPaise: 94.8 * CRORE,
       reportedAt: '28 Jul 2026',
       parentId: 'kanak',
       unpublishedPaise: 4.2 * CRORE
@@ -172,7 +172,7 @@ export const RURAL_WORKS_GUARANTEE_SCENARIO: ISchemeScenario = {
       bodyKind: 'programme-officer',
       workLabel: 'Programme Officer',
       receivedPaise: 42 * CRORE,
-      reportedPaise: 34.8 * CRORE,
+      reportedPaise: 40 * CRORE,
       reportedAt: '02 Aug 2026',
       parentId: 'raital',
       unpublishedPaise: 2.0 * CRORE
@@ -200,8 +200,7 @@ export const RURAL_WORKS_GUARANTEE_SCENARIO: ISchemeScenario = {
       receivedPaise: 22 * CRORE,
       reportedPaise: 17.4 * CRORE,
       reportedAt: '02 Aug 2026',
-      parentId: 'kharonda',
-      unpublishedPaise: 4.6 * CRORE
+      parentId: 'kharonda'
     },
     {
       id: 'talab-gp',

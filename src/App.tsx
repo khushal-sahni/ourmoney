@@ -193,7 +193,7 @@ export function App(): ReactElement {
           detail={`${metrics.awaitingSharePercent}% of scheme`}
         />
         <p>
-          What’s left is the centre row’s leftover: either still on that ledger, or sent with no named next office.
+          What’s left = Received − Reported sent on the centre row. Reported sent is money under named next offices.
           Open a row for the one-line explanation. Independent prototype · all figures synthetic.
         </p>
       </section>
@@ -370,6 +370,7 @@ function LedgerTable({
             const childCount = byParent.get(node.id)?.length ?? 0;
             const isBranch = childCount > 0;
             const isOpen = searching || expanded.has(node.id);
+            const standing = citizenStanding(scenario, node);
             return (
               <tr
                 key={node.id}
@@ -402,12 +403,12 @@ function LedgerTable({
                     </div>
                   </div>
                 </td>
-                <td>{formatCrore(node.receivedPaise)}</td>
+                <td>{formatCrore(standing.receivedPaise)}</td>
                 <td>
-                  {formatCrore(node.reportedPaise)}
-                  <small>{Math.round(percentOf(node.reportedPaise, node.receivedPaise))}%</small>
+                  {formatCrore(standing.reportedSentPaise)}
+                  <small>{Math.round(percentOf(standing.reportedSentPaise, standing.receivedPaise))}%</small>
                 </td>
-                <LedgerOpenCell scenario={scenario} node={node} />
+                <LedgerOpenCell standing={standing} />
               </tr>
             );
           })}
@@ -418,13 +419,10 @@ function LedgerTable({
 }
 
 function LedgerOpenCell({
-  scenario,
-  node
+  standing
 }: {
-  scenario: ISchemeScenario;
-  node: IFundingNode;
+  standing: ReturnType<typeof citizenStanding>;
 }): ReactElement {
-  const standing = citizenStanding(scenario, node);
   if (standing.ledgerOpenKind === 'none') {
     return <td>—</td>;
   }
@@ -448,8 +446,8 @@ function Inspector({
   scenario: ISchemeScenario;
 }): ReactElement {
   const crumbs = pathFor(scenario, node);
-  const reportedPercentage = percentOf(node.reportedPaise, node.receivedPaise);
   const standing = citizenStanding(scenario, node);
+  const reportedPercentage = percentOf(standing.reportedSentPaise, standing.receivedPaise);
   const levelWord = node.level === 'agency'
     ? scenario.lastMileLabel.toLowerCase()
     : node.level;
@@ -493,18 +491,18 @@ function Inspector({
           percent={reportedPercentage}
           soft
         />
-        {standing.stillOnBooksPaise > 0 ? (
+        {standing.ledgerOpenKind === 'still-on-books' ? (
           <FinancialBar
             label="Still on this ledger"
-            value={formatCrore(standing.stillOnBooksPaise)}
-            percent={percentOf(standing.stillOnBooksPaise, standing.receivedPaise)}
+            value={formatCrore(standing.ledgerOpenPaise)}
+            percent={percentOf(standing.ledgerOpenPaise, standing.receivedPaise)}
           />
         ) : null}
         {standing.showUnnamedBar ? (
           <FinancialBar
             label="Next office not named"
-            value={formatCrore(standing.unnamedNextPaise)}
-            percent={percentOf(standing.unnamedNextPaise, standing.receivedPaise)}
+            value={formatCrore(standing.ledgerOpenPaise)}
+            percent={percentOf(standing.ledgerOpenPaise, standing.receivedPaise)}
             amber
           />
         ) : null}

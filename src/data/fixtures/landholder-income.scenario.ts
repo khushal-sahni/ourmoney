@@ -37,10 +37,9 @@ export const LANDHOLDER_INCOME_SCENARIO: ISchemeScenario = {
       bodyKind: 'dbt-cell',
       workLabel: 'DBT cell',
       receivedPaise: 48 * CRORE,
-      reportedPaise: 47.1 * CRORE,
+      reportedPaise: 48 * CRORE,
       reportedAt: '11 Aug 2026',
-      parentId: 'india',
-      unpublishedPaise: 0.9 * CRORE
+      parentId: 'india'
     },
     {
       id: 'girikhand',
@@ -50,10 +49,9 @@ export const LANDHOLDER_INCOME_SCENARIO: ISchemeScenario = {
       bodyKind: 'dbt-cell',
       workLabel: 'DBT cell',
       receivedPaise: 28 * CRORE,
-      reportedPaise: 27.5 * CRORE,
+      reportedPaise: 28 * CRORE,
       reportedAt: '11 Aug 2026',
-      parentId: 'india',
-      unpublishedPaise: 0.5 * CRORE
+      parentId: 'india'
     },
     {
       id: 'meera',
@@ -62,11 +60,10 @@ export const LANDHOLDER_INCOME_SCENARIO: ISchemeScenario = {
       level: 'state',
       bodyKind: 'dbt-cell',
       workLabel: 'DBT cell',
-      receivedPaise: 17.1 * CRORE,
-      reportedPaise: 16.6 * CRORE,
+      receivedPaise: (171 * CRORE) / 10,
+      reportedPaise: (171 * CRORE) / 10,
       reportedAt: '11 Aug 2026',
-      parentId: 'india',
-      unpublishedPaise: 0.5 * CRORE
+      parentId: 'india'
     },
     // Districts — enrollment-weighted (Raital highest in Kanak)
     {
@@ -77,10 +74,9 @@ export const LANDHOLDER_INCOME_SCENARIO: ISchemeScenario = {
       bodyKind: 'district-agri-office',
       workLabel: 'District Agriculture Office',
       receivedPaise: 22 * CRORE,
-      reportedPaise: 20.6 * CRORE,
+      reportedPaise: 22 * CRORE,
       reportedAt: '12 Aug 2026',
-      parentId: 'kanak',
-      unpublishedPaise: 0.9 * CRORE
+      parentId: 'kanak'
     },
     {
       id: 'chandanpur',
@@ -116,7 +112,8 @@ export const LANDHOLDER_INCOME_SCENARIO: ISchemeScenario = {
       receivedPaise: 15 * CRORE,
       reportedPaise: 14.7 * CRORE,
       reportedAt: '12 Aug 2026',
-      parentId: 'girikhand'
+      parentId: 'girikhand',
+      unpublishedPaise: 0.3 * CRORE
     },
     {
       id: 'sitabari',
@@ -149,8 +146,8 @@ export const LANDHOLDER_INCOME_SCENARIO: ISchemeScenario = {
       level: 'district',
       bodyKind: 'district-agri-office',
       workLabel: 'District Agriculture Office',
-      receivedPaise: 7.1 * CRORE,
-      reportedPaise: 6.9 * CRORE,
+      receivedPaise: (71 * CRORE) / 10,
+      reportedPaise: (69 * CRORE) / 10,
       reportedAt: '12 Aug 2026',
       parentId: 'meera'
     },
@@ -165,7 +162,8 @@ export const LANDHOLDER_INCOME_SCENARIO: ISchemeScenario = {
       receivedPaise: 6.8 * CRORE,
       reportedPaise: 6.6 * CRORE,
       reportedAt: '13 Aug 2026',
-      parentId: 'raital'
+      parentId: 'raital',
+      unpublishedPaise: 0.2 * CRORE
     },
     {
       id: 'kharonda',
@@ -203,8 +201,7 @@ export const LANDHOLDER_INCOME_SCENARIO: ISchemeScenario = {
       receivedPaise: 9.5 * CRORE,
       reportedPaise: 8.6 * CRORE,
       reportedAt: '14 Aug 2026',
-      parentId: 'kharonda',
-      unpublishedPaise: 0.9 * CRORE
+      parentId: 'kharonda'
     },
     {
       id: 'raital-sadar-i2',
@@ -248,7 +245,7 @@ export const LANDHOLDER_INCOME_SCENARIO: ISchemeScenario = {
     { id: 'lis-t13', fromNodeId: 'girikhand', toNodeId: 'patharwadi', amountPaise: 15 * CRORE, date: '11 Aug 2026', reference: 'DAO/PAT/ENR-0811', component: 'installment' },
     { id: 'lis-t14', fromNodeId: 'girikhand', toNodeId: 'sitabari', amountPaise: 13 * CRORE, date: '11 Aug 2026', reference: 'DAO/SIT/ENR-0811', component: 'installment' },
     { id: 'lis-t15', fromNodeId: 'meera', toNodeId: 'dhowli', amountPaise: 10 * CRORE, date: '11 Aug 2026', reference: 'DAO/DHO/ENR-0811', component: 'installment' },
-    { id: 'lis-t16', fromNodeId: 'meera', toNodeId: 'nirmalbandh', amountPaise: 7.1 * CRORE, date: '11 Aug 2026', reference: 'DAO/NIR/ENR-0811', component: 'installment' },
+    { id: 'lis-t16', fromNodeId: 'meera', toNodeId: 'nirmalbandh', amountPaise: (71 * CRORE) / 10, date: '11 Aug 2026', reference: 'DAO/NIR/ENR-0811', component: 'installment' },
     { id: 'lis-t17', fromNodeId: 'raital', toNodeId: 'raital-sadar', amountPaise: 6.8 * CRORE, date: '13 Aug 2026', reference: 'BLK/RSAD/ENR-0813', component: 'installment' },
     { id: 'lis-t18', fromNodeId: 'raital', toNodeId: 'kharonda', amountPaise: 10.4 * CRORE, date: '13 Aug 2026', reference: 'BLK/KHR/ENR-0813', component: 'installment' },
     { id: 'lis-t19', fromNodeId: 'raital', toNodeId: 'uttar-raital', amountPaise: 4.8 * CRORE, date: '13 Aug 2026', reference: 'BLK/URAI/ENR-0813', component: 'installment' },
