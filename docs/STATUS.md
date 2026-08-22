@@ -1,10 +1,10 @@
 # Project Status
 
-> Last updated: 2026-08-22 · Session 10
+> Last updated: 2026-08-22 · Session 11
 
 ## Current state
 
-Stage 1 citizen journey for **ourmoney** runs locally as a full-bleed scheme explorer with **four cardinally different synthetic scheme archetypes**, a shared fictional Indian gazetteer, a five-level flow tree (National → State → District → Block → last-mile), scheme-specific implementing bodies, **used-here office consumption** on tree and ledger, and a persisted day/night theme. Favicon + product rename done; public deploy to `ourmoney.fyi` is the remaining last step.
+Stage 1 citizen journey for **ourmoney** runs locally as a full-bleed scheme explorer with **four cardinally different synthetic scheme archetypes**, a shared fictional Indian gazetteer, a five-level flow tree (National → State → District → Block → last-mile), scheme-specific implementing bodies, **used-here office consumption** on tree and ledger, and a persisted day/night theme. Mobile uses a dismissible details sheet (closed by default) so the flow map stays visible. Favicon + product rename done; public deploy to `ourmoney.fyi` is the remaining last step.
 
 ## What works
 
@@ -17,7 +17,8 @@ Stage 1 citizen journey for **ourmoney** runs locally as a full-bleed scheme exp
 - Tree: segmented gold / teal / amber bar + teal used-here amount chip; awaiting stays a separate next-column card.
 - Ledger columns: Node · Received · Sent onward · Used here · What’s left; inspector one-line used-here remark.
 - Scheme switcher loads catalog + scenario by id and focuses each scheme’s highlight node.
-- Flow map: five-column adaptive hierarchy, work labels on nodes, quieter pan/zoom, collision-aware layout, ledger alternate view, detail inspector with official body name + scheme-kind copy. Node tap updates the inspector only; auto branch focus changes on scheme load / search. Double-tap toggles immediate child branches.
+- Flow map: five-column adaptive hierarchy, work labels on nodes, quieter pan/zoom, collision-aware layout, ledger alternate view, detail inspector with official body name + scheme-kind copy. Node tap updates selection (and mobile CTA label) only; auto branch focus changes on scheme load / search. Double-tap toggles immediate child branches.
+- Mobile (≤850px): inspector closed by default as a 75vh bottom sheet; open from **View details** CTA; dismiss with ×, backdrop, or Escape. Compact header + collapsible metrics summary + hierarchy select so the map keeps most of the viewport.
 - Light and dark themes via a header day/night toggle (`ourmoney-theme` in localStorage).
 - Metrics derived from scenario data; every surface labels the prototype and data as synthetic.
 - Calibration note documents public sources used for topology/vocabulary only ([docs/SYNTHETIC-CALIBRATION.md](SYNTHETIC-CALIBRATION.md)).

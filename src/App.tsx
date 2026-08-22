@@ -34,10 +34,25 @@ export function App(): ReactElement {
   const [view, setView] = useState<'flow' | 'ledger'>('flow');
   const [hierarchyMode, setHierarchyMode] = useState<HierarchyMode>('auto');
   const [menuOpen, setMenuOpen] = useState(false);
+  const [inspectorOpen, setInspectorOpen] = useState(false);
+  const [metricsOpen, setMetricsOpen] = useState(false);
+  const [isMobileLayout, setIsMobileLayout] = useState(false);
   const switcherRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     void ledgerService.loadCatalog().then(setCatalog);
+  }, []);
+
+  useEffect(() => {
+    const media = window.matchMedia('(max-width: 850px)');
+    const sync = (): void => {
+      setIsMobileLayout(media.matches);
+    };
+    sync();
+    media.addEventListener('change', sync);
+    return () => {
+      media.removeEventListener('change', sync);
+    };
   }, []);
 
   useEffect(() => {
@@ -48,6 +63,8 @@ export function App(): ReactElement {
       setHierarchyMode('auto');
       setQuery('');
       setMenuOpen(false);
+      setInspectorOpen(false);
+      setMetricsOpen(false);
     });
   }, [schemeId]);
 
@@ -69,8 +86,23 @@ export function App(): ReactElement {
     };
   }, [menuOpen]);
 
+  useEffect(() => {
+    if (!inspectorOpen) return;
+    const onKeyDown = (event: KeyboardEvent): void => {
+      if (event.key === 'Escape') setInspectorOpen(false);
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.removeEventListener('keydown', onKeyDown);
+    };
+  }, [inspectorOpen]);
+
   const selectScheme = useCallback((id: string): void => {
     setSchemeId(id);
+  }, []);
+
+  const closeInspector = useCallback((): void => {
+    setInspectorOpen(false);
   }, []);
 
   const selected = useMemo(
@@ -139,10 +171,12 @@ export function App(): ReactElement {
 
         <nav className="view-switcher" aria-label="Workspace view">
           <button type="button" className={view === 'flow' ? 'active' : ''} onClick={() => setView('flow')}>
-            Flow map
+            <span className="view-label-full">Flow map</span>
+            <span className="view-label-short">Map</span>
           </button>
           <button type="button" className={view === 'ledger' ? 'active' : ''} onClick={() => setView('ledger')}>
-            Ledger table
+            <span className="view-label-full">Ledger table</span>
+            <span className="view-label-short">Ledger</span>
           </button>
         </nav>
 
@@ -187,20 +221,44 @@ export function App(): ReactElement {
         )}
       </header>
 
-      <section className="metrics">
-        <Metric label="Received at centre" value={formatCrore(metrics.centralReleasePaise)} />
-        <Metric label="Traced onward" value={formatCrore(metrics.tracedOnwardPaise)} tone="gold" />
-        <Metric
-          label="What's left"
-          value={formatCrore(metrics.awaitingDetailsPaise)}
-          tone="amber"
-          detail={`${metrics.awaitingSharePercent}% of scheme`}
-        />
-        <p className="metrics-note">
-          Independent prototype · all data synthetic
-          <span>Double-tap a node to see its immediate branches</span>
-        </p>
-      </section>
+      <details
+        className="metrics-panel"
+        open={!isMobileLayout || metricsOpen}
+        onToggle={(event) => {
+          if (!isMobileLayout) return;
+          setMetricsOpen(event.currentTarget.open);
+        }}
+      >
+        <summary className="metrics-compact">
+          <span>
+            <em>Centre</em>
+            <b>{formatCrore(metrics.centralReleasePaise)}</b>
+          </span>
+          <span>
+            <em>Onward</em>
+            <b className="gold">{formatCrore(metrics.tracedOnwardPaise)}</b>
+          </span>
+          <span>
+            <em>Left</em>
+            <b className="amber">{formatCrore(metrics.awaitingDetailsPaise)}</b>
+          </span>
+          <i aria-hidden="true">▾</i>
+        </summary>
+        <section className="metrics">
+          <Metric label="Received at centre" value={formatCrore(metrics.centralReleasePaise)} />
+          <Metric label="Traced onward" value={formatCrore(metrics.tracedOnwardPaise)} tone="gold" />
+          <Metric
+            label="What's left"
+            value={formatCrore(metrics.awaitingDetailsPaise)}
+            tone="amber"
+            detail={`${metrics.awaitingSharePercent}% of scheme`}
+          />
+          <p className="metrics-note">
+            Independent prototype · all data synthetic
+            <span>Double-tap a node to see its immediate branches</span>
+          </p>
+        </section>
+      </details>
 
       <section className="workbench">
         <div className="workspace">
@@ -238,11 +296,34 @@ export function App(): ReactElement {
           </div>
         </div>
 
+        <button
+          type="button"
+          className="inspector-cta"
+          onClick={() => setInspectorOpen(true)}
+          aria-expanded={inspectorOpen}
+          aria-controls="node-inspector"
+        >
+          <span>View details</span>
+          <strong>{selected.shortName}</strong>
+        </button>
+
+        {inspectorOpen ? (
+          <button
+            type="button"
+            className="inspector-backdrop"
+            aria-label="Dismiss details"
+            onClick={closeInspector}
+          />
+        ) : null}
+
         <Inspector
           node={selected}
           reconciliation={reconciliation}
           transfers={ledgerService.transfersFor(scenario, selectedId)}
           scenario={scenario}
+          open={inspectorOpen}
+          sheetHidden={isMobileLayout && !inspectorOpen}
+          onClose={closeInspector}
         />
       </section>
     </main>
@@ -461,12 +542,18 @@ function Inspector({
   node,
   reconciliation,
   transfers,
-  scenario
+  scenario,
+  open,
+  sheetHidden,
+  onClose
 }: {
   node: IFundingNode;
   reconciliation: IReconciliation | undefined;
   transfers: readonly ITransfer[];
   scenario: ISchemeScenario;
+  open: boolean;
+  sheetHidden: boolean;
+  onClose: () => void;
 }): ReactElement {
   const crumbs = pathFor(scenario, node);
   const standing = citizenStanding(scenario, node);
@@ -477,7 +564,23 @@ function Inspector({
   const bodyLabel = bodyKindLabel(node.bodyKind);
 
   return (
-    <aside className="inspector">
+    <aside
+      id="node-inspector"
+      className={`inspector${open ? ' open' : ''}`}
+      aria-hidden={sheetHidden || undefined}
+      {...(sheetHidden ? ({ inert: true } as { inert: boolean }) : {})}
+    >
+      <div className="inspector-sheet-chrome">
+        <span className="inspector-handle" aria-hidden="true" />
+        <button
+          type="button"
+          className="inspector-close"
+          aria-label="Close details"
+          onClick={onClose}
+        >
+          <span aria-hidden="true">×</span>
+        </button>
+      </div>
       <div className="crumb-text">
         {crumbs.map((step, index) => (
           <span key={step.id}>

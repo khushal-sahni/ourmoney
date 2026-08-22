@@ -70,6 +70,7 @@ export function FlowCanvas({
   const wheelRaf = useRef<number | undefined>(undefined);
   const lastTapRef = useRef<{ readonly id: string; readonly at: number } | undefined>(undefined);
   const pendingCenterIdRef = useRef<string | undefined>(undefined);
+  const lastStageSizeRef = useRef<{ readonly width: number; readonly height: number }>({ width: 0, height: 0 });
   const bandOptions = useMemo(() => hierarchyOptions(scenario.lastMileLabel), [scenario.lastMileLabel]);
 
   useEffect(() => {
@@ -277,7 +278,7 @@ export function FlowCanvas({
 
   const onPointerDown = (event: PointerEvent<HTMLDivElement>): void => {
     window.getSelection()?.removeAllRanges();
-    if ((event.target as HTMLElement).closest('button, article')) return;
+    if ((event.target as HTMLElement).closest('button, article, select, label, input, a')) return;
     event.preventDefault();
     event.currentTarget.setPointerCapture(event.pointerId);
     const next = pointFromClient(event.clientX, event.clientY);
@@ -351,6 +352,52 @@ export function FlowCanvas({
     });
   }, [applyTransform, layout.activeBand, selectedId]);
 
+  useEffect(() => {
+    const stage = stageRef.current;
+    if (!stage) return;
+
+    const recenterIfNeeded = (): void => {
+      const rect = stage.getBoundingClientRect();
+      const prev = lastStageSizeRef.current;
+      const gainedSize = (prev.width < 40 || prev.height < 40) && rect.width >= 40 && rect.height >= 40;
+      const grewMeaningfully =
+        prev.width > 0
+        && prev.height > 0
+        && (Math.abs(rect.width - prev.width) > 48 || Math.abs(rect.height - prev.height) > 48);
+      lastStageSizeRef.current = { width: rect.width, height: rect.height };
+      if (!gainedSize && !grewMeaningfully) return;
+
+      const target = layout.nodes.find((node) => node.fundingNodeId === selectedId && node.kind === 'funding');
+      if (!target) return;
+      const current = transformRef.current;
+      const screenX = current.x + (target.x + NODE_WIDTH / 2) * current.zoom;
+      const screenY = current.y + (target.y + 70) * current.zoom;
+      const padded = 72;
+      if (
+        screenX > padded
+        && screenX < rect.width - padded
+        && screenY > padded
+        && screenY < rect.height - padded
+      ) {
+        return;
+      }
+      applyTransform({
+        ...current,
+        x: rect.width / 2 - (target.x + NODE_WIDTH / 2) * current.zoom,
+        y: rect.height / 2 - (target.y + 70) * current.zoom
+      });
+    };
+
+    const observer = new ResizeObserver(() => {
+      recenterIfNeeded();
+    });
+    observer.observe(stage);
+    recenterIfNeeded();
+    return () => {
+      observer.disconnect();
+    };
+  }, [applyTransform, layout.nodes, selectedId]);
+
   return (
     <div
       className="flow-stage"
@@ -373,6 +420,20 @@ export function FlowCanvas({
             </button>
           ))}
         </div>
+        <label className="hierarchy-select">
+          <span className="visually-hidden">Hierarchy band</span>
+          <select
+            value={hierarchyMode}
+            onChange={(event) => onHierarchyModeChange(event.target.value as HierarchyMode)}
+            aria-label="Hierarchy band"
+          >
+            {bandOptions.map((option) => (
+              <option key={option.id} value={option.id}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </label>
         <div className="canvas-band" aria-live="polite">
           <b>{layout.activeBand}</b>
           {hierarchyMode === 'auto' ? <span>auto</span> : null}

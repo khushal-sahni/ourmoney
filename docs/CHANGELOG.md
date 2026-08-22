@@ -1,5 +1,19 @@
 # Changelog
 
+## Session 11 — 2026-08-22
+
+### Built
+
+- Mobile inspector is a closed-by-default bottom sheet (75vh) opened only from a fixed **View details** CTA that tracks the selected node.
+- Sheet dismisses via close ×, backdrop tap, or Escape; scheme switch resets it closed.
+- Mobile layout uses a flex shell so the flow map fills the remaining viewport (no always-open 49vh sheet covering the tree).
+- Flow canvas recenters the selected node when the stage first gains usable size after layout changes.
+- Mobile chrome compacted for tree space: denser header (scheme + Map/Ledger + theme), period/kind chips hidden, metrics collapsed to a one-line Centre/Onward/Left summary (expand for full), hierarchy band as a select instead of a wrapping button row.
+
+### Verified
+
+- `npm run build` passes.
+
 ## Session 10 — 2026-08-22
 
 ### Built
