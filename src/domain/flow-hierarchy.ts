@@ -40,6 +40,9 @@ export interface IFlowLayoutNode {
   readonly workLabel?: string;
   readonly amountPaise: number;
   readonly reportedPaise?: number;
+  readonly usedHerePaise?: number;
+  readonly usedHereLabel?: string;
+  readonly leftoverPaise?: number;
   readonly level: NodeLevel;
   readonly parentVisualId?: string;
   readonly x: number;
@@ -99,12 +102,13 @@ export function computeSchemeMetrics(scenario: ISchemeScenario): ISchemeMetrics 
     : [];
   const matchingNational = scenario.schemeKind === 'matching-society' && root?.level === 'national';
   const namedChildrenPaise = children.reduce((sum, child) => sum + child.receivedPaise, 0);
+  const usedHere = root?.usedHerePaise ?? 0;
   const awaitingDetailsPaise = root && children.length > 0 && !matchingNational
-    ? Math.max(0, root.receivedPaise - Math.min(namedChildrenPaise, root.receivedPaise))
+    ? Math.max(0, root.receivedPaise - Math.min(namedChildrenPaise, root.receivedPaise) - usedHere)
     : root
-      ? Math.max(0, root.receivedPaise - root.reportedPaise)
+      ? Math.max(0, root.receivedPaise - root.reportedPaise - usedHere)
       : 0;
-  const tracedOnwardPaise = Math.max(0, centralReleasePaise - awaitingDetailsPaise);
+  const tracedOnwardPaise = Math.max(0, centralReleasePaise - awaitingDetailsPaise - usedHere);
   const awaitingSharePercent = centralReleasePaise === 0
     ? 0
     : Math.round((awaitingDetailsPaise / centralReleasePaise) * 1000) / 10;
@@ -151,6 +155,9 @@ export function buildFlowLayout(
     workLabel?: string;
     amountPaise: number;
     reportedPaise?: number;
+    usedHerePaise?: number;
+    usedHereLabel?: string;
+    leftoverPaise?: number;
     level: NodeLevel;
     parentVisualId?: string;
     x: number;
@@ -161,6 +168,14 @@ export function buildFlowLayout(
   for (const node of visibleFunding) {
     const pos = positions.get(node.id);
     if (!pos) continue;
+    const childSum = (childrenByParent.get(node.id) ?? []).reduce((sum, child) => sum + child.receivedPaise, 0);
+    const usedHere = node.usedHerePaise ?? 0;
+    const matchingNational = scenario.schemeKind === 'matching-society' && node.level === 'national';
+    const leftover = matchingNational
+      ? 0
+      : childSum > 0
+        ? Math.max(0, node.receivedPaise - childSum - usedHere)
+        : Math.max(0, node.receivedPaise - (node.usedHerePaise ?? node.reportedPaise));
     mutableNodes.push({
       id: node.id,
       kind: 'funding',
@@ -169,7 +184,10 @@ export function buildFlowLayout(
       levelLabel: levelLabelFor(node, scenario.lastMileLabel),
       workLabel: node.workLabel,
       amountPaise: node.receivedPaise,
-      reportedPaise: node.reportedPaise,
+      reportedPaise: childSum > 0 && !matchingNational ? childSum : node.reportedPaise,
+      usedHerePaise: usedHere > 0 ? usedHere : childSum === 0 ? (node.usedHerePaise ?? node.reportedPaise) : undefined,
+      usedHereLabel: node.usedHereLabel,
+      leftoverPaise: leftover > 0 ? leftover : undefined,
       level: node.level,
       parentVisualId: node.parentId && visibleIds.has(node.parentId) ? node.parentId : undefined,
       x: pos.x,
@@ -379,6 +397,9 @@ interface IMutableLayoutNode {
   workLabel?: string;
   amountPaise: number;
   reportedPaise?: number;
+  usedHerePaise?: number;
+  usedHereLabel?: string;
+  leftoverPaise?: number;
   level: NodeLevel;
   parentVisualId?: string;
   x: number;

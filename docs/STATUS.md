@@ -1,10 +1,10 @@
 # Project Status
 
-> Last updated: 2026-08-22 · Session 7
+> Last updated: 2026-08-22 · Session 9
 
 ## Current state
 
-Stage 1 citizen journey runs locally as a full-bleed scheme explorer with **four cardinally different synthetic scheme archetypes**, a shared fictional Indian gazetteer, a five-level flow tree (National → State → District → Block → last-mile), scheme-specific implementing bodies, and a persisted day/night theme.
+Stage 1 citizen journey runs locally as a full-bleed scheme explorer with **four cardinally different synthetic scheme archetypes**, a shared fictional Indian gazetteer, a five-level flow tree (National → State → District → Block → last-mile), scheme-specific implementing bodies, **used-here office consumption** on tree and ledger, and a persisted day/night theme.
 
 ## What works
 
@@ -13,6 +13,9 @@ Stage 1 citizen journey runs locally as a full-bleed scheme explorer with **four
   - Rural Works Guarantee — SEGF → DPC → Block PO → Gram Panchayat (wage FTO + material)
   - Landholder Income Support — DBT cell → DAO → block enrollment → APBS credit file
   - Neighbourhood Health Mission — SHS → DHS → BPMU → PHC/CHC/VHC (60:40 matching)
+- Citizen standing: **Received = sent onward + used here + what’s left** (admin/support/last-mile use is not leftover).
+- Tree: segmented gold / teal / amber bar + teal used-here amount chip; awaiting stays a separate next-column card.
+- Ledger columns: Node · Received · Sent onward · Used here · What’s left; inspector one-line used-here remark.
 - Scheme switcher loads catalog + scenario by id and focuses each scheme’s highlight node.
 - Flow map: five-column adaptive hierarchy, work labels on nodes, quieter pan/zoom, collision-aware layout, ledger alternate view, detail inspector with official body name + scheme-kind copy.
 - Light and dark themes via a header day/night toggle (`nagrik-theme` in localStorage).
@@ -30,7 +33,7 @@ Stage 1 citizen journey runs locally as a full-bleed scheme explorer with **four
 
 ## Next concrete step
 
-Add focused unit tests (especially five-level layout / awaiting placement), then deploy a public reviewable build and rehearse a two-minute walkthrough that switches archetypes once.
+Add focused unit tests (especially five-level layout / awaiting placement / used-here math), then deploy a public reviewable build and rehearse a two-minute walkthrough that switches archetypes once.
 
 ## Architecture snapshot
 

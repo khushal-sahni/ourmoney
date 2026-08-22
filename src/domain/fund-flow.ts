@@ -51,6 +51,13 @@ export interface IFundingNode {
   readonly reportedAt: string;
   readonly parentId?: string;
   readonly unpublishedPaise?: number;
+  /**
+   * Allowed own spend at this office (admin / support / last-mile use).
+   * Not leftover and not an unnamed next office.
+   */
+  readonly usedHerePaise?: number;
+  /** Short chip label for used-here (e.g. Admin, Support, Credits). */
+  readonly usedHereLabel?: string;
   /** Scheme-specific implementing body kind for inspector copy. */
   readonly bodyKind?: BodyKind;
   /** Short work-stream label shown under the place name (e.g. "Paani Samiti"). */

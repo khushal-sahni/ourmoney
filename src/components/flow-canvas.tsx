@@ -412,8 +412,13 @@ function FlowNode({
 }): ReactElement {
   const compact = zoom < 0.62;
   const dot = zoom < 0.42;
-  const reported = node.reportedPaise ?? node.amountPaise;
   const share = percentOf(node.amountPaise, schemeTotalPaise);
+  const usedHere = node.usedHerePaise ?? 0;
+  const leftover = node.leftoverPaise ?? 0;
+  const onward = Math.max(0, node.amountPaise - usedHere - leftover);
+  const onwardPct = percentOf(onward, node.amountPaise);
+  const usedPct = percentOf(usedHere, node.amountPaise);
+  const leftoverPct = percentOf(leftover, node.amountPaise);
 
   return (
     <button
@@ -430,8 +435,13 @@ function FlowNode({
         <>
           <b>{formatCrore(node.amountPaise)}</b>
           {!compact && <em className="node-share">{share.toFixed(1)}%</em>}
-          <i>
-            <em style={{ width: `${percentOf(reported, node.amountPaise)}%` }} />
+          {!compact && usedHere > 0 ? (
+            <em className="node-used-chip">{formatCrore(usedHere)}</em>
+          ) : null}
+          <i aria-hidden="true">
+            {onwardPct > 0 ? <em className="seg-onward" style={{ width: `${onwardPct}%` }} /> : null}
+            {usedPct > 0 ? <em className="seg-used" style={{ width: `${usedPct}%` }} /> : null}
+            {leftoverPct > 0 ? <em className="seg-left" style={{ width: `${leftoverPct}%` }} /> : null}
           </i>
         </>
       )}

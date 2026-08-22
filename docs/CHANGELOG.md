@@ -1,5 +1,19 @@
 # Changelog
 
+## Session 9 — 2026-08-22
+
+### Built
+
+- Added **used here** (office admin/support/last-mile use) to the citizen equation: Received = sent onward + used here + what’s left.
+- Fixtures carry scheme-calibrated synthetic slices (~6% admin, ~4% support, thin DBT admin) with labels on tree chips and ledger.
+- Tree: three-segment bar (gold / teal / amber) + teal amount chip; no new card paragraphs or layout-node kind.
+- Ledger: Sent onward · Used here · What’s left; inspector teal bar + one scheme-aware remark.
+- Updated calibration, decisions, and status docs.
+
+### Verified
+
+- `findStandingInconsistencies` clean on all four scenarios; `npm run build` passes.
+
 ## Session 8 — 2026-08-22
 
 ### Built

@@ -23,9 +23,11 @@ export const RURAL_WORKS_GUARANTEE_SCENARIO: ISchemeScenario = {
       level: 'national',
       bodyKind: 'national-account',
       workLabel: 'Programme account',
-      receivedPaise: 420 * CRORE,
-      reportedPaise: 408 * CRORE,
+      receivedPaise: 476.7 * CRORE,
+      reportedPaise: 440.2 * CRORE,
       reportedAt: '08 Jul 2026',
+      usedHerePaise: 24.5 * CRORE,
+      usedHereLabel: 'Admin',
       unpublishedPaise: 12 * CRORE
     },
     {
@@ -35,10 +37,12 @@ export const RURAL_WORKS_GUARANTEE_SCENARIO: ISchemeScenario = {
       level: 'state',
       bodyKind: 'segf',
       workLabel: 'SEGF · SNA',
-      receivedPaise: 248 * CRORE,
-      reportedPaise: 242 * CRORE,
+      receivedPaise: 270.6 * CRORE,
+      reportedPaise: 250.1 * CRORE,
       reportedAt: '14 Jul 2026',
       parentId: 'india',
+      usedHerePaise: 14.5 * CRORE,
+      usedHereLabel: 'Admin',
       unpublishedPaise: 6 * CRORE
     },
     {
@@ -48,10 +52,12 @@ export const RURAL_WORKS_GUARANTEE_SCENARIO: ISchemeScenario = {
       level: 'state',
       bodyKind: 'segf',
       workLabel: 'SEGF · SNA',
-      receivedPaise: 112 * CRORE,
+      receivedPaise: 118.7 * CRORE,
       reportedPaise: 112 * CRORE,
       reportedAt: '15 Jul 2026',
-      parentId: 'india'
+      parentId: 'india',
+      usedHerePaise: 6.7 * CRORE,
+      usedHereLabel: 'Admin'
     },
     {
       id: 'meera',
@@ -60,10 +66,12 @@ export const RURAL_WORKS_GUARANTEE_SCENARIO: ISchemeScenario = {
       level: 'state',
       bodyKind: 'segf',
       workLabel: 'SEGF · SNA',
-      receivedPaise: 48 * CRORE,
+      receivedPaise: 50.9 * CRORE,
       reportedPaise: 48 * CRORE,
       reportedAt: '16 Jul 2026',
-      parentId: 'india'
+      parentId: 'india',
+      usedHerePaise: 2.9 * CRORE,
+      usedHereLabel: 'Admin'
     },
     // Kanak — Raital is high-demand (~40% of state)
     {
@@ -73,10 +81,12 @@ export const RURAL_WORKS_GUARANTEE_SCENARIO: ISchemeScenario = {
       level: 'district',
       bodyKind: 'district-programme-coordinator',
       workLabel: 'District Programme Coordinator',
-      receivedPaise: 99 * CRORE,
-      reportedPaise: 94.8 * CRORE,
+      receivedPaise: 107.1 * CRORE,
+      reportedPaise: 97.2 * CRORE,
       reportedAt: '28 Jul 2026',
       parentId: 'kanak',
+      usedHerePaise: 5.7 * CRORE,
+      usedHereLabel: 'Admin',
       unpublishedPaise: 4.2 * CRORE
     },
     {
@@ -171,10 +181,12 @@ export const RURAL_WORKS_GUARANTEE_SCENARIO: ISchemeScenario = {
       level: 'block',
       bodyKind: 'programme-officer',
       workLabel: 'Programme Officer',
-      receivedPaise: 42 * CRORE,
+      receivedPaise: 44.4 * CRORE,
       reportedPaise: 40 * CRORE,
       reportedAt: '02 Aug 2026',
       parentId: 'raital',
+      usedHerePaise: 2.4 * CRORE,
+      usedHereLabel: 'Admin',
       unpublishedPaise: 2.0 * CRORE
     },
     {
@@ -200,7 +212,8 @@ export const RURAL_WORKS_GUARANTEE_SCENARIO: ISchemeScenario = {
       receivedPaise: 22 * CRORE,
       reportedPaise: 17.4 * CRORE,
       reportedAt: '02 Aug 2026',
-      parentId: 'kharonda'
+      parentId: 'kharonda',
+      usedHereLabel: 'Wages & material'
     },
     {
       id: 'talab-gp',
@@ -212,7 +225,8 @@ export const RURAL_WORKS_GUARANTEE_SCENARIO: ISchemeScenario = {
       receivedPaise: 12 * CRORE,
       reportedPaise: 11.6 * CRORE,
       reportedAt: '03 Aug 2026',
-      parentId: 'kharonda'
+      parentId: 'kharonda',
+      usedHereLabel: 'Wages & material'
     },
     {
       id: 'neem-gp',
@@ -224,14 +238,15 @@ export const RURAL_WORKS_GUARANTEE_SCENARIO: ISchemeScenario = {
       receivedPaise: 6 * CRORE,
       reportedPaise: 5.8 * CRORE,
       reportedAt: '04 Aug 2026',
-      parentId: 'kharonda'
+      parentId: 'kharonda',
+      usedHereLabel: 'Wages & material'
     }
   ],
   transfers: [
-    { id: 'rwg-t1', fromNodeId: 'india', toNodeId: 'kanak', amountPaise: 248 * CRORE, date: '12 Jul 2026', reference: 'SNA/KANAK/RWG/26-27/TR-0712', component: 'wage' },
-    { id: 'rwg-t2', fromNodeId: 'india', toNodeId: 'girikhand', amountPaise: 112 * CRORE, date: '13 Jul 2026', reference: 'SNA/GIRI/RWG/26-27/TR-0713', component: 'wage' },
-    { id: 'rwg-t3', fromNodeId: 'india', toNodeId: 'meera', amountPaise: 48 * CRORE, date: '13 Jul 2026', reference: 'SNA/MEERA/RWG/26-27/TR-0713', component: 'wage' },
-    { id: 'rwg-t4', fromNodeId: 'kanak', toNodeId: 'raital', amountPaise: 99 * CRORE, date: '18 Jul 2026', reference: 'DPC/RAI/LB-0718', component: 'wage' },
+    { id: 'rwg-t1', fromNodeId: 'india', toNodeId: 'kanak', amountPaise: 270.6 * CRORE, date: '12 Jul 2026', reference: 'SNA/KANAK/RWG/26-27/TR-0712', component: 'wage' },
+    { id: 'rwg-t2', fromNodeId: 'india', toNodeId: 'girikhand', amountPaise: 118.7 * CRORE, date: '13 Jul 2026', reference: 'SNA/GIRI/RWG/26-27/TR-0713', component: 'wage' },
+    { id: 'rwg-t3', fromNodeId: 'india', toNodeId: 'meera', amountPaise: 50.9 * CRORE, date: '13 Jul 2026', reference: 'SNA/MEERA/RWG/26-27/TR-0713', component: 'wage' },
+    { id: 'rwg-t4', fromNodeId: 'kanak', toNodeId: 'raital', amountPaise: 107.1 * CRORE, date: '18 Jul 2026', reference: 'DPC/RAI/LB-0718', component: 'wage' },
     { id: 'rwg-t5', fromNodeId: 'kanak', toNodeId: 'chandanpur', amountPaise: 72 * CRORE, date: '19 Jul 2026', reference: 'DPC/CHK/LB-0719', component: 'wage' },
     { id: 'rwg-t6', fromNodeId: 'kanak', toNodeId: 'morwa', amountPaise: 71 * CRORE, date: '19 Jul 2026', reference: 'DPC/MOR/LB-0719', component: 'wage' },
     { id: 'rwg-t7', fromNodeId: 'girikhand', toNodeId: 'patharwadi', amountPaise: 64 * CRORE, date: '20 Jul 2026', reference: 'DPC/PAT/LB-0720', component: 'wage' },
@@ -239,7 +254,7 @@ export const RURAL_WORKS_GUARANTEE_SCENARIO: ISchemeScenario = {
     { id: 'rwg-t9', fromNodeId: 'meera', toNodeId: 'dhowli', amountPaise: 31 * CRORE, date: '21 Jul 2026', reference: 'DPC/DHO/LB-0721', component: 'wage' },
     { id: 'rwg-t10', fromNodeId: 'meera', toNodeId: 'nirmalbandh', amountPaise: 17 * CRORE, date: '21 Jul 2026', reference: 'DPC/NIR/LB-0721', component: 'wage' },
     { id: 'rwg-t11', fromNodeId: 'raital', toNodeId: 'raital-sadar', amountPaise: 28 * CRORE, date: '24 Jul 2026', reference: 'PO/RSAD/0724', component: 'wage' },
-    { id: 'rwg-t12', fromNodeId: 'raital', toNodeId: 'kharonda', amountPaise: 42 * CRORE, date: '24 Jul 2026', reference: 'PO/KHR/0724', component: 'wage' },
+    { id: 'rwg-t12', fromNodeId: 'raital', toNodeId: 'kharonda', amountPaise: 44.4 * CRORE, date: '24 Jul 2026', reference: 'PO/KHR/0724', component: 'wage' },
     { id: 'rwg-t13', fromNodeId: 'raital', toNodeId: 'uttar-raital', amountPaise: 24.8 * CRORE, date: '25 Jul 2026', reference: 'PO/URAI/0725', component: 'wage' },
     // Dual stream into Bakul GP: ~60% wage, ~38% material, small admin
     { id: 'rwg-t14', fromNodeId: 'kharonda', toNodeId: 'bakul-gp', amountPaise: 13.2 * CRORE, date: '25 Jul 2026', reference: 'FTO-W-240725-KHR-0142', component: 'wage' },
@@ -265,16 +280,18 @@ export const RURAL_WORKS_GUARANTEE_SCENARIO: ISchemeScenario = {
       nodeId: 'raital',
       status: 'watch',
       items: [
-        { label: 'Traced to blocks / GPs', amountPaise: 94.8 * CRORE, description: 'Published wage and material splits via block programme officers.' },
-        { label: 'Awaiting onward details', amountPaise: 4.2 * CRORE, description: 'District balance whose block split is not yet published.' }
+        { label: 'Traced to blocks / GPs', amountPaise: 97.2 * CRORE, description: 'Published wage and material splits via block programme officers.' },
+        { label: 'Awaiting onward details', amountPaise: 4.2 * CRORE, description: 'District balance whose block split is not yet published.' },
+        { label: 'Admin slice used here', amountPaise: 5.7 * CRORE, description: 'Allowed district admin (staff, IEC, MIS) in this synthetic scenario.' }
       ]
     },
     {
       nodeId: 'kanak',
       status: 'watch',
       items: [
-        { label: 'Traced to districts', amountPaise: 242 * CRORE, description: 'Onward demand-based releases to district programme coordinators.' },
-        { label: 'Awaiting labour-budget update', amountPaise: 6 * CRORE, description: 'SEGF lists a reserve not yet allotted to a district.' }
+        { label: 'Traced to districts', amountPaise: 250.1 * CRORE, description: 'Onward demand-based releases to district programme coordinators.' },
+        { label: 'Awaiting labour-budget update', amountPaise: 6 * CRORE, description: 'SEGF lists a reserve not yet allotted to a district.' },
+        { label: 'Admin slice used here', amountPaise: 14.5 * CRORE, description: 'Allowed SEGF admin within the synthetic MGNREGA-style cap.' }
       ]
     }
   ]

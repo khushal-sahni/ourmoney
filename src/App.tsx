@@ -193,7 +193,7 @@ export function App(): ReactElement {
           detail={`${metrics.awaitingSharePercent}% of scheme`}
         />
         <p>
-          What’s left = Received − Reported sent on the centre row. Reported sent is money under named next offices.
+          What’s left = Received − sent onward − used here on the centre row. Used here is this office’s allowed own spend.
           Open a row for the one-line explanation. Independent prototype · all figures synthetic.
         </p>
       </section>
@@ -227,6 +227,7 @@ export function App(): ReactElement {
             </div>
             <div className="legend">
               <span><i /> Received</span>
+              <span><i className="used" /> Used here</span>
               <span><i className="amber" /> Next office not named</span>
             </div>
           </div>
@@ -361,7 +362,8 @@ function LedgerTable({
           <tr>
             <th>Node</th>
             <th>Received</th>
-            <th>Reported sent</th>
+            <th>Sent onward</th>
+            <th>Used here</th>
             <th>What&apos;s left</th>
           </tr>
         </thead>
@@ -405,8 +407,24 @@ function LedgerTable({
                 </td>
                 <td>{formatCrore(standing.receivedPaise)}</td>
                 <td>
-                  {formatCrore(standing.reportedSentPaise)}
-                  <small>{Math.round(percentOf(standing.reportedSentPaise, standing.receivedPaise))}%</small>
+                  {standing.childCount > 0 ? (
+                    <>
+                      {formatCrore(standing.sentOnwardPaise)}
+                      <small>{Math.round(percentOf(standing.sentOnwardPaise, standing.receivedPaise))}%</small>
+                    </>
+                  ) : (
+                    '—'
+                  )}
+                </td>
+                <td>
+                  {standing.usedHerePaise > 0 ? (
+                    <>
+                      {formatCrore(standing.usedHerePaise)}
+                      {standing.usedHereLabel ? <small>{standing.usedHereLabel}</small> : null}
+                    </>
+                  ) : (
+                    '—'
+                  )}
                 </td>
                 <LedgerOpenCell standing={standing} />
               </tr>
@@ -447,7 +465,7 @@ function Inspector({
 }): ReactElement {
   const crumbs = pathFor(scenario, node);
   const standing = citizenStanding(scenario, node);
-  const reportedPercentage = percentOf(standing.reportedSentPaise, standing.receivedPaise);
+  const sentOnwardPercentage = percentOf(standing.sentOnwardPaise, standing.receivedPaise);
   const levelWord = node.level === 'agency'
     ? scenario.lastMileLabel.toLowerCase()
     : node.level;
@@ -485,12 +503,22 @@ function Inspector({
       <section>
         <h2>Financial standing</h2>
         <FinancialBar label="Received here" value={formatCrore(standing.receivedPaise)} percent={100} />
-        <FinancialBar
-          label="Reported as sent"
-          value={formatCrore(standing.reportedSentPaise)}
-          percent={reportedPercentage}
-          soft
-        />
+        {standing.childCount > 0 || standing.sentOnwardPaise > 0 ? (
+          <FinancialBar
+            label="Sent onward"
+            value={formatCrore(standing.sentOnwardPaise)}
+            percent={sentOnwardPercentage}
+            soft
+          />
+        ) : null}
+        {standing.showUsedHereBar ? (
+          <FinancialBar
+            label={standing.usedHereLabel ? `Used here · ${standing.usedHereLabel}` : 'Used here'}
+            value={formatCrore(standing.usedHerePaise)}
+            percent={percentOf(standing.usedHerePaise, standing.receivedPaise)}
+            used
+          />
+        ) : null}
         {standing.ledgerOpenKind === 'still-on-books' ? (
           <FinancialBar
             label="Still on this ledger"
@@ -507,6 +535,7 @@ function Inspector({
           />
         ) : null}
         <p className="standing-summary">{standing.inspectorSummary}</p>
+        {standing.usedHereRemark ? <p className="used-here-remark">{standing.usedHereRemark}</p> : null}
         <p className="full-amount">Received in full · {formatPaiseFull(node.receivedPaise)}</p>
       </section>
 
@@ -552,13 +581,15 @@ function FinancialBar({
   value,
   percent,
   soft,
-  amber
+  amber,
+  used
 }: {
   label: string;
   value: string;
   percent: number;
   soft?: boolean;
   amber?: boolean;
+  used?: boolean;
 }): ReactElement {
   return (
     <div className="financial-bar">
@@ -567,7 +598,10 @@ function FinancialBar({
         <b>{value}</b>
       </div>
       <i>
-        <em className={`${soft ? 'soft' : ''} ${amber ? 'amber' : ''}`} style={{ width: `${Math.min(percent, 100)}%` }} />
+        <em
+          className={`${soft ? 'soft' : ''} ${amber ? 'amber' : ''} ${used ? 'used' : ''}`}
+          style={{ width: `${Math.min(percent, 100)}%` }}
+        />
       </i>
       <small>{percent}% of allocation</small>
     </div>

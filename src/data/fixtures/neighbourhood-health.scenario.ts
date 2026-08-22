@@ -25,9 +25,11 @@ export const NEIGHBOURHOOD_HEALTH_SCENARIO: ISchemeScenario = {
       level: 'national',
       bodyKind: 'national-account',
       workLabel: 'Centre share account',
-      receivedPaise: 108 * CRORE,
+      receivedPaise: 114.5 * CRORE,
       reportedPaise: 108 * CRORE,
-      reportedAt: '05 Jul 2026'
+      reportedAt: '05 Jul 2026',
+      usedHerePaise: 6.5 * CRORE,
+      usedHereLabel: 'Admin'
     },
     {
       id: 'kanak',
@@ -36,11 +38,13 @@ export const NEIGHBOURHOOD_HEALTH_SCENARIO: ISchemeScenario = {
       level: 'state',
       bodyKind: 'shs',
       workLabel: 'State Health Society',
-      // Combined envelope: 54 centre + 36 state matching share.
-      receivedPaise: 90 * CRORE,
-      reportedPaise: 90 * CRORE,
+      // Combined envelope raised for programme-management slice at society.
+      receivedPaise: 98.1 * CRORE,
+      reportedPaise: 92.7 * CRORE,
       reportedAt: '18 Jul 2026',
-      parentId: 'india'
+      parentId: 'india',
+      usedHerePaise: 5.4 * CRORE,
+      usedHereLabel: 'Admin'
     },
     {
       id: 'girikhand',
@@ -49,11 +53,13 @@ export const NEIGHBOURHOOD_HEALTH_SCENARIO: ISchemeScenario = {
       level: 'state',
       bodyKind: 'shs',
       workLabel: 'State Health Society',
-      // Combined envelope: 32.4 centre + 21.6 state matching share.
-      receivedPaise: 54 * CRORE,
+      // Combined envelope: 32.4 centre + 21.6 state matching share, plus programme-management slice.
+      receivedPaise: 57.2 * CRORE,
       reportedPaise: 54 * CRORE,
       reportedAt: '19 Jul 2026',
-      parentId: 'india'
+      parentId: 'india',
+      usedHerePaise: 3.2 * CRORE,
+      usedHereLabel: 'Admin'
     },
     {
       id: 'meera',
@@ -62,11 +68,13 @@ export const NEIGHBOURHOOD_HEALTH_SCENARIO: ISchemeScenario = {
       level: 'state',
       bodyKind: 'shs',
       workLabel: 'State Health Society',
-      // Centre share only so far; matching state share is explained in reconciliations, not as a row leftover.
-      receivedPaise: 21.6 * CRORE,
-      reportedPaise: 21.6 * CRORE,
+      // Centre share path plus thin programme-management; matching state share is explained in reconciliations.
+      receivedPaise: 23.6 * CRORE,
+      reportedPaise: 22.3 * CRORE,
       reportedAt: '20 Jul 2026',
-      parentId: 'india'
+      parentId: 'india',
+      usedHerePaise: 1.3 * CRORE,
+      usedHereLabel: 'Admin'
     },
     // Districts
     {
@@ -76,10 +84,12 @@ export const NEIGHBOURHOOD_HEALTH_SCENARIO: ISchemeScenario = {
       level: 'district',
       bodyKind: 'dhs',
       workLabel: 'District Health Society',
-      receivedPaise: 32 * CRORE,
-      reportedPaise: 32 * CRORE,
+      receivedPaise: 34.7 * CRORE,
+      reportedPaise: 32.8 * CRORE,
       reportedAt: '28 Jul 2026',
-      parentId: 'kanak'
+      parentId: 'kanak',
+      usedHerePaise: 1.9 * CRORE,
+      usedHereLabel: 'Admin'
     },
     {
       id: 'chandanpur',
@@ -136,10 +146,12 @@ export const NEIGHBOURHOOD_HEALTH_SCENARIO: ISchemeScenario = {
       level: 'district',
       bodyKind: 'dhs',
       workLabel: 'District Health Society',
-      receivedPaise: 12.6 * CRORE,
+      receivedPaise: 13 * CRORE,
       reportedPaise: 7 * CRORE,
       reportedAt: '30 Jul 2026',
       parentId: 'meera',
+      usedHerePaise: 0.4 * CRORE,
+      usedHereLabel: 'Admin',
       unpublishedPaise: 5.6 * CRORE
     },
     {
@@ -149,10 +161,12 @@ export const NEIGHBOURHOOD_HEALTH_SCENARIO: ISchemeScenario = {
       level: 'district',
       bodyKind: 'dhs',
       workLabel: 'District Health Society',
-      receivedPaise: 9 * CRORE,
+      receivedPaise: 9.3 * CRORE,
       reportedPaise: 5.5 * CRORE,
       reportedAt: '31 Jul 2026',
       parentId: 'meera',
+      usedHerePaise: 0.3 * CRORE,
+      usedHereLabel: 'Admin',
       unpublishedPaise: 3.5 * CRORE
     },
     // Raital BPMUs (dense)
@@ -166,7 +180,8 @@ export const NEIGHBOURHOOD_HEALTH_SCENARIO: ISchemeScenario = {
       receivedPaise: 11 * CRORE,
       reportedPaise: 11 * CRORE,
       reportedAt: '01 Aug 2026',
-      parentId: 'raital'
+      parentId: 'raital',
+      usedHereLabel: 'Admin'
     },
     {
       id: 'kharonda',
@@ -175,10 +190,12 @@ export const NEIGHBOURHOOD_HEALTH_SCENARIO: ISchemeScenario = {
       level: 'block',
       bodyKind: 'bpmu',
       workLabel: 'BPMU',
-      receivedPaise: 13 * CRORE,
+      receivedPaise: 13.8 * CRORE,
       reportedPaise: 13 * CRORE,
       reportedAt: '01 Aug 2026',
-      parentId: 'raital'
+      parentId: 'raital',
+      usedHerePaise: 0.8 * CRORE,
+      usedHereLabel: 'Admin'
     },
     {
       id: 'uttar-raital',
@@ -190,7 +207,8 @@ export const NEIGHBOURHOOD_HEALTH_SCENARIO: ISchemeScenario = {
       receivedPaise: 8 * CRORE,
       reportedPaise: 8 * CRORE,
       reportedAt: '02 Aug 2026',
-      parentId: 'raital'
+      parentId: 'raital',
+      usedHereLabel: 'Admin'
     },
     // Facilities under Kharonda + one Meera facility
     {
@@ -203,7 +221,8 @@ export const NEIGHBOURHOOD_HEALTH_SCENARIO: ISchemeScenario = {
       receivedPaise: 5.5 * CRORE,
       reportedPaise: 5.3 * CRORE,
       reportedAt: '02 Aug 2026',
-      parentId: 'kharonda'
+      parentId: 'kharonda',
+      usedHereLabel: 'Facility'
     },
     {
       id: 'kharonda-chc',
@@ -215,7 +234,8 @@ export const NEIGHBOURHOOD_HEALTH_SCENARIO: ISchemeScenario = {
       receivedPaise: 5.0 * CRORE,
       reportedPaise: 4.9 * CRORE,
       reportedAt: '02 Aug 2026',
-      parentId: 'kharonda'
+      parentId: 'kharonda',
+      usedHereLabel: 'Facility'
     },
     {
       id: 'piprahi-vhc',
@@ -227,7 +247,8 @@ export const NEIGHBOURHOOD_HEALTH_SCENARIO: ISchemeScenario = {
       receivedPaise: 2.5 * CRORE,
       reportedPaise: 2.4 * CRORE,
       reportedAt: '03 Aug 2026',
-      parentId: 'kharonda'
+      parentId: 'kharonda',
+      usedHereLabel: 'Facility'
     },
     {
       id: 'dhowli-phc',
@@ -239,7 +260,8 @@ export const NEIGHBOURHOOD_HEALTH_SCENARIO: ISchemeScenario = {
       receivedPaise: 7 * CRORE,
       reportedPaise: 6.8 * CRORE,
       reportedAt: '03 Aug 2026',
-      parentId: 'dhowli'
+      parentId: 'dhowli',
+      usedHereLabel: 'Facility'
     },
     {
       id: 'nirmalbandh-phc',
@@ -251,7 +273,8 @@ export const NEIGHBOURHOOD_HEALTH_SCENARIO: ISchemeScenario = {
       receivedPaise: 5.5 * CRORE,
       reportedPaise: 5.3 * CRORE,
       reportedAt: '03 Aug 2026',
-      parentId: 'nirmalbandh'
+      parentId: 'nirmalbandh',
+      usedHereLabel: 'Facility'
     }
   ],
   transfers: [
@@ -259,15 +282,15 @@ export const NEIGHBOURHOOD_HEALTH_SCENARIO: ISchemeScenario = {
     { id: 'nhm-t1', fromNodeId: 'india', toNodeId: 'kanak', amountPaise: 54 * CRORE, date: '10 Jul 2026', reference: 'SHS/KANAK/C-SHARE/0710', component: 'centre-share' },
     { id: 'nhm-t2', fromNodeId: 'india', toNodeId: 'girikhand', amountPaise: 32.4 * CRORE, date: '11 Jul 2026', reference: 'SHS/GIRI/C-SHARE/0711', component: 'centre-share' },
     { id: 'nhm-t3', fromNodeId: 'india', toNodeId: 'meera', amountPaise: 21.6 * CRORE, date: '11 Jul 2026', reference: 'SHS/MEERA/C-SHARE/0711', component: 'centre-share' },
-    { id: 'nhm-t4', fromNodeId: 'kanak', toNodeId: 'raital', amountPaise: 32 * CRORE, date: '22 Jul 2026', reference: 'DHS/RAI/0722', component: 'family-health' },
+    { id: 'nhm-t4', fromNodeId: 'kanak', toNodeId: 'raital', amountPaise: 34.7 * CRORE, date: '22 Jul 2026', reference: 'DHS/RAI/0722', component: 'family-health' },
     { id: 'nhm-t5', fromNodeId: 'kanak', toNodeId: 'chandanpur', amountPaise: 30 * CRORE, date: '22 Jul 2026', reference: 'DHS/CHK/0722', component: 'family-health' },
     { id: 'nhm-t6', fromNodeId: 'kanak', toNodeId: 'morwa', amountPaise: 28 * CRORE, date: '23 Jul 2026', reference: 'DHS/MOR/0723', component: 'disease-control' },
     { id: 'nhm-t7', fromNodeId: 'girikhand', toNodeId: 'patharwadi', amountPaise: 28 * CRORE, date: '23 Jul 2026', reference: 'DHS/PAT/0723', component: 'family-health' },
     { id: 'nhm-t8', fromNodeId: 'girikhand', toNodeId: 'sitabari', amountPaise: 26 * CRORE, date: '24 Jul 2026', reference: 'DHS/SIT/0724', component: 'disease-control' },
-    { id: 'nhm-t9', fromNodeId: 'meera', toNodeId: 'dhowli', amountPaise: 12.6 * CRORE, date: '24 Jul 2026', reference: 'DHS/DHO/0724', component: 'centre-share' },
-    { id: 'nhm-t10', fromNodeId: 'meera', toNodeId: 'nirmalbandh', amountPaise: 9 * CRORE, date: '24 Jul 2026', reference: 'DHS/NIR/0724', component: 'centre-share' },
+    { id: 'nhm-t9', fromNodeId: 'meera', toNodeId: 'dhowli', amountPaise: 13 * CRORE, date: '24 Jul 2026', reference: 'DHS/DHO/0724', component: 'centre-share' },
+    { id: 'nhm-t10', fromNodeId: 'meera', toNodeId: 'nirmalbandh', amountPaise: 9.3 * CRORE, date: '24 Jul 2026', reference: 'DHS/NIR/0724', component: 'centre-share' },
     { id: 'nhm-t11', fromNodeId: 'raital', toNodeId: 'raital-sadar', amountPaise: 11 * CRORE, date: '28 Jul 2026', reference: 'BPMU/RSAD/0728', component: 'family-health' },
-    { id: 'nhm-t12', fromNodeId: 'raital', toNodeId: 'kharonda', amountPaise: 13 * CRORE, date: '28 Jul 2026', reference: 'BPMU/KHR/0728', component: 'family-health' },
+    { id: 'nhm-t12', fromNodeId: 'raital', toNodeId: 'kharonda', amountPaise: 13.8 * CRORE, date: '28 Jul 2026', reference: 'BPMU/KHR/0728', component: 'family-health' },
     { id: 'nhm-t13', fromNodeId: 'raital', toNodeId: 'uttar-raital', amountPaise: 8 * CRORE, date: '29 Jul 2026', reference: 'BPMU/URAI/0729', component: 'infrastructure' },
     { id: 'nhm-t14', fromNodeId: 'kharonda', toNodeId: 'kharonda-phc', amountPaise: 5.5 * CRORE, date: '30 Jul 2026', reference: 'FAC/KHR-PHC/0730', component: 'family-health' },
     { id: 'nhm-t15', fromNodeId: 'kharonda', toNodeId: 'kharonda-chc', amountPaise: 5.0 * CRORE, date: '30 Jul 2026', reference: 'FAC/KHR-CHC/0730', component: 'disease-control' },
@@ -292,7 +315,8 @@ export const NEIGHBOURHOOD_HEALTH_SCENARIO: ISchemeScenario = {
       items: [
         { label: 'Centre share', amountPaise: 54 * CRORE, description: 'Central 60% share merged at the state society.' },
         { label: 'State share', amountPaise: 36 * CRORE, description: 'State 40% matching share released and merged.' },
-        { label: 'Traced to districts', amountPaise: 90 * CRORE, description: 'Full combined envelope published onward to districts.' }
+        { label: 'Traced to districts', amountPaise: 92.7 * CRORE, description: 'Combined envelope published onward to districts (plus society admin used here).' },
+        { label: 'Admin slice used here', amountPaise: 5.4 * CRORE, description: 'Programme-management costs at the state health society in this synthetic scenario.' }
       ]
     },
     {
@@ -301,7 +325,8 @@ export const NEIGHBOURHOOD_HEALTH_SCENARIO: ISchemeScenario = {
       items: [
         { label: 'Centre share', amountPaise: 32.4 * CRORE, description: 'Central 60% share merged at the state society.' },
         { label: 'State share', amountPaise: 21.6 * CRORE, description: 'State 40% matching share released and merged.' },
-        { label: 'Traced to districts', amountPaise: 54 * CRORE, description: 'Full combined envelope published onward to districts.' }
+        { label: 'Traced to districts', amountPaise: 54 * CRORE, description: 'Full combined envelope published onward to districts.' },
+        { label: 'Admin slice used here', amountPaise: 3.2 * CRORE, description: 'Programme-management costs at the state health society in this synthetic scenario.' }
       ]
     }
   ]

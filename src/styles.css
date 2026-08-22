@@ -59,6 +59,10 @@
   --amber-text: #efab2c;
   --amber-muted: #bd8740;
   --amber-dot: #e28e05;
+  --used: #2a9d8f;
+  --used-strong: #3cb5a6;
+  --used-soft: #5ec4b8;
+  --used-chip: #7dd3c7;
   --dot-fill: #d6b140;
   --dot-ring: #f9e3a3;
 
@@ -127,6 +131,10 @@
   --amber-text: #8a5a00;
   --amber-muted: #8a5a00;
   --amber-dot: #c47600;
+  --used: #1f7a70;
+  --used-strong: #1f7a70;
+  --used-soft: #3a9e92;
+  --used-chip: #1f7a70;
   --dot-fill: #b8942e;
   --dot-ring: #e8d090;
 
@@ -752,8 +760,17 @@ button, input { font: inherit; }
   color: var(--text-muted);
 }
 
+.map-node .node-used-chip {
+  position: absolute;
+  top: 34px;
+  right: 16px;
+  font-style: normal;
+  font: 500 0.68rem 'DM Mono';
+  color: var(--used-chip);
+}
+
 .map-node > i {
-  display: block;
+  display: flex;
   height: 7px;
   margin-top: 18px;
   border-radius: 8px;
@@ -764,8 +781,19 @@ button, input { font: inherit; }
 .map-node > i em {
   display: block;
   height: 100%;
-  border-radius: inherit;
+  flex-shrink: 0;
+}
+
+.map-node > i em.seg-onward {
   background: var(--gold);
+}
+
+.map-node > i em.seg-used {
+  background: var(--used);
+}
+
+.map-node > i em.seg-left {
+  background: var(--amber);
 }
 
 .map-node.compact {
@@ -885,6 +913,7 @@ button, input { font: inherit; }
 }
 
 .legend i.amber { background: var(--amber-dot); }
+.legend i.used { background: var(--used); }
 
 .inspector {
   min-height: 0;
@@ -932,6 +961,13 @@ button, input { font: inherit; }
   line-height: 1.45;
 }
 
+.used-here-remark {
+  margin: 10px 0 0;
+  color: var(--used-soft);
+  font-size: 0.82rem;
+  line-height: 1.4;
+}
+
 .full-amount {
   margin: 10px 0 0;
   color: var(--text-muted);
@@ -970,6 +1006,7 @@ button, input { font: inherit; }
 
 .financial-bar em.soft { background: var(--gold-soft); }
 .financial-bar em.amber { background: var(--amber); }
+.financial-bar em.used { background: var(--used); }
 .financial-bar small {
   color: var(--text-muted);
   font-size: 0.67rem;

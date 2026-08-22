@@ -1,11 +1,18 @@
 # Decisions
 
+## 2026-08-22 — Used here: office consumption vs leftover
+
+- **Status:** Accepted
+- **Context:** Real offices spend a capped admin/support slice at their own level. Showing only Received / Sent onward / What’s left made that slice look like money missing from the next office.
+- **Decision:** Citizen equation is **Received = sent to named offices + used here + what’s left**. Optional `usedHerePaise` / `usedHereLabel` on funding nodes. Parents: sent onward = child sum; leftover must equal `unpublishedPaise`. Leaves: used here = reported utilisation. Tree shows a three-segment bar (gold / teal / amber) and a teal amount chip — no third layout-node kind and no card paragraphs. Ledger adds a Used here column; inspector adds one scheme-aware remark.
+- **Consequences:** Fixtures raise received when leftover is too small to peel, so named children stay stable. Calibration notes the ~6% / support / thin-DBT toy scales in `docs/SYNTHETIC-CALIBRATION.md`.
+
 ## 2026-08-22 — Citizen leftover: still on ledger vs next office not named
 
-- **Status:** Accepted (tightened)
+- **Status:** Accepted (tightened; extended by “Used here” above)
 - **Context:** Ledger columns invited subtraction. Showing Received 140 / Reported sent 140 / What’s left 5 looked broken even when ₹5 Cr was a real untraced-to-children gap.
-- **Decision:** For any node with named children, Reported sent = sum of those children, and What’s left = Received − that sum (“next office not named”). Leaf rows use Reported sent = utilisation on that ledger (“still on this ledger”). Fixtures must obey the same rule; `findStandingInconsistencies` checks it. Matching-society national is exempt from child ≤ parent because state match merges below.
-- **Consequences:** Centre row always reads as 140 − 135 = 5. Citizens can verify every parent row with the same finger math.
+- **Decision:** For any node with named children, Sent onward = sum of those children. What’s left = Received − Sent onward − Used here (“next office not named” when that remainder has no named next office). Leaf rows use Used here = utilisation on that ledger (“still on this ledger”). Fixtures must obey the same rule; `findStandingInconsistencies` checks it. Matching-society national is exempt from child ≤ parent because state match merges below.
+- **Consequences:** Centre row always reads with finger math. Citizens can verify every parent row the same way.
 
 ## 2026-08-22 — Realistic synthetic gazetteer and five-level last-mile
 

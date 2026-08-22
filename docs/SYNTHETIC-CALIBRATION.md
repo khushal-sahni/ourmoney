@@ -30,19 +30,27 @@ Density rule: fully expand **Raital** (blocks + several last-mile units). Other 
 
 ## Recipes used in fixtures
 
+Citizen standing on every parent office:
+
+**Received = sent to named offices + used here + what’s left**
+
+“Used here” is allowed own spend (admin / support / last-mile use). It is **not** leftover and **not** a missing next office. Fixtures raise `receivedPaise` by the used-here amount when leftover was too small to peel, so named children stay stable.
+
 ### 1. Community Water Access Mission (`works-sna`)
 
 - **Shape:** CSS works with SNA + ZBSA float.
 - **Bodies:** SWSM (SNA) → DWSM → block resource centre → Paani Samiti (in-village) / PHED division (bulk).
-- **National:** ₹140 cr (toy scale).
-- **Gaps:** Unpublished onward split at state (~5–10%); late Paani Samiti utilisation at Piprahi.
+- **Used here:** ~4% **Support** at SWSM / DWSM / block resource centres (JJM-style support envelope, toy scale). Last-mile label **Works**.
+- **National:** centre row includes named states + support used here + ~₹5 cr unnamed onward.
+- **Gaps:** Unpublished onward split at state; late Paani Samiti utilisation at Piprahi.
 - **Refs:** `SNA/KANAK/CWAM/…`, `ZBSA/…`, `IA/…/IV|BULK/…`
 
 ### 2. Rural Works Guarantee (`demand-wage`)
 
-- **Shape:** Demand-driven dual stream (wage + material ≈ 60:40) plus small admin.
+- **Shape:** Demand-driven dual stream (wage + material ≈ 60:40) plus admin.
 - **Bodies:** SEGF (SNA) → District Programme Coordinator → Block Programme Officer → Gram Panchayat.
-- **National:** ₹420 cr (larger, lumpy); Raital ≈ 40% of Kanak.
+- **Used here:** ~6% **Admin** at SEGF / DPC / Block PO (MGNREGA-style admin cap, toy scale). GP leaf label **Wages & material**.
+- **National:** larger lumpy envelope; Raital remains the dense high-demand branch.
 - **Gaps:** FTO pending second signatory + pending material bill at Bakul GP.
 - **Refs:** `FTO-W-…`, `MAT-BILL-…`, `ADM-…`
 
@@ -50,7 +58,7 @@ Density rule: fully expand **Raital** (blocks + several last-mile units). Other 
 
 - **Shape:** Central Sector direct credit; thin state DBT cells.
 - **Bodies:** DBT cell → District Agriculture Office → block enrollment file → Installment 2 APBS credit file.
-- **National:** ₹95 cr; three installment waves.
+- **Used here:** ~0.5–1% **Admin** at state DBT cell / DAO only. National row stays pass-through + leftover. Credit-file leaf label **Credits**.
 - **Gaps:** ~returned credits / awaiting re-issue (account mismatch / NPCI seeding language); almost no parked float.
 - **Refs:** `APBS/I2/…`, `DAO/…/ENR-…`, `BLK/…/ENR-…`
 
@@ -58,8 +66,8 @@ Density rule: fully expand **Raital** (blocks + several last-mile units). Other 
 
 - **Shape:** CSS 60:40 matching; society route.
 - **Bodies:** State Health Society → District Health Society → BPMU → PHC / CHC / village health committee.
+- **Used here:** ~6% **Admin** programme-management at SHS / DHS / BPMU (NHM PMU-style, toy scale). Facility leaf label **Facility**. Small admin at the national centre-share row.
 - **Pools (genericised):** `family-health`, `disease-control`, `infrastructure` — not real programme acronyms.
-- **National centre share:** ₹108 cr; synthetic state-share total ₹72 cr.
 - **Gaps:** Meera Coast state share not yet released (~₹12 cr); awaiting society report.
 
 ## Product rules that still apply
