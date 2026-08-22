@@ -1,10 +1,10 @@
 # Project Status
 
-> Last updated: 2026-08-22 · Session 4
+> Last updated: 2026-08-22 · Session 5
 
 ## Current state
 
-Stage 1 citizen journey runs locally as a dark, full-bleed scheme explorer with **four cardinally different synthetic scheme archetypes** and a working scheme switcher.
+Stage 1 citizen journey runs locally as a full-bleed scheme explorer with **four cardinally different synthetic scheme archetypes**, a stacked scheme switcher, quieter pan/zoom, collision-aware flow layout, and a persisted day/night theme.
 
 ## What works
 
@@ -13,8 +13,9 @@ Stage 1 citizen journey runs locally as a dark, full-bleed scheme explorer with 
   - Rural Works Guarantee — demand wage + material, panchayat last mile
   - Landholder Income Support — central DBT installment credits
   - Neighbourhood Health Mission — 60:40 matching society route
-- Scheme switcher loads catalog + scenario by id and focuses each scheme’s highlight node.
-- Flow map: pan/zoom, adaptive hierarchy with last-mile labels (Agency / Panchayat / Credit batch / Facility), ledger alternate view, detail inspector with scheme-kind copy.
+- Scheme switcher loads catalog + scenario by id and focuses each scheme’s highlight node; label sits above the scheme name.
+- Flow map: dampened pan/zoom, adaptive hierarchy with last-mile labels, awaiting cards placed after published children, per-column collision resolve, ledger alternate view, detail inspector with scheme-kind copy.
+- Light and dark themes via a header day/night toggle (`nagrik-theme` in localStorage); dark muted text lifted for readability.
 - Metrics derived from scenario data; every surface labels the prototype and data as synthetic.
 - Calibration note documents public sources used for topology/ratios only ([docs/SYNTHETIC-CALIBRATION.md](SYNTHETIC-CALIBRATION.md)).
 
@@ -29,7 +30,7 @@ Stage 1 citizen journey runs locally as a dark, full-bleed scheme explorer with 
 
 ## Next concrete step
 
-Add focused unit tests, then deploy a public reviewable build and rehearse a two-minute walkthrough that switches archetypes once.
+Add focused unit tests (especially layout collision / awaiting placement), then deploy a public reviewable build and rehearse a two-minute walkthrough that switches archetypes once.
 
 ## Architecture snapshot
 
@@ -40,8 +41,8 @@ src/
 │   ├── fixtures/        # four synthetic scenarios + catalog source
 │   └── sources/         # IFundFlowSource (catalog + load by id)
 ├── services/            # ledger orchestration
-├── components/          # FlowCanvas
-├── utils/               # money display helpers
+├── components/          # FlowCanvas, ThemeToggle
+├── utils/               # money + theme helpers
 └── App.tsx              # explorer shell (switcher + flow + ledger + inspector)
 ```
 

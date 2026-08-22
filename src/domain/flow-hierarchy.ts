@@ -54,9 +54,10 @@ export interface IFlowLayout {
   readonly activeBand: string;
 }
 
-const COLUMN_X = [80, 420, 760, 1100] as const;
-const NODE_HEIGHT = 150;
-const ROW_GAP = 28;
+const COLUMN_X = [80, 460, 840, 1220] as const;
+const NODE_HEIGHT = 176;
+const ROW_GAP = 48;
+const NODE_PITCH = NODE_HEIGHT + ROW_GAP;
 
 export function levelIndex(level: NodeLevel): number {
   return LEVEL_ORDER.indexOf(level);
@@ -122,13 +123,25 @@ export function buildFlowLayout(
     cursorY += ROW_GAP;
   }
 
-  const layoutNodes: IFlowLayoutNode[] = [];
+  const mutableNodes: Array<{
+    id: string;
+    kind: 'funding' | 'awaiting';
+    fundingNodeId: string;
+    label: string;
+    levelLabel: string;
+    amountPaise: number;
+    reportedPaise?: number;
+    level: NodeLevel;
+    parentVisualId?: string;
+    x: number;
+    y: number;
+  }> = [];
   const layoutEdges: IFlowLayoutEdge[] = [];
 
   for (const node of visibleFunding) {
     const pos = positions.get(node.id);
     if (!pos) continue;
-    layoutNodes.push({
+    mutableNodes.push({
       id: node.id,
       kind: 'funding',
       fundingNodeId: node.id,
@@ -144,12 +157,19 @@ export function buildFlowLayout(
 
     if (node.unpublishedPaise && node.unpublishedPaise > 0 && shouldShowAwaiting(node, visibleLevels, mode, zoom)) {
       const awaitingId = `${node.id}__awaiting`;
-      const childCount = (childrenByParent.get(node.id) ?? []).length;
-      const awaitingPos = {
-        x: COLUMN_X[Math.min(levelIndex(node.level) + 1, COLUMN_X.length - 1)],
-        y: pos.y + (childCount > 0 ? NODE_HEIGHT * 0.55 + childCount * 12 : 96)
-      };
-      layoutNodes.push({
+      const nextCol = Math.min(levelIndex(node.level) + 1, COLUMN_X.length - 1);
+      const children = childrenByParent.get(node.id) ?? [];
+      let awaitingY: number;
+      if (children.length > 0) {
+        const childYs = children
+          .map((child) => positions.get(child.id)?.y)
+          .filter((y): y is number => y !== undefined);
+        const lastChildY = childYs.length > 0 ? Math.max(...childYs) : pos.y;
+        awaitingY = lastChildY + NODE_PITCH;
+      } else {
+        awaitingY = pos.y + NODE_PITCH;
+      }
+      mutableNodes.push({
         id: awaitingId,
         kind: 'awaiting',
         fundingNodeId: node.id,
@@ -158,8 +178,8 @@ export function buildFlowLayout(
         amountPaise: node.unpublishedPaise,
         level: node.level,
         parentVisualId: node.id,
-        x: awaitingPos.x,
-        y: awaitingPos.y
+        x: COLUMN_X[nextCol],
+        y: awaitingY
       });
       layoutEdges.push({
         id: `${node.id}->${awaitingId}`,
@@ -170,6 +190,11 @@ export function buildFlowLayout(
       });
     }
   }
+
+  resolveColumnCollisions(mutableNodes);
+  recenterParents(mutableNodes, childrenByParent);
+  resolveColumnCollisions(mutableNodes);
+  recenterParents(mutableNodes, childrenByParent);
 
   for (const transfer of scenario.transfers) {
     if (!visibleIds.has(transfer.fromNodeId) || !visibleIds.has(transfer.toNodeId)) continue;
@@ -182,6 +207,7 @@ export function buildFlowLayout(
     });
   }
 
+  const layoutNodes: IFlowLayoutNode[] = mutableNodes.map((node) => ({ ...node }));
   const maxX = layoutNodes.reduce((max, node) => Math.max(max, node.x + 260), 1200);
   const maxY = layoutNodes.reduce((max, node) => Math.max(max, node.y + 180), 700);
   return { nodes: layoutNodes, edges: layoutEdges, width: maxX + 80, height: maxY + 80, activeBand: band };
@@ -300,7 +326,7 @@ function placeSubtree(
   const col = Math.min(levelIndex(node.level), COLUMN_X.length - 1);
   if (children.length === 0) {
     positions.set(node.id, { x: COLUMN_X[col], y: startY });
-    return startY + NODE_HEIGHT + ROW_GAP;
+    return startY + NODE_PITCH;
   }
   let y = startY;
   const childYs: number[] = [];
@@ -313,4 +339,59 @@ function placeSubtree(
   const midY = (Math.min(...childYs) + Math.max(...childYs)) / 2;
   positions.set(node.id, { x: COLUMN_X[col], y: midY });
   return y;
+}
+
+interface IMutableLayoutNode {
+  id: string;
+  kind: 'funding' | 'awaiting';
+  fundingNodeId: string;
+  label: string;
+  levelLabel: string;
+  amountPaise: number;
+  reportedPaise?: number;
+  level: NodeLevel;
+  parentVisualId?: string;
+  x: number;
+  y: number;
+}
+
+function resolveColumnCollisions(nodes: IMutableLayoutNode[]): void {
+  const byColumn = new Map<number, IMutableLayoutNode[]>();
+  for (const node of nodes) {
+    const list = byColumn.get(node.x) ?? [];
+    list.push(node);
+    byColumn.set(node.x, list);
+  }
+  for (const column of byColumn.values()) {
+    column.sort((a, b) => a.y - b.y || a.id.localeCompare(b.id));
+    for (let i = 1; i < column.length; i += 1) {
+      const prev = column[i - 1];
+      const curr = column[i];
+      const minY = prev.y + NODE_PITCH;
+      if (curr.y < minY) curr.y = minY;
+    }
+  }
+}
+
+function recenterParents(
+  nodes: IMutableLayoutNode[],
+  childrenByParent: Map<string, IFundingNode[]>
+): void {
+  const byId = new Map(nodes.map((node) => [node.id, node]));
+  // Bottom-up: agency → district → state → national so parents follow shifted children.
+  const funding = nodes.filter((node) => node.kind === 'funding');
+  funding.sort((a, b) => levelIndex(b.level) - levelIndex(a.level));
+  for (const parent of funding) {
+    const children = childrenByParent.get(parent.id) ?? [];
+    if (children.length === 0) continue;
+    const childYs: number[] = [];
+    for (const child of children) {
+      const laidOut = byId.get(child.id);
+      if (laidOut) childYs.push(laidOut.y);
+    }
+    const awaiting = byId.get(`${parent.id}__awaiting`);
+    if (awaiting) childYs.push(awaiting.y);
+    if (childYs.length === 0) continue;
+    parent.y = (Math.min(...childYs) + Math.max(...childYs)) / 2;
+  }
 }

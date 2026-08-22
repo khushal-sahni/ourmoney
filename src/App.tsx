@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactElement } from 'react';
 import { FlowCanvas } from './components/flow-canvas';
+import { ThemeToggle } from './components/theme-toggle';
 import { DEFAULT_SCHEME_ID } from './data/fixtures/catalog';
 import { SyntheticScenarioSource } from './data/fixtures/synthetic-scenario.source';
 import type {
@@ -95,17 +96,19 @@ export function App(): ReactElement {
     <main className="app-shell">
       <header className="app-header">
         <div className="scheme-switcher" ref={switcherRef}>
-          <span>Scheme explorer</span>
-          <button
-            type="button"
-            aria-label="Scheme"
-            aria-expanded={menuOpen}
-            aria-haspopup="listbox"
-            onClick={() => setMenuOpen((open) => !open)}
-          >
-            {scenario.schemeName}
-            <b>{menuOpen ? '⌃' : '⌄'}</b>
-          </button>
+          <div className="scheme-switcher-title">
+            <span>Scheme explorer</span>
+            <button
+              type="button"
+              aria-label="Scheme"
+              aria-expanded={menuOpen}
+              aria-haspopup="listbox"
+              onClick={() => setMenuOpen((open) => !open)}
+            >
+              {scenario.schemeName}
+              <b>{menuOpen ? '⌃' : '⌄'}</b>
+            </button>
+          </div>
           <em>{scenario.period}</em>
           {activeSummary && <em className="kind-chip">{activeSummary.kindLabel}</em>}
           {menuOpen && (
@@ -137,16 +140,19 @@ export function App(): ReactElement {
           </button>
         </nav>
 
-        <label className="search">
-          <span aria-hidden="true">⌕</span>
-          <input
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder="Search a state, district…"
-            aria-label="Search funding nodes"
-          />
-          <kbd>⌘ K</kbd>
-        </label>
+        <div className="header-actions">
+          <ThemeToggle />
+          <label className="search">
+            <span aria-hidden="true">⌕</span>
+            <input
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Search a state, district…"
+              aria-label="Search funding nodes"
+            />
+            <kbd>⌘ K</kbd>
+          </label>
+        </div>
 
         {query && (
           <div className="search-results" role="listbox">

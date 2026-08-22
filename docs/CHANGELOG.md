@@ -1,5 +1,26 @@
 # Changelog
 
+## Session 5 — 2026-08-22
+
+### Built
+
+- Stacked the scheme switcher so “Scheme explorer” sits above the scheme name; period and kind chips stay on the name row.
+- Increased flow-map node pitch and column spacing; awaiting-details cards now sit after the last published child, with a per-column collision pass and parent recentering.
+- Dampened wheel zoom with `deltaY`-scaled factors, `deltaMode` normalization, and `requestAnimationFrame` coalescing.
+- Tokenized colors for dark + light themes, raised dark muted text contrast, and added a persisted day/night toggle in the header.
+
+### Verified
+
+- `npm run build` completes successfully with TypeScript strict checking.
+
+### Deferred
+
+- Automated layout tests, public deployment, and submission assets.
+
+### Tech debt
+
+- Matching state share is explained in reconciliations rather than a separate national-parent transfer edge.
+
 ## Session 4 — 2026-08-22
 
 ### Built

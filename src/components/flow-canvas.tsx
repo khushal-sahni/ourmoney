@@ -48,6 +48,8 @@ export function FlowCanvas({
   const drag = useRef<{ readonly pointerId: number; readonly point: IPoint; readonly transform: ITransform } | undefined>(undefined);
   const touches = useRef(new Map<number, IPoint>());
   const pinch = useRef<{ readonly distance: number; readonly centre: IPoint; readonly transform: ITransform } | undefined>(undefined);
+  const pendingWheel = useRef<{ anchor: IPoint; factor: number } | undefined>(undefined);
+  const wheelRaf = useRef<number | undefined>(undefined);
   const bandOptions = useMemo(() => hierarchyOptions(scenario.lastMileLabel), [scenario.lastMileLabel]);
 
   const layout = useMemo(
@@ -63,22 +65,36 @@ export function FlowCanvas({
     return { x: clientX - (rect?.left ?? 0), y: clientY - (rect?.top ?? 0) };
   };
 
-  const zoomAt = (anchor: IPoint, nextZoom: number): void => {
-    setTransform((current) => {
-      const zoom = clampZoom(nextZoom);
-      const ratio = zoom / current.zoom;
-      return {
-        zoom,
-        x: anchor.x - (anchor.x - current.x) * ratio,
-        y: anchor.y - (anchor.y - current.y) * ratio
-      };
-    });
-  };
-
   const onWheel = (event: WheelEvent<HTMLDivElement>): void => {
     event.preventDefault();
-    const factor = event.deltaY > 0 ? 0.9 : 1.1;
-    zoomAt(pointFromClient(event.clientX, event.clientY), transform.zoom * factor);
+    const pixels = normalizeWheelDelta(event.deltaY, event.deltaMode);
+    const clamped = Math.max(-80, Math.min(80, pixels));
+    const factor = Math.exp(-clamped * 0.0016);
+    const anchor = pointFromClient(event.clientX, event.clientY);
+    if (pendingWheel.current) {
+      pendingWheel.current = {
+        anchor,
+        factor: pendingWheel.current.factor * factor
+      };
+    } else {
+      pendingWheel.current = { anchor, factor };
+    }
+    if (wheelRaf.current !== undefined) return;
+    wheelRaf.current = requestAnimationFrame(() => {
+      const pending = pendingWheel.current;
+      pendingWheel.current = undefined;
+      wheelRaf.current = undefined;
+      if (!pending) return;
+      setTransform((current) => {
+        const zoom = clampZoom(current.zoom * pending.factor);
+        const ratio = zoom / current.zoom;
+        return {
+          zoom,
+          x: pending.anchor.x - (pending.anchor.x - current.x) * ratio,
+          y: pending.anchor.y - (pending.anchor.y - current.y) * ratio
+        };
+      });
+    });
   };
 
   const onPointerDown = (event: PointerEvent<HTMLDivElement>): void => {
@@ -166,6 +182,10 @@ export function FlowCanvas({
       y: rect.height / 2 - (target.y + 70) * current.zoom
     }));
   }, [layout.activeBand, selectedId]);
+
+  useEffect(() => () => {
+    if (wheelRaf.current !== undefined) cancelAnimationFrame(wheelRaf.current);
+  }, []);
 
   return (
     <div
@@ -320,6 +340,12 @@ function AwaitingNode({ node, zoom }: { node: IFlowLayoutNode; zoom: number }): 
 
 function clampZoom(value: number): number {
   return Math.max(0.34, Math.min(1.75, value));
+}
+
+function normalizeWheelDelta(deltaY: number, deltaMode: number): number {
+  if (deltaMode === 1) return deltaY * 16;
+  if (deltaMode === 2) return deltaY * 400;
+  return deltaY;
 }
 
 function midpoint(a: IPoint, b: IPoint): IPoint {
