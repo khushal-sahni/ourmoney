@@ -10,7 +10,7 @@ import {
 import type { ISchemeScenario } from '../domain/fund-flow';
 import {
   buildFlowLayout,
-  HIERARCHY_OPTIONS,
+  hierarchyOptions,
   type HierarchyMode,
   type IFlowLayoutEdge,
   type IFlowLayoutNode
@@ -48,6 +48,7 @@ export function FlowCanvas({
   const drag = useRef<{ readonly pointerId: number; readonly point: IPoint; readonly transform: ITransform } | undefined>(undefined);
   const touches = useRef(new Map<number, IPoint>());
   const pinch = useRef<{ readonly distance: number; readonly centre: IPoint; readonly transform: ITransform } | undefined>(undefined);
+  const bandOptions = useMemo(() => hierarchyOptions(scenario.lastMileLabel), [scenario.lastMileLabel]);
 
   const layout = useMemo(
     () => buildFlowLayout(scenario, hierarchyMode, transform.zoom, selectedId),
@@ -178,7 +179,7 @@ export function FlowCanvas({
     >
       <div className="canvas-toolbar">
         <div className="hierarchy-switcher" role="group" aria-label="Hierarchy band">
-          {HIERARCHY_OPTIONS.map((option) => (
+          {bandOptions.map((option) => (
             <button
               key={option.id}
               type="button"

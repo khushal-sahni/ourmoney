@@ -2,13 +2,18 @@ import type { IFundingNode, ISchemeScenario, NodeLevel } from './fund-flow';
 
 export type HierarchyMode = 'auto' | 'national-state' | 'state-district' | 'district-agency' | 'full';
 
-export const HIERARCHY_OPTIONS: readonly { readonly id: HierarchyMode; readonly label: string }[] = [
-  { id: 'auto', label: 'Auto' },
-  { id: 'national-state', label: 'National → State' },
-  { id: 'state-district', label: 'State → District' },
-  { id: 'district-agency', label: 'District → Agency' },
-  { id: 'full', label: 'Full tree' }
-];
+export function hierarchyOptions(lastMileLabel: string): readonly { readonly id: HierarchyMode; readonly label: string }[] {
+  return [
+    { id: 'auto', label: 'Auto' },
+    { id: 'national-state', label: 'National → State' },
+    { id: 'state-district', label: 'State → District' },
+    { id: 'district-agency', label: `District → ${lastMileLabel}` },
+    { id: 'full', label: 'Full tree' }
+  ];
+}
+
+/** @deprecated Prefer hierarchyOptions(scenario.lastMileLabel). */
+export const HIERARCHY_OPTIONS = hierarchyOptions('Agency');
 
 const LEVEL_ORDER: readonly NodeLevel[] = ['national', 'state', 'district', 'agency'];
 
@@ -67,12 +72,12 @@ export function resolveVisibleLevels(mode: HierarchyMode, zoom: number): readonl
   return ['district', 'agency'];
 }
 
-export function activeBandLabel(levels: readonly NodeLevel[]): string {
+export function activeBandLabel(levels: readonly NodeLevel[], lastMileLabel = 'Agency'): string {
   if (levels.length === 0) return 'Empty';
   const first = levels[0];
   const last = levels[levels.length - 1];
-  if (first === last) return titleCase(first);
-  return `${titleCase(first)} → ${titleCase(last)}`;
+  if (first === last) return levelDisplayName(first, lastMileLabel);
+  return `${levelDisplayName(first, lastMileLabel)} → ${levelDisplayName(last, lastMileLabel)}`;
 }
 
 export function computeSchemeMetrics(scenario: ISchemeScenario): ISchemeMetrics {
@@ -93,7 +98,7 @@ export function buildFlowLayout(
   focusNodeId: string
 ): IFlowLayout {
   const visibleLevels = resolveVisibleLevels(mode, zoom);
-  const band = activeBandLabel(visibleLevels);
+  const band = activeBandLabel(visibleLevels, scenario.lastMileLabel);
   const focusPath = ancestorIds(scenario, focusNodeId);
   const visibleFunding = scenario.nodes.filter((node) => {
     if (!visibleLevels.includes(node.level)) {
@@ -128,7 +133,7 @@ export function buildFlowLayout(
       kind: 'funding',
       fundingNodeId: node.id,
       label: node.shortName,
-      levelLabel: node.level,
+      levelLabel: node.level === 'agency' ? scenario.lastMileLabel.toLowerCase() : node.level,
       amountPaise: node.receivedPaise,
       reportedPaise: node.reportedPaise,
       level: node.level,
@@ -228,8 +233,9 @@ export function ledgerRows(scenario: ISchemeScenario, query: string): readonly I
   return ordered;
 }
 
-function titleCase(value: string): string {
-  return value.charAt(0).toUpperCase() + value.slice(1);
+function levelDisplayName(level: NodeLevel, lastMileLabel: string): string {
+  if (level === 'agency') return lastMileLabel;
+  return level.charAt(0).toUpperCase() + level.slice(1);
 }
 
 function ancestorIds(scenario: ISchemeScenario, nodeId: string): Set<string> {

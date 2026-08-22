@@ -25,6 +25,7 @@ Deliver a live, independent, mobile-first prototype that lets a citizen trace a 
 - [x] Scheme overview with released, reported, and needs-explanation summaries.
 - [x] Progressive map/tree drill-down across the synthetic fund flow.
 - [x] District/agency detail with transfer timeline and reconciliation explanation.
+- [x] Multiple synthetic scheme archetypes with a working switcher (works SNA, demand wage, central DBT, matching society).
 - [ ] Evidence/provenance drawer identifying every record as synthetic.
 - [x] Responsive, accessible, low-bandwidth-friendly interface.
 - [ ] Scenario tests and a public deployment.
@@ -45,8 +46,8 @@ Deliver a live, independent, mobile-first prototype that lets a citizen trace a 
 
 ## Scope cuts for the competition build
 
-- No live government integrations, scraping, or automatic data collection.
+- No live government integrations, scraping, or automatic data collection. One-time reading of published budget/SNA/DBT documents to calibrate synthetic recipes is allowed; copying live portal rows is not.
 - No real persons, officers, beneficiaries, payments, or transaction data.
 - No login, public submissions, complaints workflow, or admin panel.
-- No attempt to cover every government scheme or every geography.
+- No attempt to cover every government scheme or every geography (four fictional archetypes only).
 - No allegations, rankings of people, or corruption-detection claims.

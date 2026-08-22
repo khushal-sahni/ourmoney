@@ -1,5 +1,26 @@
 # Changelog
 
+## Session 4 — 2026-08-22
+
+### Built
+
+- Extended the canonical model with `schemeKind`, `lastMileLabel`, transfer `component`, optional centre/state share fields, and a multi-scheme source catalog API.
+- Added four hand-authored synthetic fixtures with distinct topologies and gap types (works SNA, demand wage/material, central DBT, matching society).
+- Wired the scheme switcher, dynamic District→last-mile hierarchy labels, inspector scheme-kind copy, and per-scheme default focus nodes.
+- Documented public-document calibration in `docs/SYNTHETIC-CALIBRATION.md` without wiring live government systems.
+
+### Verified
+
+- `npm run build` completes successfully with TypeScript strict checking.
+
+### Deferred
+
+- Automated tests, public deployment, and submission assets.
+
+### Tech debt
+
+- Matching state share is explained in reconciliations rather than a separate national-parent transfer edge.
+
 ## Session 3 — 2026-08-22
 
 ### Built

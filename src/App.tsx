@@ -1,7 +1,15 @@
-import { useEffect, useMemo, useState, type ReactElement } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactElement } from 'react';
 import { FlowCanvas } from './components/flow-canvas';
+import { DEFAULT_SCHEME_ID } from './data/fixtures/catalog';
 import { SyntheticScenarioSource } from './data/fixtures/synthetic-scenario.source';
-import type { IFundingNode, IReconciliation, ISchemeScenario, ITransfer } from './domain/fund-flow';
+import type {
+  IFundingNode,
+  IReconciliation,
+  ISchemeScenario,
+  ISchemeSummary,
+  ITransfer
+} from './domain/fund-flow';
+import { schemeKindDescription } from './domain/fund-flow';
 import {
   computeSchemeMetrics,
   ledgerRows,
@@ -14,14 +22,50 @@ import { formatCrore, formatPaiseFull, percentOf } from './utils/money';
 const ledgerService = new LedgerService(new SyntheticScenarioSource());
 
 export function App(): ReactElement {
+  const [catalog, setCatalog] = useState<readonly ISchemeSummary[]>([]);
+  const [schemeId, setSchemeId] = useState(DEFAULT_SCHEME_ID);
   const [scenario, setScenario] = useState<ISchemeScenario>();
   const [selectedId, setSelectedId] = useState('nadi');
   const [query, setQuery] = useState('');
   const [view, setView] = useState<'flow' | 'ledger'>('flow');
   const [hierarchyMode, setHierarchyMode] = useState<HierarchyMode>('auto');
+  const [menuOpen, setMenuOpen] = useState(false);
+  const switcherRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    void ledgerService.load().then(setScenario);
+    void ledgerService.loadCatalog().then(setCatalog);
+  }, []);
+
+  useEffect(() => {
+    void ledgerService.load(schemeId).then((next) => {
+      setScenario(next);
+      setSelectedId(next.defaultFocusNodeId);
+      setHierarchyMode('auto');
+      setQuery('');
+      setMenuOpen(false);
+    });
+  }, [schemeId]);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onPointerDown = (event: MouseEvent): void => {
+      if (switcherRef.current && !switcherRef.current.contains(event.target as Node)) {
+        setMenuOpen(false);
+      }
+    };
+    const onKeyDown = (event: KeyboardEvent): void => {
+      if (event.key === 'Escape') setMenuOpen(false);
+    };
+    document.addEventListener('mousedown', onPointerDown);
+    document.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', onPointerDown);
+      document.removeEventListener('keydown', onKeyDown);
+    };
+  }, [menuOpen]);
+
+  const selectScheme = useCallback((id: string): void => {
+    setSchemeId(id);
   }, []);
 
   const selected = useMemo(
@@ -41,6 +85,7 @@ export function App(): ReactElement {
     () => (scenario ? computeSchemeMetrics(scenario) : undefined),
     [scenario]
   );
+  const activeSummary = catalog.find((entry) => entry.id === schemeId);
 
   if (!scenario || !selected || !metrics) {
     return <main className="loading">Loading synthetic scenario…</main>;
@@ -49,13 +94,38 @@ export function App(): ReactElement {
   return (
     <main className="app-shell">
       <header className="app-header">
-        <div className="scheme-switcher">
+        <div className="scheme-switcher" ref={switcherRef}>
           <span>Scheme explorer</span>
-          <button type="button" aria-label="Scheme">
+          <button
+            type="button"
+            aria-label="Scheme"
+            aria-expanded={menuOpen}
+            aria-haspopup="listbox"
+            onClick={() => setMenuOpen((open) => !open)}
+          >
             {scenario.schemeName}
-            <b>⌄</b>
+            <b>{menuOpen ? '⌃' : '⌄'}</b>
           </button>
           <em>{scenario.period}</em>
+          {activeSummary && <em className="kind-chip">{activeSummary.kindLabel}</em>}
+          {menuOpen && (
+            <div className="scheme-menu" role="listbox" aria-label="Synthetic schemes">
+              {catalog.map((entry) => (
+                <button
+                  key={entry.id}
+                  type="button"
+                  role="option"
+                  aria-selected={entry.id === schemeId}
+                  className={entry.id === schemeId ? 'active' : ''}
+                  onClick={() => selectScheme(entry.id)}
+                >
+                  <strong>{entry.schemeName}</strong>
+                  <span>{entry.kindLabel}</span>
+                  <em>{entry.schemeCode}</em>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         <nav className="view-switcher" aria-label="Workspace view">
@@ -94,7 +164,7 @@ export function App(): ReactElement {
                   }
                 }}
               >
-                <span>{node.level}</span>
+                <span>{node.level === 'agency' ? scenario.lastMileLabel.toLowerCase() : node.level}</span>
                 {node.name}
                 <b>{formatCrore(node.receivedPaise)}</b>
               </button>
@@ -196,6 +266,8 @@ function LedgerTable({
 }): ReactElement {
   const rows = ledgerRows(scenario, query);
   const depthOf = (node: IFundingNode): number => pathFor(scenario, node).length - 1;
+  const levelLabel = (node: IFundingNode): string =>
+    node.level === 'agency' ? scenario.lastMileLabel.toLowerCase() : node.level;
 
   return (
     <div className="ledger-wrap">
@@ -217,7 +289,7 @@ function LedgerTable({
             >
               <td style={{ paddingLeft: `${20 + depthOf(node) * 18}px` }}>
                 <strong>{node.shortName}</strong>
-                <span>{node.level}</span>
+                <span>{levelLabel(node)}</span>
               </td>
               <td>{formatCrore(node.receivedPaise)}</td>
               <td>
@@ -248,6 +320,9 @@ function Inspector({
 }): ReactElement {
   const crumbs = pathFor(scenario, node);
   const reportedPercentage = percentOf(node.reportedPaise, node.receivedPaise);
+  const levelWord = node.level === 'agency'
+    ? scenario.lastMileLabel.toLowerCase()
+    : node.level;
 
   return (
     <aside className="inspector">
@@ -259,13 +334,19 @@ function Inspector({
           </span>
         ))}
       </div>
-      <span className="node-level">{node.level}</span>
+      <span className="node-level">{levelWord}</span>
       <h1>{node.shortName}</h1>
+      <p className="scheme-kind-blurb">{schemeKindDescription(scenario.schemeKind)}</p>
       <p>
         {node.level === 'national'
           ? 'Programme-level release in this synthetic scenario.'
-          : `${node.level[0].toUpperCase()}${node.level.slice(1)}-level record receiving funds under this scheme.`}
+          : `${levelWord[0].toUpperCase()}${levelWord.slice(1)}-level record receiving funds under this scheme.`}
       </p>
+      {scenario.centreSharePaise !== undefined && scenario.stateSharePaise !== undefined && node.level === 'national' ? (
+        <p className="share-note">
+          Matching pattern (synthetic): centre {formatCrore(scenario.centreSharePaise)} · state {formatCrore(scenario.stateSharePaise)}.
+        </p>
+      ) : null}
 
       <section>
         <h2>Financial standing</h2>
@@ -294,6 +375,21 @@ function Inspector({
             <div key={item.label}>
               <span>{item.label}</span>
               <b>{formatCrore(item.amountPaise)}</b>
+            </div>
+          ))}
+        </section>
+      )}
+
+      {transfers.length > 0 && (
+        <section className="transfer-list">
+          <h2>Connected transfers</h2>
+          {transfers.map((transfer) => (
+            <div key={transfer.id}>
+              <span>
+                {transfer.reference}
+                {transfer.component ? ` · ${transfer.component}` : ''}
+              </span>
+              <b>{formatCrore(transfer.amountPaise)}</b>
             </div>
           ))}
         </section>

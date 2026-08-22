@@ -1,11 +1,15 @@
-import type { IFundingNode, IReconciliation, ISchemeScenario, ITransfer } from '../domain/fund-flow';
+import type { IFundingNode, IReconciliation, ISchemeScenario, ISchemeSummary, ITransfer } from '../domain/fund-flow';
 import type { IFundFlowSource } from '../data/sources/fund-flow-source';
 
 export class LedgerService {
   public constructor(private readonly source: IFundFlowSource) {}
 
-  public async load(): Promise<ISchemeScenario> {
-    return this.source.loadScenario();
+  public async loadCatalog(): Promise<readonly ISchemeSummary[]> {
+    return this.source.loadCatalog();
+  }
+
+  public async load(schemeId: string): Promise<ISchemeScenario> {
+    return this.source.loadScenario(schemeId);
   }
 
   public findNode(scenario: ISchemeScenario, nodeId: string): IFundingNode | undefined {
