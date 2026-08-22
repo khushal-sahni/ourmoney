@@ -31,6 +31,17 @@ interface IPoint {
 const NODE_WIDTH = 240;
 const BUTTON_ZOOM_STEP = 1.18;
 const FIT_PADDING = 56;
+const DOUBLE_TAP_MS = 340;
+
+interface IBranchToggleState {
+  readonly collapsedIds: ReadonlySet<string>;
+  readonly revealedIds: ReadonlySet<string>;
+}
+
+const EMPTY_BRANCH_TOGGLE: IBranchToggleState = {
+  collapsedIds: new Set(),
+  revealedIds: new Set()
+};
 
 export function FlowCanvas({
   scenario,
@@ -51,12 +62,21 @@ export function FlowCanvas({
   const stageRef = useRef<HTMLDivElement>(null);
   const transformRef = useRef<ITransform>({ x: 48, y: 36, zoom: 0.82 });
   const [transform, setTransform] = useState<ITransform>(transformRef.current);
+  const [branchToggle, setBranchToggle] = useState<IBranchToggleState>(EMPTY_BRANCH_TOGGLE);
   const drag = useRef<{ readonly pointerId: number; readonly point: IPoint; readonly transform: ITransform } | undefined>(undefined);
   const touches = useRef(new Map<number, IPoint>());
   const pinch = useRef<{ readonly distance: number; readonly centre: IPoint; readonly transform: ITransform } | undefined>(undefined);
   const pendingWheel = useRef<{ anchor: IPoint; factor: number } | undefined>(undefined);
   const wheelRaf = useRef<number | undefined>(undefined);
+  const lastTapRef = useRef<{ readonly id: string; readonly at: number } | undefined>(undefined);
+  const pendingCenterIdRef = useRef<string | undefined>(undefined);
   const bandOptions = useMemo(() => hierarchyOptions(scenario.lastMileLabel), [scenario.lastMileLabel]);
+
+  useEffect(() => {
+    setBranchToggle(EMPTY_BRANCH_TOGGLE);
+    lastTapRef.current = undefined;
+    pendingCenterIdRef.current = undefined;
+  }, [scenario.id]);
 
   const applyTransform = useCallback((next: ITransform | ((current: ITransform) => ITransform)): void => {
     setTransform((current) => {
@@ -67,12 +87,76 @@ export function FlowCanvas({
   }, []);
 
   const layout = useMemo(
-    () => buildFlowLayout(scenario, hierarchyMode, transform.zoom, branchFocusId),
-    [scenario, hierarchyMode, transform.zoom, branchFocusId]
+    () => buildFlowLayout(
+      scenario,
+      hierarchyMode,
+      transform.zoom,
+      branchFocusId,
+      branchToggle.collapsedIds,
+      branchToggle.revealedIds
+    ),
+    [scenario, hierarchyMode, transform.zoom, branchFocusId, branchToggle]
   );
   const schemeTotalPaise = scenario.nodes.find((node) => node.level === 'national')?.receivedPaise
     ?? scenario.nodes[0]?.receivedPaise
     ?? 0;
+
+  const centerOnNode = useCallback((nodeId: string): void => {
+    const target = layout.nodes.find((node) => node.fundingNodeId === nodeId && node.kind === 'funding');
+    if (!target || !stageRef.current) return;
+    const rect = stageRef.current.getBoundingClientRect();
+    const zoom = transformRef.current.zoom;
+    applyTransform({
+      zoom,
+      x: rect.width / 2 - (target.x + NODE_WIDTH / 2) * zoom,
+      y: rect.height / 2 - (target.y + 70) * zoom
+    });
+  }, [applyTransform, layout.nodes]);
+
+  const toggleImmediateChildren = useCallback((nodeId: string): void => {
+    const hasChildren = scenario.nodes.some((node) => node.parentId === nodeId);
+    if (!hasChildren) return;
+
+    const childVisible = layout.nodes.some((node) => {
+      if (node.kind !== 'funding') return false;
+      const raw = scenario.nodes.find((candidate) => candidate.id === node.fundingNodeId);
+      return raw?.parentId === nodeId;
+    });
+
+    pendingCenterIdRef.current = nodeId;
+    setBranchToggle((prev) => {
+      const collapsedIds = new Set(prev.collapsedIds);
+      const revealedIds = new Set(prev.revealedIds);
+      if (collapsedIds.has(nodeId) || !childVisible) {
+        collapsedIds.delete(nodeId);
+        revealedIds.add(nodeId);
+      } else {
+        collapsedIds.add(nodeId);
+        revealedIds.delete(nodeId);
+      }
+      return { collapsedIds, revealedIds };
+    });
+  }, [layout.nodes, scenario.nodes]);
+
+  useEffect(() => {
+    const nodeId = pendingCenterIdRef.current;
+    if (!nodeId) return;
+    pendingCenterIdRef.current = undefined;
+    centerOnNode(nodeId);
+  }, [layout, centerOnNode]);
+
+  const activateNode = useCallback((nodeId: string): void => {
+    const now = performance.now();
+    const last = lastTapRef.current;
+    if (last && last.id === nodeId && now - last.at < DOUBLE_TAP_MS) {
+      lastTapRef.current = undefined;
+      onSelect(nodeId);
+      toggleImmediateChildren(nodeId);
+      return;
+    }
+    lastTapRef.current = { id: nodeId, at: now };
+    onSelect(nodeId);
+  }, [onSelect, toggleImmediateChildren]);
 
   const pointFromClient = (clientX: number, clientY: number): IPoint => {
     const rect = stageRef.current?.getBoundingClientRect();
@@ -348,7 +432,7 @@ export function FlowCanvas({
               selected={node.fundingNodeId === selectedId}
               zoom={transform.zoom}
               schemeTotalPaise={schemeTotalPaise}
-              onSelect={onSelect}
+              onActivate={activateNode}
             />
           )
         )}
@@ -405,13 +489,13 @@ function FlowNode({
   selected,
   zoom,
   schemeTotalPaise,
-  onSelect
+  onActivate
 }: {
   node: IFlowLayoutNode;
   selected: boolean;
   zoom: number;
   schemeTotalPaise: number;
-  onSelect: (id: string) => void;
+  onActivate: (id: string) => void;
 }): ReactElement {
   const compact = zoom < 0.62;
   const dot = zoom < 0.42;
@@ -428,19 +512,26 @@ function FlowNode({
       type="button"
       className={`map-node ${selected ? 'selected' : ''} ${compact ? 'compact' : ''} ${dot ? 'dot-node' : ''}`}
       style={{ left: node.x, top: node.y }}
-      onClick={() => onSelect(node.fundingNodeId)}
+      onClick={() => onActivate(node.fundingNodeId)}
+      onDoubleClick={(event) => event.preventDefault()}
       aria-pressed={selected}
     >
-      <span>{node.levelLabel}</span>
-      <strong>{node.label}</strong>
-      {!compact && !dot && node.workLabel ? <em className="node-work">{node.workLabel}</em> : null}
+      <div className="node-head">
+        <div className="node-head-main">
+          <span>{node.levelLabel}</span>
+          <strong>{node.label}</strong>
+          {!compact && !dot && node.workLabel ? <em className="node-work">{node.workLabel}</em> : null}
+        </div>
+        {!compact && !dot ? (
+          <div className="node-head-meta">
+            <em className="node-share">{share.toFixed(1)}%</em>
+            {usedHere > 0 ? <em className="node-used-chip">{formatCrore(usedHere)}</em> : null}
+          </div>
+        ) : null}
+      </div>
       {!dot && (
         <>
           <b>{formatCrore(node.amountPaise)}</b>
-          {!compact && <em className="node-share">{share.toFixed(1)}%</em>}
-          {!compact && usedHere > 0 ? (
-            <em className="node-used-chip">{formatCrore(usedHere)}</em>
-          ) : null}
           <i aria-hidden="true">
             {onwardPct > 0 ? <em className="seg-onward" style={{ width: `${onwardPct}%` }} /> : null}
             {usedPct > 0 ? <em className="seg-used" style={{ width: `${usedPct}%` }} /> : null}

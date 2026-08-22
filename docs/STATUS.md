@@ -17,7 +17,7 @@ Stage 1 citizen journey runs locally as a full-bleed scheme explorer with **four
 - Tree: segmented gold / teal / amber bar + teal used-here amount chip; awaiting stays a separate next-column card.
 - Ledger columns: Node · Received · Sent onward · Used here · What’s left; inspector one-line used-here remark.
 - Scheme switcher loads catalog + scenario by id and focuses each scheme’s highlight node.
-- Flow map: five-column adaptive hierarchy, work labels on nodes, quieter pan/zoom, collision-aware layout, ledger alternate view, detail inspector with official body name + scheme-kind copy. Node tap updates the inspector only; auto branch focus changes on scheme load / search.
+- Flow map: five-column adaptive hierarchy, work labels on nodes, quieter pan/zoom, collision-aware layout, ledger alternate view, detail inspector with official body name + scheme-kind copy. Node tap updates the inspector only; auto branch focus changes on scheme load / search. Double-tap toggles immediate child branches.
 - Light and dark themes via a header day/night toggle (`nagrik-theme` in localStorage).
 - Metrics derived from scenario data; every surface labels the prototype and data as synthetic.
 - Calibration note documents public sources used for topology/vocabulary only ([docs/SYNTHETIC-CALIBRATION.md](SYNTHETIC-CALIBRATION.md)).

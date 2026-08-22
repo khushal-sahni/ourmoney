@@ -119,12 +119,19 @@ export function buildFlowLayout(
   scenario: ISchemeScenario,
   mode: HierarchyMode,
   zoom: number,
-  focusNodeId: string
+  focusNodeId: string,
+  collapsedIds: ReadonlySet<string> = emptyIdSet,
+  revealedIds: ReadonlySet<string> = emptyIdSet
 ): IFlowLayout {
   const visibleLevels = resolveVisibleLevels(mode, zoom);
   const band = activeBandLabel(visibleLevels, scenario.lastMileLabel);
   const focusPath = ancestorIds(scenario, focusNodeId);
+  const byId = new Map(scenario.nodes.map((node) => [node.id, node]));
+  const allChildrenByParent = groupChildren(scenario.nodes);
   const visibleFunding = scenario.nodes.filter((node) => {
+    if (isHiddenByCollapse(node, collapsedIds, byId)) return false;
+    // Double-tap reveal: force immediate children onto the map.
+    if (node.parentId && revealedIds.has(node.parentId)) return true;
     if (!visibleLevels.includes(node.level)) {
       // Keep the focus path visible so search/select never strands the user.
       return focusPath.has(node.id);
@@ -168,7 +175,8 @@ export function buildFlowLayout(
   for (const node of visibleFunding) {
     const pos = positions.get(node.id);
     if (!pos) continue;
-    const childSum = (childrenByParent.get(node.id) ?? []).reduce((sum, child) => sum + child.receivedPaise, 0);
+    // Standing math uses all named children, even when a double-tap has collapsed them on the map.
+    const childSum = (allChildrenByParent.get(node.id) ?? []).reduce((sum, child) => sum + child.receivedPaise, 0);
     const usedHere = node.usedHerePaise ?? 0;
     const matchingNational = scenario.schemeKind === 'matching-society' && node.level === 'national';
     const leftover = matchingNational
@@ -311,6 +319,8 @@ function levelLabelFor(node: IFundingNode, lastMileLabel: string): string {
   return node.level;
 }
 
+const emptyIdSet: ReadonlySet<string> = new Set();
+
 function ancestorIds(scenario: ISchemeScenario, nodeId: string): Set<string> {
   const ids = new Set<string>([nodeId]);
   let cursor = scenario.nodes.find((node) => node.id === nodeId);
@@ -319,6 +329,19 @@ function ancestorIds(scenario: ISchemeScenario, nodeId: string): Set<string> {
     cursor = scenario.nodes.find((node) => node.id === cursor?.parentId);
   }
   return ids;
+}
+
+function isHiddenByCollapse(
+  node: IFundingNode,
+  collapsedIds: ReadonlySet<string>,
+  byId: ReadonlyMap<string, IFundingNode>
+): boolean {
+  let parentId = node.parentId;
+  while (parentId) {
+    if (collapsedIds.has(parentId)) return true;
+    parentId = byId.get(parentId)?.parentId;
+  }
+  return false;
 }
 
 function isNearFocusBranch(

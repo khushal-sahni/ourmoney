@@ -196,9 +196,9 @@ export function App(): ReactElement {
           tone="amber"
           detail={`${metrics.awaitingSharePercent}% of scheme`}
         />
-        <p>
-          What’s left = Received − sent onward − used here on the centre row. Used here is this office’s allowed own spend.
-          Open a row for the one-line explanation. Independent prototype · all figures synthetic.
+        <p className="metrics-note">
+          Independent prototype · all data synthetic
+          <span>Double-tap a node to see its immediate branches</span>
         </p>
       </section>
 
