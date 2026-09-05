@@ -12,23 +12,28 @@ const WORKSPACE_COLLAPSED_PX = 40;
 const WORKSPACE_MIN_PERCENT = '40%';
 const DETAIL_DEFAULT_PX = 340;
 const DETAIL_MIN_PX = 240;
+const DETAIL_COLLAPSED_PX = 44;
 
 interface WorkbenchLayoutProps {
   readonly layoutId: string;
   readonly workspace: PaneCollapseControls;
   readonly workspaceContent: ReactNode;
   readonly workspaceRail: ReactNode;
+  readonly inspector: PaneCollapseControls;
+  readonly inspectorRail: ReactNode;
   readonly detail: ReactNode;
 }
 
 /**
- * Horizontal workbench: collapsible workspace + detail column (inspector/chat).
+ * Horizontal workbench: collapsible workspace + collapsible detail column (inspector/chat).
  */
 export function WorkbenchLayout({
   layoutId,
   workspace,
   workspaceContent,
   workspaceRail,
+  inspector,
+  inspectorRail,
   detail
 }: WorkbenchLayoutProps): ReactNode {
   const { defaultLayout, onLayoutChanged } = useDefaultLayout({
@@ -61,10 +66,16 @@ export function WorkbenchLayout({
       <Panel
         id="detail"
         className="workbench-detail-panel"
+        panelRef={inspector.panelRef}
         defaultSize={DETAIL_DEFAULT_PX}
         minSize={DETAIL_MIN_PX}
+        collapsedSize={DETAIL_COLLAPSED_PX}
+        collapsible
+        onResize={inspector.onResize}
       >
-        <div className="pane-fill">{detail}</div>
+        <div className="pane-fill">
+          {inspector.collapsed ? inspectorRail : detail}
+        </div>
       </Panel>
     </Group>
   );

@@ -13,7 +13,7 @@ import {
 import {
   DetailSplit,
   MobileStackLayout,
-  PaneChrome,
+  PaneEdgeToggle,
   PaneRail,
   ShellLayout,
   usePaneCollapse,
@@ -95,72 +95,63 @@ export function ExplorerShell({
   );
 
   const metricsPane = (
-    <>
-      <PaneChrome
+    <div className="metrics-pane-wrap">
+      <div className="metrics-pane-body">{metricsContent}</div>
+      <PaneEdgeToggle
+        className="metrics-edge-toggle"
         onCollapse={metrics.collapse}
         collapseLabel="Collapse scheme totals"
         collapseIcon={<ChevronUpIcon />}
       />
-      <div className="metrics-pane-body">{metricsContent}</div>
-    </>
+    </div>
   );
 
   const workspacePane = (
-    <>
-      <PaneChrome
-        className="workspace-pane-chrome"
+    <div className="workspace-pane-wrap">
+      <PaneEdgeToggle
+        className="workspace-edge-toggle"
         onCollapse={workspace.collapse}
         collapseLabel={view === 'flow' ? 'Collapse flow map' : 'Collapse ledger table'}
         collapseIcon={isMobile ? <ChevronDownIcon /> : <ChevronLeftIcon />}
       />
       <div className="workspace-pane-body">{workspaceContent}</div>
-    </>
+    </div>
   );
 
-  const inspectorPane = (
-    <>
-      <PaneChrome
-        className="inspector-pane-chrome"
+  const inspectorBody = (
+    <div className="inspector-pane-wrap">
+      <PaneEdgeToggle
+        className="inspector-edge-toggle"
         onCollapse={inspector.collapse}
         collapseLabel="Collapse node details"
         collapseIcon={isMobile ? <ChevronDownIcon /> : <ChevronRightIcon />}
       />
       <div className="inspector-pane-body">{inspectorContent}</div>
-    </>
+    </div>
   );
 
-  const chatPane = (
-    <>
-      <PaneChrome
-        className="chat-pane-chrome"
-        onCollapse={chat.collapse}
-        collapseLabel="Collapse chat"
-        collapseIcon={isMobile ? <ChevronDownIcon /> : <ChevronRightIcon />}
-      />
-      <div className="chat-pane-body">{chatContent}</div>
-    </>
-  );
+  const chatBody = chatContent;
 
   if (isMobile) {
     return (
       <ShellLayout
         key="mobile-shell"
-        layoutId="om-shell-mobile"
+        layoutId="om-shell-mobile-v2"
         metrics={metrics}
         metricsDefaultSize={40}
         metricsContent={metricsPane}
         metricsRail={metricsRail}
       >
         <MobileStackLayout
-          layoutId="om-mobile-stack"
+          layoutId="om-mobile-stack-v2"
           workspace={workspace}
           workspaceContent={workspacePane}
           workspaceRail={workspaceRail}
           inspector={inspector}
-          inspectorContent={inspectorPane}
+          inspectorContent={inspectorBody}
           inspectorRail={inspectorRail}
           chat={chatOpen ? chat : undefined}
-          chatContent={chatOpen ? chatPane : undefined}
+          chatContent={chatOpen ? chatBody : undefined}
           chatRail={chatOpen ? chatRail : undefined}
         />
       </ShellLayout>
@@ -170,24 +161,24 @@ export function ExplorerShell({
   return (
     <ShellLayout
       key="desktop-shell"
-      layoutId="om-shell"
+      layoutId="om-shell-v2"
       metrics={metrics}
       metricsContent={metricsPane}
       metricsRail={metricsRail}
     >
       <WorkbenchLayout
-        layoutId="om-workbench"
+        layoutId="om-workbench-v2"
         workspace={workspace}
         workspaceContent={workspacePane}
         workspaceRail={workspaceRail}
+        inspector={inspector}
+        inspectorRail={inspectorRail}
         detail={
           <DetailSplit
-            layoutId="om-detail"
-            inspector={inspector}
-            inspectorContent={inspectorPane}
-            inspectorRail={inspectorRail}
+            layoutId="om-detail-v2"
+            inspectorContent={inspectorBody}
             chat={chatOpen ? chat : undefined}
-            chatContent={chatOpen ? chatPane : undefined}
+            chatContent={chatOpen ? chatBody : undefined}
             chatRail={chatOpen ? chatRail : undefined}
           />
         }

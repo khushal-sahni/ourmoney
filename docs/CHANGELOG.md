@@ -10,6 +10,14 @@
 - Icon-first chrome: header view/about/ask, inspector actions, and chat send use inline SVG icons.
 - **Inspector plain-language summary:** fixed `/api/narrate` response field (`text` → `narration`); template seeds immediately on node change; empty API body falls back to template; loading hint no longer replaces the paragraph.
 
+### Fixed (pane UX)
+
+- Inspector collapse shrinks the **detail column** to a ~44px rail (not height inside a fixed 340px block).
+- Removed full-width pane chrome rows; collapse toggles are small floating edge buttons.
+- Restored text labels in header (Map/Ledger, About, Ask) and inspector actions (icon + label).
+- Layout storage ids bumped to `*-v2` so broken saved layouts reset.
+- **Stable toggle corners:** collapse and restore controls stay in the same corner (metrics right, inspector top-right, workspace top-left); map flags moved to node meta column to stop overlapping titles.
+
 ### Verified
 
 - `npm run build` passes.

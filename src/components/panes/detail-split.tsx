@@ -9,30 +9,25 @@ import {
 import type { PaneCollapseControls } from './use-pane-collapse';
 
 const INSPECTOR_DEFAULT = '58%';
-const INSPECTOR_MIN_PX = 200;
-const INSPECTOR_COLLAPSED_PX = 40;
+const INSPECTOR_MIN_PX = 160;
 const CHAT_DEFAULT = '42%';
-const CHAT_MIN_PX = 160;
+const CHAT_MIN_PX = 120;
 const CHAT_COLLAPSED_PX = 40;
 
 interface DetailSplitProps {
   readonly layoutId: string;
-  readonly inspector: PaneCollapseControls;
   readonly inspectorContent: ReactNode;
-  readonly inspectorRail: ReactNode;
   readonly chat?: PaneCollapseControls;
   readonly chatContent?: ReactNode;
   readonly chatRail?: ReactNode;
 }
 
 /**
- * Vertical detail split: collapsible inspector over optional collapsible chat.
+ * Vertical split inside the expanded detail column: inspector body over optional chat.
  */
 export function DetailSplit({
   layoutId,
-  inspector,
   inspectorContent,
-  inspectorRail,
   chat,
   chatContent,
   chatRail
@@ -46,28 +41,9 @@ export function DetailSplit({
 
   if (!chatOpen) {
     return (
-      <Group
-        id={layoutId}
-        className="detail-split"
-        orientation="vertical"
-        defaultLayout={defaultLayout}
-        onLayoutChanged={onLayoutChanged}
-      >
-        <Panel
-          id="inspector"
-          className="detail-inspector-panel"
-          panelRef={inspector.panelRef}
-          defaultSize="100%"
-          minSize={INSPECTOR_MIN_PX}
-          collapsedSize={INSPECTOR_COLLAPSED_PX}
-          collapsible
-          onResize={inspector.onResize}
-        >
-          <div className="pane-fill detail-scroll">
-            {inspector.collapsed ? inspectorRail : inspectorContent}
-          </div>
-        </Panel>
-      </Group>
+      <div className="detail-split detail-split-single pane-fill detail-scroll">
+        {inspectorContent}
+      </div>
     );
   }
 
@@ -80,18 +56,12 @@ export function DetailSplit({
       onLayoutChanged={onLayoutChanged}
     >
       <Panel
-        id="inspector"
+        id="inspector-body"
         className="detail-inspector-panel"
-        panelRef={inspector.panelRef}
         defaultSize={INSPECTOR_DEFAULT}
         minSize={INSPECTOR_MIN_PX}
-        collapsedSize={INSPECTOR_COLLAPSED_PX}
-        collapsible
-        onResize={inspector.onResize}
       >
-        <div className="pane-fill detail-scroll">
-          {inspector.collapsed ? inspectorRail : inspectorContent}
-        </div>
+        <div className="pane-fill detail-scroll">{inspectorContent}</div>
       </Panel>
       <Separator className="pane-separator pane-separator-horizontal" />
       <Panel

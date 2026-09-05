@@ -595,14 +595,14 @@ function FlowNode({
           <span>{node.levelLabel}</span>
           <strong>{node.label}</strong>
           {!compact && !dot && node.workLabel ? <em className="node-work">{node.workLabel}</em> : null}
-          {flagStatus && !dot ? (
-            <em className={`node-flag ${flagClass}`} title={reconciliationStatusLabel(flagStatus)}>
-              {flagStatus === 'needs-explanation' ? '!' : flagStatus === 'watch' ? '◉' : '✓'}
-            </em>
-          ) : null}
         </div>
         {!compact && !dot ? (
           <div className="node-head-meta">
+            {flagStatus ? (
+              <em className={`node-flag ${flagClass}`} title={reconciliationStatusLabel(flagStatus)}>
+                {flagStatus === 'needs-explanation' ? '!' : flagStatus === 'watch' ? '◉' : '✓'}
+              </em>
+            ) : null}
             <em className="node-share">{share.toFixed(1)}%</em>
             {usedHere > 0 ? <em className="node-used-chip">{formatCrore(usedHere)}</em> : null}
           </div>

@@ -11,7 +11,7 @@ import { AboutPage } from './components/about-page';
 import { ChatPanel, type IChatMessage } from './components/chat-panel';
 import { ExplorerShell, useExplorerPanes } from './components/explorer-shell';
 import { FlowCanvas } from './components/flow-canvas';
-import { ChatIcon, DraftIcon, InfoIcon, MapIcon, ShareIcon, TableIcon } from './components/ui-icons';
+import { ChatIcon, ChevronDownIcon, DraftIcon, InfoIcon, MapIcon, ShareIcon, TableIcon } from './components/ui-icons';
 import {
   buildInformationRequestDraft,
   buildShareText,
@@ -369,28 +369,30 @@ function ExplorerApp({ onAbout }: { onAbout: () => void }): ReactElement {
             type="button"
             className={view === 'flow' ? 'active' : ''}
             onClick={() => setView('flow')}
-            aria-label="Flow map"
-            title="Flow map"
           >
             <MapIcon />
+            <span className="view-label-full">Flow map</span>
+            <span className="view-label-short">Map</span>
           </button>
           <button
             type="button"
             className={view === 'ledger' ? 'active' : ''}
             onClick={() => setView('ledger')}
-            aria-label="Ledger table"
-            title="Ledger table"
           >
             <TableIcon />
+            <span className="view-label-full">Ledger table</span>
+            <span className="view-label-short">Ledger</span>
           </button>
         </nav>
 
         <div className="header-actions">
-          <button type="button" className="icon-btn header-icon" onClick={onAbout} aria-label="About" title="About">
+          <button type="button" className="header-link" onClick={onAbout}>
             <InfoIcon />
+            <span>About</span>
           </button>
-          <button type="button" className="icon-btn header-icon" onClick={openAsk} aria-label="Ask" title="Ask">
+          <button type="button" className="header-link" onClick={openAsk}>
             <ChatIcon />
+            <span>Ask</span>
           </button>
           <ThemeToggle />
           <label className="search">
@@ -508,6 +510,8 @@ function ExplorerApp({ onAbout }: { onAbout: () => void }): ReactElement {
             suggestedQuestion={suggestedQuestion}
             onAsk={(question) => void handleAsk(question)}
             onClose={() => setChatOpen(false)}
+            onCollapse={panes.chat.collapse}
+            collapseIcon={<ChevronDownIcon />}
           />
         }
       />
@@ -867,14 +871,17 @@ function Inspector({
       )}
 
       <div className="inspector-actions">
-        <button type="button" className="icon-btn clarify" onClick={onOpenChat} aria-label="Ask about this" title="Ask about this">
+        <button type="button" className="clarify" onClick={onOpenChat}>
           <ChatIcon />
+          <span>Ask about this</span>
         </button>
-        <button type="button" className="icon-btn clarify secondary" onClick={onDraftRequest} aria-label="Draft information request" title="Draft information request">
+        <button type="button" className="clarify secondary" onClick={onDraftRequest}>
           <DraftIcon />
+          <span>Draft request</span>
         </button>
-        <button type="button" className="icon-btn clarify secondary" onClick={onShare} aria-label="Share standing card" title="Share standing card">
+        <button type="button" className="clarify secondary" onClick={onShare}>
           <ShareIcon />
+          <span>Share</span>
         </button>
       </div>
       <small className="updated">

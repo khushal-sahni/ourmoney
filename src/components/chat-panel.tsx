@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useRef, useState, type FormEvent, type ReactElement } from 'react';
+import { useCallback, useEffect, useRef, useState, type FormEvent, type ReactElement, type ReactNode } from 'react';
 import type { IAskResponse } from '../domain/explain-types';
-import { ChatIcon, CloseIcon, SendIcon } from './ui-icons';
+import { ChatIcon, ChevronDownIcon, CloseIcon, SendIcon } from './ui-icons';
 
 export interface IChatMessage {
   readonly role: 'user' | 'assistant';
@@ -16,7 +16,9 @@ export function ChatPanel({
   loading,
   suggestedQuestion,
   onAsk,
-  onClose
+  onClose,
+  onCollapse,
+  collapseIcon
 }: {
   locale: 'en' | 'hi';
   onLocaleChange: (locale: 'en' | 'hi') => void;
@@ -25,6 +27,8 @@ export function ChatPanel({
   suggestedQuestion?: string;
   onAsk: (question: string) => void;
   onClose: () => void;
+  onCollapse?: () => void;
+  collapseIcon?: ReactNode;
 }): ReactElement {
   const [draft, setDraft] = useState('');
   const listRef = useRef<HTMLDivElement>(null);
@@ -53,6 +57,17 @@ export function ChatPanel({
             <button type="button" className={locale === 'en' ? 'active' : ''} onClick={() => onLocaleChange('en')}>EN</button>
             <button type="button" className={locale === 'hi' ? 'active' : ''} onClick={() => onLocaleChange('hi')}>हि</button>
           </div>
+          {onCollapse && collapseIcon ? (
+            <button
+              type="button"
+              className="pane-edge-toggle chat-collapse-btn"
+              onClick={onCollapse}
+              aria-label="Collapse chat"
+              title="Collapse chat"
+            >
+              {collapseIcon}
+            </button>
+          ) : null}
           <button type="button" className="icon-btn chat-close" onClick={onClose} aria-label="Close chat" title="Close chat">
             <CloseIcon />
           </button>
