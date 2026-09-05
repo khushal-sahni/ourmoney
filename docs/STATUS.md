@@ -1,6 +1,6 @@
 # Project Status
 
-> Last updated: 2026-09-05 · Session 14
+> Last updated: 2026-09-05 · Session 15
 
 ## Current state
 
@@ -10,7 +10,7 @@
 
 - Everything from Stage 1 (four scheme archetypes, flow map, ledger, themes).
 - **Resizable panes:** metrics, workspace (map/ledger), inspector, and chat are independently resizable and collapsible on desktop and mobile; layouts persist per breakpoint in `localStorage`.
-- **Landing overlay:** fictional gazetteer search + “Open Piprahi village” golden-path CTA.
+- **Landing overlay:** component retained (gazetteer search + Piprahi CTA); not auto-shown on first visit.
 - **Flag layer:** `watch` / `needs-explanation` badges on flow-map nodes and inspector status chips.
 - **AI layer:** grounded narration in inspector + chat pane (EN/हि); chat resolves place names in the question (longest-span) before grounding; cites nodes and highlights path; template seeds instantly on node change; template fallback when API unavailable.
 - **Act:** draft information request (copy / share / WhatsApp) + shareable standing card.

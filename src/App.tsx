@@ -103,9 +103,8 @@ function ExplorerApp({ onAbout }: { onAbout: () => void }): ReactElement {
   const panes = useExplorerPanes();
   const expandInspector = panes.inspector.expand;
   const expandChat = panes.chat.expand;
-  const [showLanding, setShowLanding] = useState(
-    () => localStorage.getItem(LANDING_STORAGE_KEY) !== '1'
-  );
+  // Landing overlay kept for place search / golden-path CTA; not auto-shown on first visit.
+  const [showLanding, setShowLanding] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
   const [chatLocale, setChatLocale] = useState<ExplainLocale>('en');
   const [chatMessages, setChatMessages] = useState<readonly IChatMessage[]>([]);

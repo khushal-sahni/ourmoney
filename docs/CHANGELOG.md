@@ -1,5 +1,11 @@
 # Changelog
 
+## Session 15 — 2026-09-05
+
+### Changed
+
+- Landing overlay no longer auto-opens on first visit; component and dismiss/place/golden-path handlers remain for optional future entry points.
+
 ## Session 14 — 2026-09-05
 
 ### Fixed
