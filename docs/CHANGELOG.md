@@ -1,5 +1,21 @@
 # Changelog
 
+## Session 14 — 2026-09-05
+
+### Fixed
+
+- **Chat place resolution:** Ask now resolves place names in the citizen question (longest overlapping span wins) before building the grounded slice. Questions like “Kanak Pradesh and Uttar Raital” cite the block, not the parent district Raital.
+- **Ask corridor slice:** Multi-place questions send a tight corridor path + `mentionedNodeIds` to the model; transfers along that corridor are included. Inspector narration still follows the selected node only.
+- **Citations:** Chat shows place `shortName` labels (e.g. `Kanak Pradesh → Uttar Raital`) instead of raw node ids.
+
+### Built
+
+- `src/domain/resolve-question-nodes.ts` — longest-span matcher and corridor builder for ask grounding.
+
+### Verified
+
+- `npm run build` passes.
+
 ## Session 13 — 2026-09-05
 
 ### Built

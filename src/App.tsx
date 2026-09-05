@@ -45,7 +45,7 @@ import {
   pathFor,
   type HierarchyMode
 } from './domain/flow-hierarchy';
-import { ExplainService, templateNarration } from './services/explain.service';
+import { ExplainService, formatCitationLabels, templateNarration } from './services/explain.service';
 import { LedgerService } from './services/ledger.service';
 import { formatCrore, formatPaiseFull, percentOf } from './utils/money';
 
@@ -276,7 +276,7 @@ function ExplorerApp({ onAbout }: { onAbout: () => void }): ReactElement {
     if (!scenario || !selected) return;
     setChatLoading(true);
     setChatMessages((prev) => [...prev, { role: 'user', text: question }]);
-    const slice = explainService.buildSlice(scenario, selected.id, chatLocale);
+    const slice = explainService.buildAskSlice(scenario, selected.id, question, chatLocale);
     try {
       const result = await explainService.ask(slice, question);
       setChatMessages((prev) => [
@@ -285,6 +285,7 @@ function ExplorerApp({ onAbout }: { onAbout: () => void }): ReactElement {
           role: 'assistant',
           text: result.answer,
           citedNodeIds: result.citedNodeIds,
+          citedNodeLabels: formatCitationLabels(slice, result.citedNodeIds),
           source: result.source
         }
       ]);

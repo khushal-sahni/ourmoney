@@ -1,5 +1,12 @@
 # Decisions
 
+## 2026-09-05 — Question-resolved ask grounding (longest-span)
+
+- **Status:** Accepted
+- **Context:** Chat grounded only on the selected node’s path. Nested admin names (Uttar Raital vs Raital, Raital Sadar vs Raital) caused the model to cite the parent visible in the selection path when the citizen named a deeper office. Real PFMS-scale trees cannot be sent whole to an LLM.
+- **Decision:** Before `/api/ask`, resolve place mentions in the question against the active scenario with longest overlapping whole-word span wins. Build a tight corridor slice (path union through LCA, corridor transfers, optional `related` forks) and pass `mentionedNodeIds` to the model with an explicit no-parent-substitution rule. Inspector narration stays selection-based. Citations display `shortName` labels in the UI.
+- **Consequences:** Ask latency unchanged (no full-tree prompt). Matcher lives in `domain/` for future adapter reuse. Landing search unchanged in this pass.
+
 ## 2026-09-05 — Resizable panes for all explorer regions
 
 - **Status:** Accepted

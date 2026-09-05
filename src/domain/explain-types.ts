@@ -37,6 +37,8 @@ export interface IGroundedExplainSlice {
   readonly focusNodeId: string;
   readonly path: readonly IGroundedNodeSlice[];
   readonly children: readonly IGroundedNodeSlice[];
+  readonly mentionedNodeIds?: readonly string[];
+  readonly related?: readonly IGroundedNodeSlice[];
   readonly standing: {
     readonly inspectorSummary: string;
     readonly ledgerHint: string;

@@ -1,6 +1,6 @@
 # Project Status
 
-> Last updated: 2026-09-05 · Session 13
+> Last updated: 2026-09-05 · Session 14
 
 ## Current state
 
@@ -12,7 +12,7 @@
 - **Resizable panes:** metrics, workspace (map/ledger), inspector, and chat are independently resizable and collapsible on desktop and mobile; layouts persist per breakpoint in `localStorage`.
 - **Landing overlay:** fictional gazetteer search + “Open Piprahi village” golden-path CTA.
 - **Flag layer:** `watch` / `needs-explanation` badges on flow-map nodes and inspector status chips.
-- **AI layer:** grounded narration in inspector + chat pane (EN/हि) citing nodes and highlighting path; template seeds instantly on node change and upgrades when the model responds; template fallback when API unavailable.
+- **AI layer:** grounded narration in inspector + chat pane (EN/हि); chat resolves place names in the question (longest-span) before grounding; cites nodes and highlights path; template seeds instantly on node change; template fallback when API unavailable.
 - **Act:** draft information request (copy / share / WhatsApp) + shareable standing card.
 - **About page** (`#about`): honesty disclosure, PFMS/MGNREGA adoption story, mocked vs real.
 - **Cloudflare Pages Functions:** `/api/ask` and `/api/narrate` via OpenRouter (OpenAI primary, free backup).
@@ -40,7 +40,7 @@ src/
 │   ├── FlowCanvas, LandingOverlay, ChatPanel, AboutPage, …
 ├── constants/           # golden-path
 ├── data/                # fixtures, place-index
-├── domain/              # fund-flow, explain-types, reconciliation-display
+├── domain/              # fund-flow, explain-types, reconciliation-display, resolve-question-nodes
 ├── services/            # ledger.service, explain.service
 functions/
 ├── api/ask.ts           # OpenRouter proxy

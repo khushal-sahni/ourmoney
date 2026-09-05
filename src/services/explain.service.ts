@@ -8,8 +8,13 @@ import type {
   ExplainLocale
 } from '../domain/explain-types';
 import type { IFundingNode, ISchemeScenario, ITransfer } from '../domain/fund-flow';
-import { reconciliationStatusLabel } from '../domain/reconciliation-display';
 import { pathFor } from '../domain/flow-hierarchy';
+import { reconciliationStatusLabel } from '../domain/reconciliation-display';
+import {
+  buildQuestionCorridor,
+  corridorNodeIdSet,
+  type IQuestionCorridor
+} from '../domain/resolve-question-nodes';
 import { formatCrore } from '../utils/money';
 import type { LedgerService } from './ledger.service';
 
@@ -32,13 +37,44 @@ function nodeSlice(scenario: ISchemeScenario, node: IFundingNode): IGroundedNode
   };
 }
 
+function mapTransfers(
+  transfers: readonly ITransfer[],
+  focusNodeId: string
+): IGroundedExplainSlice['transfers'] {
+  return transfers.slice(0, 6).map((transfer) => ({
+    reference: transfer.reference,
+    amountCrore: formatCrore(transfer.amountPaise),
+    date: transfer.date,
+    direction: transfer.toNodeId === focusNodeId ? 'in' : 'out'
+  }));
+}
+
+function transfersAlongCorridor(
+  scenario: ISchemeScenario,
+  corridor: IQuestionCorridor
+): readonly ITransfer[] {
+  const corridorIds = corridorNodeIdSet(corridor);
+  return scenario.transfers.filter(
+    (transfer) => corridorIds.has(transfer.fromNodeId) && corridorIds.has(transfer.toNodeId)
+  );
+}
+
 export function buildGroundedSlice(
   ledger: LedgerService,
-  context: IExplainContext
+  context: IExplainContext,
+  options?: {
+    readonly pathNodes?: readonly IFundingNode[];
+    readonly mentionedNodeIds?: readonly string[];
+    readonly relatedNodes?: readonly IFundingNode[];
+    readonly transfers?: readonly ITransfer[];
+  }
 ): IGroundedExplainSlice {
   const { scenario, node, standing, reconciliation, transfers, locale } = context;
-  const pathNodes = pathFor(scenario, node);
+  const pathNodes = options?.pathNodes ?? pathFor(scenario, node);
+  const pathIds = new Set(pathNodes.map((pathNode) => pathNode.id));
   const children = scenario.nodes.filter((candidate) => candidate.parentId === node.id);
+  const relatedNodes = (options?.relatedNodes ?? []).filter((related) => !pathIds.has(related.id));
+  const transferRows = options?.transfers ?? transfers;
 
   return {
     schemeId: scenario.id,
@@ -50,6 +86,10 @@ export function buildGroundedSlice(
     focusNodeId: node.id,
     path: pathNodes.map((pathNode) => nodeSlice(scenario, pathNode)),
     children: children.map((child) => nodeSlice(scenario, child)),
+    mentionedNodeIds: options?.mentionedNodeIds,
+    related: relatedNodes.length > 0
+      ? relatedNodes.map((related) => nodeSlice(scenario, related))
+      : undefined,
     standing: {
       inspectorSummary: standing.inspectorSummary,
       ledgerHint: standing.ledgerHint
@@ -64,12 +104,7 @@ export function buildGroundedSlice(
           }))
         }
       : undefined,
-    transfers: transfers.slice(0, 6).map((transfer) => ({
-      reference: transfer.reference,
-      amountCrore: formatCrore(transfer.amountPaise),
-      date: transfer.date,
-      direction: transfer.toNodeId === node.id ? 'in' : 'out'
-    })),
+    transfers: mapTransfers(transferRows, node.id),
     syntheticDisclaimer: SYNTHETIC_DISCLAIMER
   };
 }
@@ -99,9 +134,19 @@ export function templateNarration(slice: IGroundedExplainSlice): string {
 }
 
 export function templateAsk(slice: IGroundedExplainSlice, question: string): IAskResponse {
-  const focus = slice.path[slice.path.length - 1];
-  const citedNodeIds = slice.path.map((step) => step.id);
+  const focus = slice.path.find((step) => step.id === slice.focusNodeId) ?? slice.path[slice.path.length - 1];
+  const citedNodeIds = slice.mentionedNodeIds?.length
+    ? [...slice.mentionedNodeIds]
+    : slice.path.map((step) => step.id);
   const q = question.toLowerCase();
+
+  const endpointNames = citedNodeIds
+    .map((nodeId) =>
+      slice.path.find((step) => step.id === nodeId)
+      ?? slice.related?.find((step) => step.id === nodeId)
+    )
+    .filter((step): step is IGroundedNodeSlice => step !== undefined)
+    .map((step) => step.shortName);
 
   let answer: string;
   if (slice.locale === 'hi') {
@@ -110,6 +155,9 @@ export function templateAsk(slice: IGroundedExplainSlice, question: string): IAs
         ? `${focus?.shortName ?? 'इस नोड'} पर रिपोर्ट स्थिति "${slice.reconciliation.status}" है। `
           + `${slice.reconciliation.items.map((item) => item.description).join(' ')}`
         : slice.standing.inspectorSummary;
+    } else if (endpointNames.length >= 2) {
+      answer = `${endpointNames[0]} और ${endpointNames[endpointNames.length - 1]} के बीच ${slice.schemeName} (${slice.period}) में `
+        + `${focus?.receivedCrore ?? ''} तक की रिपोर्ट दिखती है। ${slice.standing.inspectorSummary}`;
     } else {
       answer = `${focus?.shortName ?? 'यह नोड'} पर ${focus?.receivedCrore ?? ''} प्राप्त हुए। ${slice.standing.inspectorSummary}`;
     }
@@ -120,6 +168,11 @@ export function templateAsk(slice: IGroundedExplainSlice, question: string): IAs
         + slice.reconciliation.items.map((item) => `${item.label}: ${item.description}`).join(' ')
       : slice.standing.inspectorSummary;
     answer += ' This answer uses only the synthetic ledger shown in the prototype.';
+  } else if (endpointNames.length >= 2) {
+    answer = `Between ${endpointNames[0]} and ${endpointNames[endpointNames.length - 1]} in ${slice.schemeName} (${slice.period}), `
+      + `${focus?.shortName ?? 'this office'} shows ${focus?.receivedCrore ?? ''} received on this ledger. `
+      + slice.standing.inspectorSummary
+      + ' Answer grounded in synthetic demonstration data only.';
   } else {
     answer = `${focus?.shortName ?? 'This node'} received ${focus?.receivedCrore ?? ''} in this scenario. `
       + slice.standing.inspectorSummary
@@ -131,6 +184,24 @@ export function templateAsk(slice: IGroundedExplainSlice, question: string): IAs
     : ['What is still on this ledger?', 'Which transfers connect here?'];
 
   return { answer, citedNodeIds, followUps, source: 'template' };
+}
+
+export function formatCitationLabels(
+  slice: IGroundedExplainSlice,
+  citedNodeIds: readonly string[]
+): readonly string[] {
+  const lookup = new Map<string, string>();
+  for (const step of slice.path) {
+    lookup.set(step.id, step.shortName);
+  }
+  for (const step of slice.related ?? []) {
+    lookup.set(step.id, step.shortName);
+  }
+  for (const step of slice.children) {
+    lookup.set(step.id, step.shortName);
+  }
+
+  return citedNodeIds.map((nodeId) => lookup.get(nodeId) ?? nodeId);
 }
 
 async function postJson<T>(url: string, body: unknown): Promise<T> {
@@ -164,6 +235,43 @@ export class ExplainService {
       reconciliation: this.ledger.reconciliationFor(scenario, nodeId),
       transfers: this.ledger.transfersFor(scenario, nodeId),
       locale
+    });
+  }
+
+  public buildAskSlice(
+    scenario: ISchemeScenario,
+    selectedNodeId: string,
+    question: string,
+    locale: ExplainLocale
+  ): IGroundedExplainSlice {
+    const corridor = buildQuestionCorridor(scenario, question, selectedNodeId);
+    const focusNode = this.ledger.findNode(scenario, corridor.focusNodeId);
+    if (!focusNode) {
+      throw new Error(`Node ${corridor.focusNodeId} not found`);
+    }
+
+    const focusPath = pathFor(scenario, focusNode);
+    const pathIds = new Set(focusPath.map((step) => step.id));
+    const relatedNodes = corridor.mentionedNodeIds
+      .map((nodeId) => this.ledger.findNode(scenario, nodeId))
+      .filter((node): node is IFundingNode => node !== undefined && !pathIds.has(node.id));
+
+    const corridorTransfers = corridor.mentionedNodeIds.length >= 2
+      ? transfersAlongCorridor(scenario, corridor)
+      : this.ledger.transfersFor(scenario, focusNode.id);
+
+    return buildGroundedSlice(this.ledger, {
+      scenario,
+      node: focusNode,
+      standing: citizenStanding(scenario, focusNode),
+      reconciliation: this.ledger.reconciliationFor(scenario, focusNode.id),
+      transfers: corridorTransfers,
+      locale
+    }, {
+      pathNodes: corridor.corridorNodes,
+      mentionedNodeIds: corridor.mentionedNodeIds.length > 0 ? corridor.mentionedNodeIds : undefined,
+      relatedNodes,
+      transfers: corridorTransfers
     });
   }
 

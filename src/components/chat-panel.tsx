@@ -6,6 +6,7 @@ export interface IChatMessage {
   readonly role: 'user' | 'assistant';
   readonly text: string;
   readonly citedNodeIds?: readonly string[];
+  readonly citedNodeLabels?: readonly string[];
   readonly source?: IAskResponse['source'];
 }
 
@@ -90,7 +91,9 @@ export function ChatPanel({
             {message.source === 'backup' && <small>Answered via backup model</small>}
             {message.source === 'template' && <small>Offline explanation (API unavailable)</small>}
             {message.citedNodeIds && message.citedNodeIds.length > 0 && (
-              <small>Cites: {message.citedNodeIds.join(' → ')}</small>
+              <small>
+                Cites: {(message.citedNodeLabels ?? message.citedNodeIds).join(' → ')}
+              </small>
             )}
           </div>
         ))}

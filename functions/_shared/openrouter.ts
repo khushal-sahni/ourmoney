@@ -16,7 +16,8 @@ Rules:
 - All data is synthetic demonstration data; say so briefly when relevant.
 - Never allege corruption, theft, fraud, or misconduct.
 - Use precise terms: unreconciled, late report, needs explanation, reported balance.
-- Cite node ids from the slice path when explaining.
+- When mentionedNodeIds are present, cite those exact node ids in order. Do not substitute a parent for a more specific child named in the question.
+- Otherwise cite node ids from the slice path when explaining.
 - Keep answers under 120 words unless asked for detail.
 - Respond in the locale requested (en or hi).`;
 
@@ -98,6 +99,8 @@ export async function runAsk(
 
   const locale = (slice as { locale?: string }).locale === 'hi' ? 'hi' : 'en';
   const pathIds = ((slice as { path?: { id: string }[] }).path ?? []).map((step) => step.id);
+  const mentionedIds = (slice as { mentionedNodeIds?: string[] }).mentionedNodeIds ?? [];
+  const defaultCitedIds = mentionedIds.length > 0 ? mentionedIds : pathIds;
   const messages: IOpenRouterMessage[] = [
     {
       role: 'system',
@@ -118,12 +121,12 @@ export async function runAsk(
     };
     return {
       answer: parsed.answer ?? text,
-      citedNodeIds: parsed.citedNodeIds?.length ? parsed.citedNodeIds : pathIds,
+      citedNodeIds: parsed.citedNodeIds?.length ? parsed.citedNodeIds : defaultCitedIds,
       followUps: parsed.followUps ?? [],
       source
     };
   } catch {
-    return { answer: text, citedNodeIds: pathIds, followUps: [], source };
+    return { answer: text, citedNodeIds: defaultCitedIds, followUps: [], source };
   }
 }
 
