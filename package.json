@@ -12,6 +12,7 @@
     "@vitejs/plugin-react": "latest",
     "react": "latest",
     "react-dom": "latest",
+    "react-resizable-panels": "^4.12.3",
     "typescript": "latest",
     "vite": "latest"
   },

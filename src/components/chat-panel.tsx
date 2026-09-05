@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type FormEvent, type ReactElement } from 'react';
 import type { IAskResponse } from '../domain/explain-types';
+import { ChatIcon, CloseIcon, SendIcon } from './ui-icons';
 
 export interface IChatMessage {
   readonly role: 'user' | 'assistant';
@@ -15,8 +16,7 @@ export function ChatPanel({
   loading,
   suggestedQuestion,
   onAsk,
-  onClose,
-  sheet
+  onClose
 }: {
   locale: 'en' | 'hi';
   onLocaleChange: (locale: 'en' | 'hi') => void;
@@ -25,7 +25,6 @@ export function ChatPanel({
   suggestedQuestion?: string;
   onAsk: (question: string) => void;
   onClose: () => void;
-  sheet?: boolean;
 }): ReactElement {
   const [draft, setDraft] = useState('');
   const listRef = useRef<HTMLDivElement>(null);
@@ -43,24 +42,26 @@ export function ChatPanel({
   }, [draft, loading, onAsk]);
 
   return (
-    <aside className={`chat-panel${sheet ? ' chat-sheet' : ''}`} aria-label="Ask about this ledger">
+    <div className="chat-panel" aria-label="Ask about this ledger">
       <header className="chat-header">
-        <div>
-          <h2>Ask about this</h2>
-          <p>Answers use only the synthetic ledger on screen.</p>
+        <div className="chat-header-title">
+          <ChatIcon />
+          <span>Ask</span>
         </div>
         <div className="chat-header-actions">
           <div className="locale-toggle" role="group" aria-label="Answer language">
             <button type="button" className={locale === 'en' ? 'active' : ''} onClick={() => onLocaleChange('en')}>EN</button>
             <button type="button" className={locale === 'hi' ? 'active' : ''} onClick={() => onLocaleChange('hi')}>हि</button>
           </div>
-          <button type="button" className="chat-close" onClick={onClose} aria-label="Close chat">×</button>
+          <button type="button" className="icon-btn chat-close" onClick={onClose} aria-label="Close chat" title="Close chat">
+            <CloseIcon />
+          </button>
         </div>
       </header>
 
       {suggestedQuestion && messages.length === 0 && (
         <button type="button" className="chat-suggested" onClick={() => onAsk(suggestedQuestion)}>
-          Try: {suggestedQuestion}
+          {suggestedQuestion}
         </button>
       )}
 
@@ -89,8 +90,10 @@ export function ChatPanel({
           disabled={loading}
           aria-label="Question"
         />
-        <button type="submit" disabled={loading || !draft.trim()}>Send</button>
+        <button type="submit" className="icon-btn chat-send" disabled={loading || !draft.trim()} aria-label="Send" title="Send">
+          <SendIcon />
+        </button>
       </form>
-    </aside>
+    </div>
   );
 }

@@ -9,7 +9,9 @@ import {
 } from 'react';
 import { AboutPage } from './components/about-page';
 import { ChatPanel, type IChatMessage } from './components/chat-panel';
+import { ExplorerShell, useExplorerPanes } from './components/explorer-shell';
 import { FlowCanvas } from './components/flow-canvas';
+import { ChatIcon, DraftIcon, InfoIcon, MapIcon, ShareIcon, TableIcon } from './components/ui-icons';
 import {
   buildInformationRequestDraft,
   buildShareText,
@@ -43,7 +45,7 @@ import {
   pathFor,
   type HierarchyMode
 } from './domain/flow-hierarchy';
-import { ExplainService } from './services/explain.service';
+import { ExplainService, templateNarration } from './services/explain.service';
 import { LedgerService } from './services/ledger.service';
 import { formatCrore, formatPaiseFull, percentOf } from './utils/money';
 
@@ -97,9 +99,10 @@ function ExplorerApp({ onAbout }: { onAbout: () => void }): ReactElement {
   const [view, setView] = useState<'flow' | 'ledger'>('flow');
   const [hierarchyMode, setHierarchyMode] = useState<HierarchyMode>('auto');
   const [menuOpen, setMenuOpen] = useState(false);
-  const [inspectorOpen, setInspectorOpen] = useState(false);
-  const [metricsOpen, setMetricsOpen] = useState(false);
   const [isMobileLayout, setIsMobileLayout] = useState(false);
+  const panes = useExplorerPanes();
+  const expandInspector = panes.inspector.expand;
+  const expandChat = panes.chat.expand;
   const [showLanding, setShowLanding] = useState(
     () => localStorage.getItem(LANDING_STORAGE_KEY) !== '1'
   );
@@ -137,8 +140,7 @@ function ExplorerApp({ onAbout }: { onAbout: () => void }): ReactElement {
       setHierarchyMode('auto');
       setQuery('');
       setMenuOpen(false);
-      setInspectorOpen(false);
-      setMetricsOpen(false);
+      setChatOpen(false);
       setChatMessages([]);
       setHighlightPathIds([]);
     });
@@ -163,16 +165,21 @@ function ExplorerApp({ onAbout }: { onAbout: () => void }): ReactElement {
   }, [menuOpen]);
 
   useEffect(() => {
-    if (!inspectorOpen && !chatOpen && !infoRequestOpen) return;
+    if (!chatOpen && !infoRequestOpen) return;
     const onKeyDown = (event: KeyboardEvent): void => {
       if (event.key !== 'Escape') return;
       if (infoRequestOpen) setInfoRequestOpen(false);
-      else if (chatOpen) setChatOpen(false);
-      else setInspectorOpen(false);
+      else setChatOpen(false);
     };
     document.addEventListener('keydown', onKeyDown);
     return () => document.removeEventListener('keydown', onKeyDown);
-  }, [inspectorOpen, chatOpen, infoRequestOpen]);
+  }, [chatOpen, infoRequestOpen]);
+
+  useEffect(() => {
+    if (!chatOpen) return;
+    expandInspector();
+    expandChat();
+  }, [chatOpen, expandInspector, expandChat]);
 
   const focusNode = useCallback((nodeId: string): void => {
     setSelectedId(nodeId);
@@ -190,23 +197,24 @@ function ExplorerApp({ onAbout }: { onAbout: () => void }): ReactElement {
   const openGoldenPath = useCallback((): void => {
     pendingFocusRef.current = GOLDEN_PATH.nodeId;
     setSchemeId(GOLDEN_PATH.schemeId);
-    setInspectorOpen(true);
-  }, []);
+    expandInspector();
+  }, [expandInspector]);
 
   const selectPlace = useCallback((entry: IPlaceEntry): void => {
     pendingFocusRef.current = entry.nodeId;
     setSchemeId(entry.schemeId);
     setView('flow');
     setHierarchyMode('auto');
-    setInspectorOpen(true);
-  }, []);
+    expandInspector();
+  }, [expandInspector]);
+
+  const openAsk = useCallback((): void => {
+    expandInspector();
+    setChatOpen(true);
+  }, [expandInspector]);
 
   const selectScheme = useCallback((id: string): void => {
     setSchemeId(id);
-  }, []);
-
-  const closeInspector = useCallback((): void => {
-    setInspectorOpen(false);
   }, []);
 
   const selected = useMemo(
@@ -249,10 +257,10 @@ function ExplorerApp({ onAbout }: { onAbout: () => void }): ReactElement {
   useEffect(() => {
     if (!scenario || !selected) return;
     let cancelled = false;
-    setNarrationLoading(true);
-    setNarration('');
-    setNarrationSource('');
     const slice = explainService.buildSlice(scenario, selected.id, chatLocale);
+    setNarration(templateNarration(slice));
+    setNarrationSource('template');
+    setNarrationLoading(true);
     void explainService.narrate(slice).then((result) => {
       if (cancelled) return;
       setNarration(result.narration);
@@ -357,19 +365,33 @@ function ExplorerApp({ onAbout }: { onAbout: () => void }): ReactElement {
         </div>
 
         <nav className="view-switcher" aria-label="Workspace view">
-          <button type="button" className={view === 'flow' ? 'active' : ''} onClick={() => setView('flow')}>
-            <span className="view-label-full">Flow map</span>
-            <span className="view-label-short">Map</span>
+          <button
+            type="button"
+            className={view === 'flow' ? 'active' : ''}
+            onClick={() => setView('flow')}
+            aria-label="Flow map"
+            title="Flow map"
+          >
+            <MapIcon />
           </button>
-          <button type="button" className={view === 'ledger' ? 'active' : ''} onClick={() => setView('ledger')}>
-            <span className="view-label-full">Ledger table</span>
-            <span className="view-label-short">Ledger</span>
+          <button
+            type="button"
+            className={view === 'ledger' ? 'active' : ''}
+            onClick={() => setView('ledger')}
+            aria-label="Ledger table"
+            title="Ledger table"
+          >
+            <TableIcon />
           </button>
         </nav>
 
         <div className="header-actions">
-          <button type="button" className="header-link" onClick={onAbout}>About</button>
-          <button type="button" className="header-link" onClick={() => setChatOpen(true)}>Ask</button>
+          <button type="button" className="icon-btn header-icon" onClick={onAbout} aria-label="About" title="About">
+            <InfoIcon />
+          </button>
+          <button type="button" className="icon-btn header-icon" onClick={openAsk} aria-label="Ask" title="Ask">
+            <ChatIcon />
+          </button>
           <ThemeToggle />
           <label className="search">
             <span aria-hidden="true">⌕</span>
@@ -405,120 +427,79 @@ function ExplorerApp({ onAbout }: { onAbout: () => void }): ReactElement {
         )}
       </header>
 
-      <details
-        className="metrics-panel"
-        open={!isMobileLayout || metricsOpen}
-        onToggle={(event) => {
-          if (!isMobileLayout) return;
-          setMetricsOpen(event.currentTarget.open);
-        }}
-      >
-        <summary className="metrics-compact">
-          <span>
-            <em>Centre</em>
-            <b>{formatCrore(metrics.centralReleasePaise)}</b>
-          </span>
-          <span>
-            <em>Onward</em>
-            <b className="gold">{formatCrore(metrics.tracedOnwardPaise)}</b>
-          </span>
-          <span>
-            <em>Left</em>
-            <b className="amber">{formatCrore(metrics.awaitingDetailsPaise)}</b>
-          </span>
-          <i aria-hidden="true">▾</i>
-        </summary>
-        <section className="metrics">
-          <Metric label="Received at centre" value={formatCrore(metrics.centralReleasePaise)} />
-          <Metric label="Traced onward" value={formatCrore(metrics.tracedOnwardPaise)} tone="gold" />
-          <Metric
-            label="What's left"
-            value={formatCrore(metrics.awaitingDetailsPaise)}
-            tone="amber"
-            detail={`${metrics.awaitingSharePercent}% of scheme`}
-          />
-          <p className="metrics-note">
-            Independent prototype · all data synthetic
-            <span>Double-tap a node to see its immediate branches</span>
-          </p>
-        </section>
-      </details>
-
-      <section className={`workbench${chatOpen && !isMobileLayout ? ' chat-open' : ''}`}>
-        <div className="workspace">
-          {view === 'flow' ? (
-            <FlowCanvas
-              scenario={scenario}
-              selectedId={selectedId}
-              branchFocusId={branchFocusId}
-              hierarchyMode={hierarchyMode}
-              onHierarchyModeChange={setHierarchyMode}
-              onSelect={setSelectedId}
-              reconciliationByNodeId={reconciliationByNodeId}
-              highlightPathIds={highlightPathIds}
+      <ExplorerShell
+        isMobile={isMobileLayout}
+        view={view}
+        chatOpen={chatOpen}
+        panes={panes}
+        metricsContent={
+          <section className="metrics">
+            <Metric label="Received at centre" value={formatCrore(metrics.centralReleasePaise)} />
+            <Metric label="Traced onward" value={formatCrore(metrics.tracedOnwardPaise)} tone="gold" />
+            <Metric
+              label="What's left"
+              value={formatCrore(metrics.awaitingDetailsPaise)}
+              tone="amber"
+              detail={`${metrics.awaitingSharePercent}% of scheme`}
             />
-          ) : (
-            <LedgerTable
-              scenario={scenario}
-              selectedId={selectedId}
-              query={query}
-              onSelect={setSelectedId}
-            />
-          )}
-
-          <div className="workspace-footer">
-            <div className="breadcrumbs">
-              {pathFor(scenario, selected).map((node) => (
-                <button key={node.id} type="button" onClick={() => setSelectedId(node.id)}>
-                  {node.shortName}
-                </button>
-              ))}
+            <p className="metrics-note">
+              Independent prototype · all data synthetic
+              <span>Double-tap a node to see its immediate branches</span>
+            </p>
+          </section>
+        }
+        workspaceContent={
+          <>
+            {view === 'flow' ? (
+              <FlowCanvas
+                scenario={scenario}
+                selectedId={selectedId}
+                branchFocusId={branchFocusId}
+                hierarchyMode={hierarchyMode}
+                onHierarchyModeChange={setHierarchyMode}
+                onSelect={setSelectedId}
+                reconciliationByNodeId={reconciliationByNodeId}
+                highlightPathIds={highlightPathIds}
+              />
+            ) : (
+              <LedgerTable
+                scenario={scenario}
+                selectedId={selectedId}
+                query={query}
+                onSelect={setSelectedId}
+              />
+            )}
+            <div className="workspace-footer">
+              <div className="breadcrumbs">
+                {pathFor(scenario, selected).map((node) => (
+                  <button key={node.id} type="button" onClick={() => setSelectedId(node.id)}>
+                    {node.shortName}
+                  </button>
+                ))}
+              </div>
+              <div className="legend">
+                <span><i /> Received</span>
+                <span><i className="used" /> Used here</span>
+                <span><i className="amber" /> Next office not named</span>
+              </div>
             </div>
-            <div className="legend">
-              <span><i /> Received</span>
-              <span><i className="used" /> Used here</span>
-              <span><i className="amber" /> Next office not named</span>
-            </div>
-          </div>
-        </div>
-
-        <button
-          type="button"
-          className="inspector-cta"
-          onClick={() => setInspectorOpen(true)}
-          aria-expanded={inspectorOpen}
-          aria-controls="node-inspector"
-        >
-          <span>View details</span>
-          <strong>{selected.shortName}</strong>
-        </button>
-
-        {inspectorOpen ? (
-          <button
-            type="button"
-            className="inspector-backdrop"
-            aria-label="Dismiss details"
-            onClick={closeInspector}
+          </>
+        }
+        inspectorContent={
+          <Inspector
+            node={selected}
+            reconciliation={reconciliation}
+            transfers={ledgerService.transfersFor(scenario, selectedId)}
+            scenario={scenario}
+            narration={narration}
+            narrationLoading={narrationLoading}
+            narrationSource={narrationSource}
+            onOpenChat={openAsk}
+            onDraftRequest={() => setInfoRequestOpen(true)}
+            onShare={() => void shareStanding()}
           />
-        ) : null}
-
-        <Inspector
-          node={selected}
-          reconciliation={reconciliation}
-          transfers={ledgerService.transfersFor(scenario, selectedId)}
-          scenario={scenario}
-          open={inspectorOpen}
-          sheetHidden={isMobileLayout && !inspectorOpen}
-          onClose={closeInspector}
-          narration={narration}
-          narrationLoading={narrationLoading}
-          narrationSource={narrationSource}
-          onOpenChat={() => setChatOpen(true)}
-          onDraftRequest={() => setInfoRequestOpen(true)}
-          onShare={() => void shareStanding()}
-        />
-
-        {chatOpen && (
+        }
+        chatContent={
           <ChatPanel
             locale={chatLocale}
             onLocaleChange={setChatLocale}
@@ -527,10 +508,9 @@ function ExplorerApp({ onAbout }: { onAbout: () => void }): ReactElement {
             suggestedQuestion={suggestedQuestion}
             onAsk={(question) => void handleAsk(question)}
             onClose={() => setChatOpen(false)}
-            sheet={isMobileLayout}
           />
-        )}
-      </section>
+        }
+      />
 
       {infoRequestOpen && (
         <InformationRequestPanel
@@ -755,9 +735,6 @@ function Inspector({
   reconciliation,
   transfers,
   scenario,
-  open,
-  sheetHidden,
-  onClose,
   narration,
   narrationLoading,
   narrationSource,
@@ -769,9 +746,6 @@ function Inspector({
   reconciliation: IReconciliation | undefined;
   transfers: readonly ITransfer[];
   scenario: ISchemeScenario;
-  open: boolean;
-  sheetHidden: boolean;
-  onClose: () => void;
   narration: string;
   narrationLoading: boolean;
   narrationSource: string;
@@ -788,23 +762,7 @@ function Inspector({
   const bodyLabel = bodyKindLabel(node.bodyKind);
 
   return (
-    <aside
-      id="node-inspector"
-      className={`inspector${open ? ' open' : ''}`}
-      aria-hidden={sheetHidden || undefined}
-      {...(sheetHidden ? ({ inert: true } as { inert: boolean }) : {})}
-    >
-      <div className="inspector-sheet-chrome">
-        <span className="inspector-handle" aria-hidden="true" />
-        <button
-          type="button"
-          className="inspector-close"
-          aria-label="Close details"
-          onClick={onClose}
-        >
-          <span aria-hidden="true">×</span>
-        </button>
-      </div>
+    <article id="node-inspector" className="inspector">
       <div className="crumb-text">
         {crumbs.map((step, index) => (
           <span key={step.id}>
@@ -829,13 +787,16 @@ function Inspector({
 
       <section className="ai-narration">
         <h2>Plain-language summary</h2>
+        <p>{narration}</p>
         {narrationLoading ? (
           <p className="narration-loading">Reading this ledger…</p>
-        ) : (
-          <p>{narration}</p>
+        ) : null}
+        {!narrationLoading && narrationSource === 'template' && (
+          <small>Offline summary (API unavailable)</small>
         )}
-        {narrationSource === 'template' && <small>Offline summary (API unavailable)</small>}
-        {narrationSource === 'backup' && <small>Summary via backup model</small>}
+        {!narrationLoading && narrationSource === 'backup' && (
+          <small>Summary via backup model</small>
+        )}
       </section>
 
       <section>
@@ -906,16 +867,22 @@ function Inspector({
       )}
 
       <div className="inspector-actions">
-        <button type="button" className="clarify" onClick={onOpenChat}>Ask about this</button>
-        <button type="button" className="clarify secondary" onClick={onDraftRequest}>Draft information request</button>
-        <button type="button" className="clarify secondary" onClick={onShare}>Share standing card</button>
+        <button type="button" className="icon-btn clarify" onClick={onOpenChat} aria-label="Ask about this" title="Ask about this">
+          <ChatIcon />
+        </button>
+        <button type="button" className="icon-btn clarify secondary" onClick={onDraftRequest} aria-label="Draft information request" title="Draft information request">
+          <DraftIcon />
+        </button>
+        <button type="button" className="icon-btn clarify secondary" onClick={onShare} aria-label="Share standing card" title="Share standing card">
+          <ShareIcon />
+        </button>
       </div>
       <small className="updated">
         Synthetic scenario · reported {node.reportedAt}
         <br />
         {transfers.length} connected transfer{transfers.length === 1 ? '' : 's'} · {scenario.sourceLabel}
       </small>
-    </aside>
+    </article>
   );
 }
 

@@ -1,5 +1,12 @@
 # Decisions
 
+## 2026-09-05 — Resizable panes for all explorer regions
+
+- **Status:** Accepted
+- **Context:** The explorer used fixed CSS grid (340px inspector), mobile bottom sheets, and a “View details” CTA outside the inspector pane. Citizens need more map space and a Cursor-like affordance to widen or collapse any region without cluttering the header.
+- **Decision:** Adopt `react-resizable-panels` v4 with a shared kit in `src/components/panes/`. Every first-class region (metrics, workspace, inspector, chat) is a collapsible `Panel` with in-pane collapse icons and collapsed rails for restore — no outside toggles. Desktop uses metrics → horizontal workbench → vertical inspector/chat; mobile uses the same primitives in a vertical stack with separate `localStorage` ids (`om-shell` / `om-shell-mobile`, etc.). Chat is a real pane (not an overlay); transient UI (landing, about, information request) stays modal.
+- **Consequences:** Layout sizes persist per breakpoint. Mobile sheets and `inspector-cta` are removed. New UI work must add panels to the nearest `Group`, not fixed-height divs.
+
 ## 2026-09-04 — Stage 2 AI proxy and citizen actions
 
 - **Status:** Accepted

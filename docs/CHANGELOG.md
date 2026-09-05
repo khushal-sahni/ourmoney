@@ -1,5 +1,21 @@
 # Changelog
 
+## Session 13 — 2026-09-05
+
+### Built
+
+- Cursor-style resizable panes for every explorer region (metrics, workspace, inspector, chat) via `react-resizable-panels`.
+- Shared pane kit in `src/components/panes/` with collapse-to-rail restore icons — no outside toggle buttons.
+- Desktop: metrics over horizontal workbench (map/ledger | inspector/chat stack); mobile: same primitives in a vertical stack with separate `localStorage` layout ids.
+- Icon-first chrome: header view/about/ask, inspector actions, and chat send use inline SVG icons.
+- **Inspector plain-language summary:** fixed `/api/narrate` response field (`text` → `narration`); template seeds immediately on node change; empty API body falls back to template; loading hint no longer replaces the paragraph.
+
+### Verified
+
+- `npm run build` passes.
+- Dev server serves updated pane layout at `localhost:5173`.
+- Inspector plain-language summary shows node-specific text on Piprahi and updates on node switch.
+
 ## Session 12 — 2026-09-04
 
 ### Built (Stage 2: 250 → 10)

@@ -84,7 +84,8 @@ export async function runNarration(
       content: `Write one plain-language paragraph (${locale}) narrating this ledger slice for a citizen. JSON:\n${JSON.stringify(slice)}`
     }
   ];
-  return withModelLadder(apiKey, messages);
+  const { text, source } = await withModelLadder(apiKey, messages);
+  return { narration: text, source };
 }
 
 export async function runAsk(

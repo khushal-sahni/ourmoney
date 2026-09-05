@@ -169,11 +169,15 @@ export class ExplainService {
 
   public async narrate(slice: IGroundedExplainSlice): Promise<INarrateResponse> {
     try {
-      const result = await postJson<{ narration: string; source?: INarrateResponse['source'] }>(
+      const result = await postJson<{ narration?: string; source?: INarrateResponse['source'] }>(
         '/api/narrate',
         { slice }
       );
-      return { narration: result.narration, source: result.source ?? 'model' };
+      const narration = result.narration?.trim();
+      if (!narration) {
+        return { narration: templateNarration(slice), source: 'template' };
+      }
+      return { narration, source: result.source ?? 'model' };
     } catch {
       return { narration: templateNarration(slice), source: 'template' };
     }

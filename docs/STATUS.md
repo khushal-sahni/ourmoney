@@ -1,17 +1,18 @@
 # Project Status
 
-> Last updated: 2026-09-04 · Session 12 (Stage 2)
+> Last updated: 2026-09-05 · Session 13
 
 ## Current state
 
-**Stage 2 resubmission build** for Build What Moves India (250 → 10). Live at [ourmoney.fyi](https://ourmoney.fyi) after deploy. Adds citizen landing, reconciliation flags, grounded AI narration + chat, information-request draft, share card, and About page — all on synthetic data.
+**Stage 2 resubmission build** for Build What Moves India (250 → 10). Live at [ourmoney.fyi](https://ourmoney.fyi) after deploy. Adds citizen landing, reconciliation flags, grounded AI narration + chat, information-request draft, share card, About page, and resizable pane layout — all on synthetic data.
 
 ## What works
 
-- Everything from Stage 1 (four scheme archetypes, flow map, ledger, mobile inspector, themes).
+- Everything from Stage 1 (four scheme archetypes, flow map, ledger, themes).
+- **Resizable panes:** metrics, workspace (map/ledger), inspector, and chat are independently resizable and collapsible on desktop and mobile; layouts persist per breakpoint in `localStorage`.
 - **Landing overlay:** fictional gazetteer search + “Open Piprahi village” golden-path CTA.
 - **Flag layer:** `watch` / `needs-explanation` badges on flow-map nodes and inspector status chips.
-- **AI layer:** grounded narration in inspector + docked chat (EN/हि) citing nodes and highlighting path; template fallback when API unavailable.
+- **AI layer:** grounded narration in inspector + chat pane (EN/हि) citing nodes and highlighting path; template seeds instantly on node change and upgrades when the model responds; template fallback when API unavailable.
 - **Act:** draft information request (copy / share / WhatsApp) + shareable standing card.
 - **About page** (`#about`): honesty disclosure, PFMS/MGNREGA adoption story, mocked vs real.
 - **Cloudflare Pages Functions:** `/api/ask` and `/api/narrate` via OpenRouter (OpenAI primary, free backup).
@@ -33,7 +34,10 @@ Deploy, set `OPENROUTER_API_KEY`, record video using [docs/STAGE-2-SUBMISSION.md
 
 ```text
 src/
-├── components/          # FlowCanvas, LandingOverlay, ChatPanel, AboutPage, …
+├── components/
+│   ├── panes/           # ShellLayout, WorkbenchLayout, DetailSplit, usePaneCollapse
+│   ├── explorer-shell.tsx
+│   ├── FlowCanvas, LandingOverlay, ChatPanel, AboutPage, …
 ├── constants/           # golden-path
 ├── data/                # fixtures, place-index
 ├── domain/              # fund-flow, explain-types, reconciliation-display
