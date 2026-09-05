@@ -1,5 +1,12 @@
 # Decisions
 
+## 2026-09-04 — Stage 2 AI proxy and citizen actions
+
+- **Status:** Accepted
+- **Context:** Stage 2 judging rewards visible OpenAI product features, end-to-end thinking, and honest disclosure. The explorer had reconciliation data but no flags, no personal entry point, and no action path after observation.
+- **Decision:** Add a grounded `ExplainService` that sends a tight JSON slice (selected node path, standing, reconciliation, transfers) to Cloudflare Pages Functions calling OpenRouter with `openai/gpt-4o-mini` primary and `openrouter/free` backup. UI falls back to deterministic template narration/Q&A when the API is unavailable. Citizen landing uses the fictional gazetteer only (not live PIN lookup). “Draft information request” produces copy-ready text and does not file RTI/CPGRAMS. Place locator and golden path target Piprahi on Community Water Access Mission.
+- **Consequences:** Requires `OPENROUTER_API_KEY` on Cloudflare Pages for live AI. Secrets never ship to the browser. Chat cites node ids and highlights the path on the map.
+
 ## 2026-08-22 — Used here: office consumption vs leftover
 
 - **Status:** Accepted

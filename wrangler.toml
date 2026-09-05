@@ -1,0 +1,2 @@
+# Cloudflare Pages — set OPENROUTER_API_KEY in the dashboard (Settings → Environment variables).
+# Functions in /functions are deployed automatically with Pages.

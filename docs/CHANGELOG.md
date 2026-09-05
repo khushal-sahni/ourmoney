@@ -1,5 +1,22 @@
 # Changelog
 
+## Session 12 — 2026-09-04
+
+### Built (Stage 2: 250 → 10)
+
+- Citizen landing overlay with fictional gazetteer search and Piprahi golden-path CTA.
+- Reconciliation flag layer on flow-map nodes (`watch` / `needs-explanation`) and inspector status chips.
+- Grounded `ExplainService` + Cloudflare Pages Functions (`/api/ask`, `/api/narrate`) via OpenRouter (gpt-4o-mini primary, free fallback).
+- Inspector AI narration; docked chat with EN/हि locale, path highlighting, and suggested questions.
+- Draft information request + shareable standing card.
+- About page (`#about`) with PFMS/MGNREGA adoption story and mocked-vs-real disclosure.
+- Submission assets in [docs/STAGE-2-SUBMISSION.md](STAGE-2-SUBMISSION.md).
+
+### Verified
+
+- `npm run build` passes.
+- Dev server serves updated explorer at `localhost:5173`.
+
 ## Session 11 — 2026-08-22
 
 ### Built

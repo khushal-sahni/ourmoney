@@ -1,67 +1,55 @@
 # Project Status
 
-> Last updated: 2026-08-22 · Session 11 (paused)
+> Last updated: 2026-09-04 · Session 12 (Stage 2)
 
 ## Current state
 
-Stage 1 citizen journey for **ourmoney** is live at [ourmoney.fyi](https://ourmoney.fyi): full-bleed scheme explorer with **four cardinally different synthetic scheme archetypes**, shared fictional gazetteer, five-level flow tree, used-here standing, day/night theme, and a mobile-first dismissible details sheet. Competition-ready as a synthetic-data prototype; active build paused for a few days (interview prep).
+**Stage 2 resubmission build** for Build What Moves India (250 → 10). Live at [ourmoney.fyi](https://ourmoney.fyi) after deploy. Adds citizen landing, reconciliation flags, grounded AI narration + chat, information-request draft, share card, and About page — all on synthetic data.
 
 ## What works
 
-- Four synthetic scenarios sharing Kanak / Girikhand / Meera Coast geography with dense Raital drill-down:
-  - Community Water Access Mission — SWSM SNA → DWSM → block → Paani Samiti / PHED
-  - Rural Works Guarantee — SEGF → DPC → Block PO → Gram Panchayat (wage FTO + material)
-  - Landholder Income Support — DBT cell → DAO → block enrollment → APBS credit file
-  - Neighbourhood Health Mission — SHS → DHS → BPMU → PHC/CHC/VHC (60:40 matching)
-- Citizen standing: **Received = sent onward + used here + what’s left** (admin/support/last-mile use is not leftover).
-- Tree: segmented gold / teal / amber bar + teal used-here amount chip; awaiting stays a separate next-column card.
-- Ledger columns: Node · Received · Sent onward · Used here · What’s left; inspector one-line used-here remark.
-- Scheme switcher loads catalog + scenario by id and focuses each scheme’s highlight node.
-- Flow map: five-column adaptive hierarchy, work labels on nodes, quieter pan/zoom, collision-aware layout, ledger alternate view, detail inspector with official body name + scheme-kind copy. Node tap updates selection (and mobile CTA label) only; auto branch focus changes on scheme load / search. Double-tap toggles immediate child branches.
-- Mobile (≤850px): inspector closed by default as a 75vh bottom sheet; open from **View details** CTA; dismiss with ×, backdrop, or Escape. Compact header + collapsible metrics summary + hierarchy select so the map keeps most of the viewport.
-- Light and dark themes via a header day/night toggle (`ourmoney-theme` in localStorage).
-- Metrics derived from scenario data; every surface labels the prototype and data as synthetic.
-- Calibration note documents public sources used for topology/vocabulary only ([docs/SYNTHETIC-CALIBRATION.md](SYNTHETIC-CALIBRATION.md)).
-- Public deploy: [ourmoney.fyi](https://ourmoney.fyi).
+- Everything from Stage 1 (four scheme archetypes, flow map, ledger, mobile inspector, themes).
+- **Landing overlay:** fictional gazetteer search + “Open Piprahi village” golden-path CTA.
+- **Flag layer:** `watch` / `needs-explanation` badges on flow-map nodes and inspector status chips.
+- **AI layer:** grounded narration in inspector + docked chat (EN/हि) citing nodes and highlighting path; template fallback when API unavailable.
+- **Act:** draft information request (copy / share / WhatsApp) + shareable standing card.
+- **About page** (`#about`): honesty disclosure, PFMS/MGNREGA adoption story, mocked vs real.
+- **Cloudflare Pages Functions:** `/api/ask` and `/api/narrate` via OpenRouter (OpenAI primary, free backup).
 
 ## In progress
 
-- Paused. Optional later: evidence drawer, unit tests, Stage 2 polish.
+- Deploy to production with `OPENROUTER_API_KEY` set in Cloudflare Pages env.
+- Record 2-minute submission video; submit by **7 September 2026**.
 
 ## Blockers
 
-- None.
+- OpenRouter API key must be configured on Cloudflare Pages for live AI (template fallback works without it).
 
 ## Next concrete step
 
-Resume after interview prep if needed: evidence/provenance drawer, scenario tests, or submission video/summary for the hackathon deadline (28 August 2026).
+Deploy, set `OPENROUTER_API_KEY`, record video using [docs/STAGE-2-SUBMISSION.md](STAGE-2-SUBMISSION.md), resubmit with same email as Stage 1.
 
 ## Architecture snapshot
 
 ```text
 src/
-├── domain/              # fund-flow types + adaptive hierarchy/layout (5 levels)
-├── data/
-│   ├── fixtures/        # gazetteer + four synthetic scenarios + catalog source
-│   └── sources/         # IFundFlowSource (catalog + load by id)
-├── services/            # ledger orchestration
-├── components/          # FlowCanvas, ThemeToggle
-├── utils/               # money + theme helpers
-└── App.tsx              # explorer shell (switcher + flow + ledger + inspector)
+├── components/          # FlowCanvas, LandingOverlay, ChatPanel, AboutPage, …
+├── constants/           # golden-path
+├── data/                # fixtures, place-index
+├── domain/              # fund-flow, explain-types, reconciliation-display
+├── services/            # ledger.service, explain.service
+functions/
+├── api/ask.ts           # OpenRouter proxy
+├── api/narrate.ts
+└── _shared/openrouter.ts
 ```
 
 ## Data and safety boundary
 
-- All current and competition-demo data is synthetic.
-- No scraping or live government-system integrations in the product.
-- One-time public-document research may inform fixture recipes; fixtures do not copy live rows.
-- Future sources must implement an adapter and normalize to the canonical model.
-
-## Tech debt
-
-- Hierarchy auto-mode currently keys off zoom + focus branch; viewport-frustum culling could further reduce clutter on larger scenarios.
-- Matching-share state contribution is visible in reconciliations and node totals, not as a separate national parent edge.
+- All data synthetic; no live government integrations.
+- AI grounded only on displayed scenario slice; no misconduct language.
+- Information-request drafts do not file automatically.
 
 ## Open questions
 
-- Whether Stage 1 also needs a geographic map alongside the schematic flow tree.
+- None blocking submission.

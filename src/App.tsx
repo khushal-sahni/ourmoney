@@ -1,16 +1,41 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type MouseEvent as ReactMouseEvent, type ReactElement } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type MouseEvent as ReactMouseEvent,
+  type ReactElement
+} from 'react';
+import { AboutPage } from './components/about-page';
+import { ChatPanel, type IChatMessage } from './components/chat-panel';
 import { FlowCanvas } from './components/flow-canvas';
+import {
+  buildInformationRequestDraft,
+  buildShareText,
+  InformationRequestPanel
+} from './components/information-request';
+import { LandingOverlay } from './components/landing-overlay';
 import { ThemeToggle } from './components/theme-toggle';
+import { GOLDEN_PATH, LANDING_STORAGE_KEY } from './constants/golden-path';
 import { DEFAULT_SCHEME_ID } from './data/fixtures/catalog';
+import type { IPlaceEntry } from './data/place-index';
 import { SyntheticScenarioSource } from './data/fixtures/synthetic-scenario.source';
+import type { ExplainLocale } from './domain/explain-types';
+import { citizenStanding } from './domain/citizen-standing';
+import {
+  reconciliationChipClass,
+  reconciliationFlagSummary,
+  reconciliationStatusLabel
+} from './domain/reconciliation-display';
 import type {
   IFundingNode,
   IReconciliation,
   ISchemeScenario,
   ISchemeSummary,
-  ITransfer
+  ITransfer,
+  ReconciliationStatus
 } from './domain/fund-flow';
-import { citizenStanding } from './domain/citizen-standing';
 import { bodyKindLabel, schemeKindDescription } from './domain/fund-flow';
 import {
   computeSchemeMetrics,
@@ -18,18 +43,56 @@ import {
   pathFor,
   type HierarchyMode
 } from './domain/flow-hierarchy';
+import { ExplainService } from './services/explain.service';
 import { LedgerService } from './services/ledger.service';
 import { formatCrore, formatPaiseFull, percentOf } from './utils/money';
 
 const ledgerService = new LedgerService(new SyntheticScenarioSource());
+const explainService = new ExplainService(ledgerService);
+
+type AppPage = 'explorer' | 'about';
+
+function readPageFromHash(): AppPage {
+  return window.location.hash === '#about' ? 'about' : 'explorer';
+}
 
 export function App(): ReactElement {
+  const [page, setPage] = useState<AppPage>(readPageFromHash);
+
+  useEffect(() => {
+    const onHashChange = (): void => setPage(readPageFromHash());
+    window.addEventListener('hashchange', onHashChange);
+    return () => window.removeEventListener('hashchange', onHashChange);
+  }, []);
+
+  useEffect(() => {
+    document.body.classList.toggle('route-about', page === 'about');
+    return () => document.body.classList.remove('route-about');
+  }, [page]);
+
+  const goAbout = useCallback((): void => {
+    window.location.hash = 'about';
+    setPage('about');
+  }, []);
+
+  const goExplorer = useCallback((): void => {
+    window.location.hash = '';
+    setPage('explorer');
+  }, []);
+
+  if (page === 'about') {
+    return <AboutPage onBack={goExplorer} />;
+  }
+
+  return <ExplorerApp onAbout={goAbout} />;
+}
+
+function ExplorerApp({ onAbout }: { onAbout: () => void }): ReactElement {
   const [catalog, setCatalog] = useState<readonly ISchemeSummary[]>([]);
   const [schemeId, setSchemeId] = useState(DEFAULT_SCHEME_ID);
   const [scenario, setScenario] = useState<ISchemeScenario>();
-  const [selectedId, setSelectedId] = useState('piprahi-paani');
-  /** Stable branch used by auto layout; tap/select only updates the sidebar. */
-  const [branchFocusId, setBranchFocusId] = useState('piprahi-paani');
+  const [selectedId, setSelectedId] = useState<string>(GOLDEN_PATH.nodeId);
+  const [branchFocusId, setBranchFocusId] = useState<string>(GOLDEN_PATH.nodeId);
   const [query, setQuery] = useState('');
   const [view, setView] = useState<'flow' | 'ledger'>('flow');
   const [hierarchyMode, setHierarchyMode] = useState<HierarchyMode>('auto');
@@ -37,7 +100,20 @@ export function App(): ReactElement {
   const [inspectorOpen, setInspectorOpen] = useState(false);
   const [metricsOpen, setMetricsOpen] = useState(false);
   const [isMobileLayout, setIsMobileLayout] = useState(false);
+  const [showLanding, setShowLanding] = useState(
+    () => localStorage.getItem(LANDING_STORAGE_KEY) !== '1'
+  );
+  const [chatOpen, setChatOpen] = useState(false);
+  const [chatLocale, setChatLocale] = useState<ExplainLocale>('en');
+  const [chatMessages, setChatMessages] = useState<readonly IChatMessage[]>([]);
+  const [chatLoading, setChatLoading] = useState(false);
+  const [highlightPathIds, setHighlightPathIds] = useState<readonly string[]>([]);
+  const [narration, setNarration] = useState<string>('');
+  const [narrationSource, setNarrationSource] = useState<'model' | 'template' | 'backup' | ''>('');
+  const [narrationLoading, setNarrationLoading] = useState(false);
+  const [infoRequestOpen, setInfoRequestOpen] = useState(false);
   const switcherRef = useRef<HTMLDivElement>(null);
+  const pendingFocusRef = useRef<string | null>(null);
 
   useEffect(() => {
     void ledgerService.loadCatalog().then(setCatalog);
@@ -45,26 +121,26 @@ export function App(): ReactElement {
 
   useEffect(() => {
     const media = window.matchMedia('(max-width: 850px)');
-    const sync = (): void => {
-      setIsMobileLayout(media.matches);
-    };
+    const sync = (): void => setIsMobileLayout(media.matches);
     sync();
     media.addEventListener('change', sync);
-    return () => {
-      media.removeEventListener('change', sync);
-    };
+    return () => media.removeEventListener('change', sync);
   }, []);
 
   useEffect(() => {
     void ledgerService.load(schemeId).then((next) => {
+      const focusId = pendingFocusRef.current ?? next.defaultFocusNodeId;
+      pendingFocusRef.current = null;
       setScenario(next);
-      setSelectedId(next.defaultFocusNodeId);
-      setBranchFocusId(next.defaultFocusNodeId);
+      setSelectedId(focusId);
+      setBranchFocusId(focusId);
       setHierarchyMode('auto');
       setQuery('');
       setMenuOpen(false);
       setInspectorOpen(false);
       setMetricsOpen(false);
+      setChatMessages([]);
+      setHighlightPathIds([]);
     });
   }, [schemeId]);
 
@@ -87,15 +163,43 @@ export function App(): ReactElement {
   }, [menuOpen]);
 
   useEffect(() => {
-    if (!inspectorOpen) return;
+    if (!inspectorOpen && !chatOpen && !infoRequestOpen) return;
     const onKeyDown = (event: KeyboardEvent): void => {
-      if (event.key === 'Escape') setInspectorOpen(false);
+      if (event.key !== 'Escape') return;
+      if (infoRequestOpen) setInfoRequestOpen(false);
+      else if (chatOpen) setChatOpen(false);
+      else setInspectorOpen(false);
     };
     document.addEventListener('keydown', onKeyDown);
-    return () => {
-      document.removeEventListener('keydown', onKeyDown);
-    };
-  }, [inspectorOpen]);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [inspectorOpen, chatOpen, infoRequestOpen]);
+
+  const focusNode = useCallback((nodeId: string): void => {
+    setSelectedId(nodeId);
+    setBranchFocusId(nodeId);
+    setView('flow');
+    setHierarchyMode('auto');
+    setHighlightPathIds([]);
+  }, []);
+
+  const dismissLanding = useCallback((): void => {
+    localStorage.setItem(LANDING_STORAGE_KEY, '1');
+    setShowLanding(false);
+  }, []);
+
+  const openGoldenPath = useCallback((): void => {
+    pendingFocusRef.current = GOLDEN_PATH.nodeId;
+    setSchemeId(GOLDEN_PATH.schemeId);
+    setInspectorOpen(true);
+  }, []);
+
+  const selectPlace = useCallback((entry: IPlaceEntry): void => {
+    pendingFocusRef.current = entry.nodeId;
+    setSchemeId(entry.schemeId);
+    setView('flow');
+    setHierarchyMode('auto');
+    setInspectorOpen(true);
+  }, []);
 
   const selectScheme = useCallback((id: string): void => {
     setSchemeId(id);
@@ -113,6 +217,18 @@ export function App(): ReactElement {
     () => (scenario ? ledgerService.reconciliationFor(scenario, selectedId) : undefined),
     [scenario, selectedId]
   );
+  const standing = useMemo(
+    () => (scenario && selected ? citizenStanding(scenario, selected) : undefined),
+    [scenario, selected]
+  );
+  const reconciliationByNodeId = useMemo(() => {
+    const map = new Map<string, ReconciliationStatus>();
+    if (!scenario) return map;
+    for (const entry of scenario.reconciliations) {
+      map.set(entry.nodeId, entry.status);
+    }
+    return map;
+  }, [scenario]);
   const matches = useMemo(
     () => scenario?.nodes.filter((node) => {
       const hay = `${node.name} ${node.shortName} ${node.workLabel ?? ''}`.toLowerCase();
@@ -125,13 +241,84 @@ export function App(): ReactElement {
     [scenario]
   );
   const activeSummary = catalog.find((entry) => entry.id === schemeId);
+  const infoRequestDraft = useMemo(() => {
+    if (!scenario || !selected || !standing) return '';
+    return buildInformationRequestDraft(scenario, selected, standing, reconciliation);
+  }, [scenario, selected, standing, reconciliation]);
 
-  if (!scenario || !selected || !metrics) {
+  useEffect(() => {
+    if (!scenario || !selected) return;
+    let cancelled = false;
+    setNarrationLoading(true);
+    setNarration('');
+    setNarrationSource('');
+    const slice = explainService.buildSlice(scenario, selected.id, chatLocale);
+    void explainService.narrate(slice).then((result) => {
+      if (cancelled) return;
+      setNarration(result.narration);
+      setNarrationSource(result.source);
+      setNarrationLoading(false);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [scenario, selected, chatLocale]);
+
+  const handleAsk = useCallback(async (question: string): Promise<void> => {
+    if (!scenario || !selected) return;
+    setChatLoading(true);
+    setChatMessages((prev) => [...prev, { role: 'user', text: question }]);
+    const slice = explainService.buildSlice(scenario, selected.id, chatLocale);
+    try {
+      const result = await explainService.ask(slice, question);
+      setChatMessages((prev) => [
+        ...prev,
+        {
+          role: 'assistant',
+          text: result.answer,
+          citedNodeIds: result.citedNodeIds,
+          source: result.source
+        }
+      ]);
+      setHighlightPathIds(result.citedNodeIds);
+      if (result.citedNodeIds.length > 0) {
+        setBranchFocusId(result.citedNodeIds[result.citedNodeIds.length - 1] ?? selected.id);
+      }
+    } finally {
+      setChatLoading(false);
+    }
+  }, [scenario, selected, chatLocale]);
+
+  const shareStanding = useCallback(async (): Promise<void> => {
+    if (!scenario || !selected || !standing) return;
+    const text = buildShareText(scenario, selected, standing);
+    if (navigator.share) {
+      await navigator.share({ title: 'ourmoney standing card', text, url: 'https://ourmoney.fyi' });
+      return;
+    }
+    await navigator.clipboard.writeText(text);
+  }, [scenario, selected, standing]);
+
+  if (!scenario || !selected || !metrics || !standing) {
     return <main className="loading">Loading synthetic scenario…</main>;
   }
 
+  const suggestedQuestion = selected.id === GOLDEN_PATH.nodeId
+    ? GOLDEN_PATH.suggestedQuestion
+    : reconciliation
+      ? `Why is this marked ${reconciliationStatusLabel(reconciliation.status).toLowerCase()}?`
+      : 'Where did the reported money go from here?';
+
   return (
     <main className="app-shell">
+      {showLanding && (
+        <LandingOverlay
+          onSelectPlace={selectPlace}
+          onOpenGoldenPath={openGoldenPath}
+          onDismiss={dismissLanding}
+        />
+      )}
+
       <header className="app-header">
         <div className="scheme-switcher" ref={switcherRef}>
           <div className="scheme-switcher-title">
@@ -181,6 +368,8 @@ export function App(): ReactElement {
         </nav>
 
         <div className="header-actions">
+          <button type="button" className="header-link" onClick={onAbout}>About</button>
+          <button type="button" className="header-link" onClick={() => setChatOpen(true)}>Ask</button>
           <ThemeToggle />
           <label className="search">
             <span aria-hidden="true">⌕</span>
@@ -202,13 +391,8 @@ export function App(): ReactElement {
                 type="button"
                 role="option"
                 onClick={() => {
-                  setSelectedId(node.id);
-                  setBranchFocusId(node.id);
+                  focusNode(node.id);
                   setQuery('');
-                  setView('flow');
-                  if (node.level === 'agency' || node.level === 'block' || node.level === 'district') {
-                    setHierarchyMode('auto');
-                  }
                 }}
               >
                 <span>{node.level === 'agency' ? scenario.lastMileLabel.toLowerCase() : node.level}</span>
@@ -260,7 +444,7 @@ export function App(): ReactElement {
         </section>
       </details>
 
-      <section className="workbench">
+      <section className={`workbench${chatOpen && !isMobileLayout ? ' chat-open' : ''}`}>
         <div className="workspace">
           {view === 'flow' ? (
             <FlowCanvas
@@ -270,6 +454,8 @@ export function App(): ReactElement {
               hierarchyMode={hierarchyMode}
               onHierarchyModeChange={setHierarchyMode}
               onSelect={setSelectedId}
+              reconciliationByNodeId={reconciliationByNodeId}
+              highlightPathIds={highlightPathIds}
             />
           ) : (
             <LedgerTable
@@ -324,8 +510,34 @@ export function App(): ReactElement {
           open={inspectorOpen}
           sheetHidden={isMobileLayout && !inspectorOpen}
           onClose={closeInspector}
+          narration={narration}
+          narrationLoading={narrationLoading}
+          narrationSource={narrationSource}
+          onOpenChat={() => setChatOpen(true)}
+          onDraftRequest={() => setInfoRequestOpen(true)}
+          onShare={() => void shareStanding()}
         />
+
+        {chatOpen && (
+          <ChatPanel
+            locale={chatLocale}
+            onLocaleChange={setChatLocale}
+            messages={chatMessages}
+            loading={chatLoading}
+            suggestedQuestion={suggestedQuestion}
+            onAsk={(question) => void handleAsk(question)}
+            onClose={() => setChatOpen(false)}
+            sheet={isMobileLayout}
+          />
+        )}
       </section>
+
+      {infoRequestOpen && (
+        <InformationRequestPanel
+          draft={infoRequestDraft}
+          onClose={() => setInfoRequestOpen(false)}
+        />
+      )}
     </main>
   );
 }
@@ -458,7 +670,7 @@ function LedgerTable({
             const childCount = byParent.get(node.id)?.length ?? 0;
             const isBranch = childCount > 0;
             const isOpen = searching || expanded.has(node.id);
-            const standing = citizenStanding(scenario, node);
+            const nodeStanding = citizenStanding(scenario, node);
             return (
               <tr
                 key={node.id}
@@ -491,28 +703,28 @@ function LedgerTable({
                     </div>
                   </div>
                 </td>
-                <td>{formatCrore(standing.receivedPaise)}</td>
+                <td>{formatCrore(nodeStanding.receivedPaise)}</td>
                 <td>
-                  {standing.childCount > 0 ? (
+                  {nodeStanding.childCount > 0 ? (
                     <>
-                      {formatCrore(standing.sentOnwardPaise)}
-                      <small>{Math.round(percentOf(standing.sentOnwardPaise, standing.receivedPaise))}%</small>
+                      {formatCrore(nodeStanding.sentOnwardPaise)}
+                      <small>{Math.round(percentOf(nodeStanding.sentOnwardPaise, nodeStanding.receivedPaise))}%</small>
                     </>
                   ) : (
                     '—'
                   )}
                 </td>
                 <td>
-                  {standing.usedHerePaise > 0 ? (
+                  {nodeStanding.usedHerePaise > 0 ? (
                     <>
-                      {formatCrore(standing.usedHerePaise)}
-                      {standing.usedHereLabel ? <small>{standing.usedHereLabel}</small> : null}
+                      {formatCrore(nodeStanding.usedHerePaise)}
+                      {nodeStanding.usedHereLabel ? <small>{nodeStanding.usedHereLabel}</small> : null}
                     </>
                   ) : (
                     '—'
                   )}
                 </td>
-                <LedgerOpenCell standing={standing} />
+                <LedgerOpenCell standing={nodeStanding} />
               </tr>
             );
           })}
@@ -545,7 +757,13 @@ function Inspector({
   scenario,
   open,
   sheetHidden,
-  onClose
+  onClose,
+  narration,
+  narrationLoading,
+  narrationSource,
+  onOpenChat,
+  onDraftRequest,
+  onShare
 }: {
   node: IFundingNode;
   reconciliation: IReconciliation | undefined;
@@ -554,6 +772,12 @@ function Inspector({
   open: boolean;
   sheetHidden: boolean;
   onClose: () => void;
+  narration: string;
+  narrationLoading: boolean;
+  narrationSource: string;
+  onOpenChat: () => void;
+  onDraftRequest: () => void;
+  onShare: () => void;
 }): ReactElement {
   const crumbs = pathFor(scenario, node);
   const standing = citizenStanding(scenario, node);
@@ -591,22 +815,28 @@ function Inspector({
       </div>
       <span className="node-level">{levelWord}</span>
       <h1>{node.shortName}</h1>
+      {reconciliation && (
+        <p className={`status-chip ${reconciliationChipClass(reconciliation.status)}`}>
+          {reconciliationStatusLabel(reconciliation.status)} — {reconciliationFlagSummary(reconciliation)}
+        </p>
+      )}
       {node.workLabel ? <p className="work-label">{node.workLabel}</p> : null}
       {bodyLabel && bodyLabel !== node.workLabel ? (
         <p className="body-kind">{bodyLabel}</p>
       ) : null}
       <p className="official-name">{node.name}</p>
       <p className="scheme-kind-blurb">{schemeKindDescription(scenario.schemeKind)}</p>
-      <p>
-        {node.level === 'national'
-          ? 'Programme-level release in this synthetic scenario.'
-          : `${levelWord[0].toUpperCase()}${levelWord.slice(1)}-level record receiving funds under this scheme.`}
-      </p>
-      {scenario.centreSharePaise !== undefined && scenario.stateSharePaise !== undefined && node.level === 'national' ? (
-        <p className="share-note">
-          Matching pattern (synthetic): centre {formatCrore(scenario.centreSharePaise)} · state {formatCrore(scenario.stateSharePaise)}.
-        </p>
-      ) : null}
+
+      <section className="ai-narration">
+        <h2>Plain-language summary</h2>
+        {narrationLoading ? (
+          <p className="narration-loading">Reading this ledger…</p>
+        ) : (
+          <p>{narration}</p>
+        )}
+        {narrationSource === 'template' && <small>Offline summary (API unavailable)</small>}
+        {narrationSource === 'backup' && <small>Summary via backup model</small>}
+      </section>
 
       <section>
         <h2>Financial standing</h2>
@@ -654,6 +884,7 @@ function Inspector({
             <div key={item.label}>
               <span>{item.label}</span>
               <b>{formatCrore(item.amountPaise)}</b>
+              <p>{item.description}</p>
             </div>
           ))}
         </section>
@@ -674,7 +905,11 @@ function Inspector({
         </section>
       )}
 
-      <button type="button" className="clarify">View record explanation</button>
+      <div className="inspector-actions">
+        <button type="button" className="clarify" onClick={onOpenChat}>Ask about this</button>
+        <button type="button" className="clarify secondary" onClick={onDraftRequest}>Draft information request</button>
+        <button type="button" className="clarify secondary" onClick={onShare}>Share standing card</button>
+      </div>
       <small className="updated">
         Synthetic scenario · reported {node.reportedAt}
         <br />

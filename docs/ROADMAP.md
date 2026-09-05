@@ -31,13 +31,18 @@ Deliver a live, independent, mobile-first prototype that lets a citizen trace a 
 - [ ] Scenario tests.
 - [ ] Evidence/provenance drawer identifying every record as synthetic.
 
-## Stage 2 — Credibility and polish `[ ]`
+## Stage 2 — Credibility and polish `[IN PROGRESS]`
 
+- [x] Plain-language “Explain this status” assistant grounded only in the displayed scenario.
+- [x] Shareable evidence card and disclosure page.
+- [x] Citizen landing + place locator (fictional gazetteer).
+- [x] Reconciliation flag layer on flow map.
+- [x] Information-request draft (copy/share; does not file).
+- [x] Cloudflare Worker proxy for OpenRouter (OpenAI primary).
 - [ ] Deterministic reconciliation engine with unit tests.
-- [ ] Plain-language “Explain this status” assistant grounded only in the displayed scenario.
-- [ ] Shareable evidence card and disclosure page.
-- [ ] Empty, loading, error, and slow-network states.
-- [ ] Submission video, project summary, and technical disclosure.
+- [ ] Evidence/provenance drawer identifying every record as synthetic.
+- [ ] Empty, loading, error, and slow-network states (partial: template AI fallback).
+- [ ] Submission video, project summary, and technical disclosure (draft in STAGE-2-SUBMISSION.md).
 
 ## Stage 3 — Post-competition expansion `[ ]`
 

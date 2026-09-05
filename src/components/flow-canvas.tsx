@@ -7,7 +7,8 @@ import {
   type PointerEvent,
   type ReactElement
 } from 'react';
-import type { ISchemeScenario } from '../domain/fund-flow';
+import type { ISchemeScenario, ReconciliationStatus } from '../domain/fund-flow';
+import { reconciliationChipClass, reconciliationStatusLabel } from '../domain/reconciliation-display';
 import {
   buildFlowLayout,
   hierarchyOptions,
@@ -49,7 +50,9 @@ export function FlowCanvas({
   branchFocusId,
   hierarchyMode,
   onHierarchyModeChange,
-  onSelect
+  onSelect,
+  reconciliationByNodeId,
+  highlightPathIds = []
 }: {
   scenario: ISchemeScenario;
   selectedId: string;
@@ -58,6 +61,8 @@ export function FlowCanvas({
   hierarchyMode: HierarchyMode;
   onHierarchyModeChange: (mode: HierarchyMode) => void;
   onSelect: (id: string) => void;
+  reconciliationByNodeId: ReadonlyMap<string, ReconciliationStatus>;
+  highlightPathIds?: readonly string[];
 }): ReactElement {
   const stageRef = useRef<HTMLDivElement>(null);
   const transformRef = useRef<ITransform>({ x: 48, y: 36, zoom: 0.82 });
@@ -491,6 +496,8 @@ export function FlowCanvas({
               key={node.id}
               node={node}
               selected={node.fundingNodeId === selectedId}
+              highlighted={highlightPathIds.includes(node.fundingNodeId)}
+              flagStatus={reconciliationByNodeId.get(node.fundingNodeId)}
               zoom={transform.zoom}
               schemeTotalPaise={schemeTotalPaise}
               onActivate={activateNode}
@@ -548,12 +555,16 @@ function FlowEdge({
 function FlowNode({
   node,
   selected,
+  highlighted,
+  flagStatus,
   zoom,
   schemeTotalPaise,
   onActivate
 }: {
   node: IFlowLayoutNode;
   selected: boolean;
+  highlighted: boolean;
+  flagStatus?: ReconciliationStatus;
   zoom: number;
   schemeTotalPaise: number;
   onActivate: (id: string) => void;
@@ -568,10 +579,12 @@ function FlowNode({
   const usedPct = percentOf(usedHere, node.amountPaise);
   const leftoverPct = percentOf(leftover, node.amountPaise);
 
+  const flagClass = flagStatus ? reconciliationChipClass(flagStatus) : '';
+
   return (
     <button
       type="button"
-      className={`map-node ${selected ? 'selected' : ''} ${compact ? 'compact' : ''} ${dot ? 'dot-node' : ''}`}
+      className={`map-node ${selected ? 'selected' : ''} ${highlighted ? 'path-highlight' : ''} ${flagClass} ${compact ? 'compact' : ''} ${dot ? 'dot-node' : ''}`}
       style={{ left: node.x, top: node.y }}
       onClick={() => onActivate(node.fundingNodeId)}
       onDoubleClick={(event) => event.preventDefault()}
@@ -582,6 +595,11 @@ function FlowNode({
           <span>{node.levelLabel}</span>
           <strong>{node.label}</strong>
           {!compact && !dot && node.workLabel ? <em className="node-work">{node.workLabel}</em> : null}
+          {flagStatus && !dot ? (
+            <em className={`node-flag ${flagClass}`} title={reconciliationStatusLabel(flagStatus)}>
+              {flagStatus === 'needs-explanation' ? '!' : flagStatus === 'watch' ? '◉' : '✓'}
+            </em>
+          ) : null}
         </div>
         {!compact && !dot ? (
           <div className="node-head-meta">
