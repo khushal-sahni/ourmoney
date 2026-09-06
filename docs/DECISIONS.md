@@ -1,5 +1,12 @@
 # Decisions
 
+## 2026-09-05 — Ask-first dual view (Ask landing + Explore workbench)
+
+- **Status:** Accepted
+- **Context:** Stage 1/2 shipped a four-pane explorer as the default entry. Indian citizens (especially rural, WhatsApp-native) engage better with conversational entry than dashboard-first UIs. Competition demo still needs the full flow map for judges who want to drill.
+- **Decision:** Default route is **Ask** — cinematic empty state with worked starters and gazetteer typeahead. **Explore** moves to `#explore` with the existing resizable workbench. Persistent **Ask | Explore** switcher (Cursor-style). Shared session state (scheme, node, chat, highlights) across modes. Cross-scheme intent resolver picks scheme + place from natural questions; unknown real places get honest miss + demo analogue (e.g. Orai → Uttar Raital), never invented rupees. Deep links: `#explore?scheme=&node=`.
+- **Consequences:** Landing overlay retired from product path. New modules: `src/app/`, `src/features/ask/`, `src/features/explore/`, `resolve-question-intent`, `reconciliation-engine`, `evidence` drawer. Vitest scenario tests gate fixture coherence at load time.
+
 ## 2026-09-05 — Question-resolved ask grounding (longest-span)
 
 - **Status:** Accepted

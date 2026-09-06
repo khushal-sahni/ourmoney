@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type FormEvent, type ReactElement, type ReactNode } from 'react';
 import type { IAskResponse } from '../domain/explain-types';
+import type { ISchemeScenario } from '../domain/fund-flow';
 import { ChatIcon, ChevronDownIcon, CloseIcon, SendIcon } from './ui-icons';
 
 export interface IChatMessage {
@@ -8,6 +9,8 @@ export interface IChatMessage {
   readonly citedNodeIds?: readonly string[];
   readonly citedNodeLabels?: readonly string[];
   readonly source?: IAskResponse['source'];
+  readonly schemeId?: string;
+  readonly scenario?: ISchemeScenario;
 }
 
 export function ChatPanel({
@@ -16,6 +19,7 @@ export function ChatPanel({
   messages,
   loading,
   suggestedQuestion,
+  followUps,
   onAsk,
   onClose,
   onCollapse,
@@ -26,6 +30,7 @@ export function ChatPanel({
   messages: readonly IChatMessage[];
   loading: boolean;
   suggestedQuestion?: string;
+  followUps?: readonly string[];
   onAsk: (question: string) => void;
   onClose: () => void;
   onCollapse?: () => void;
@@ -99,6 +104,16 @@ export function ChatPanel({
         ))}
         {loading && <p className="chat-loading">Reading the ledger…</p>}
       </div>
+
+      {followUps && followUps.length > 0 && !loading && (
+        <div className="chat-followups" role="group" aria-label="Follow-up questions">
+          {followUps.map((followUp) => (
+            <button key={followUp} type="button" onClick={() => onAsk(followUp)}>
+              {followUp}
+            </button>
+          ))}
+        </div>
+      )}
 
       <form className="chat-form" onSubmit={submit}>
         <input

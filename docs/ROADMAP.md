@@ -18,7 +18,7 @@ Deliver a live, independent, mobile-first prototype that lets a citizen trace a 
 - [x] Select implementation stack and testing baseline.
 - [x] Define Stage 1 acceptance criteria and explicitly cut non-essential work.
 
-## Stage 1 — Working citizen journey `[IN PROGRESS]`
+## Stage 1 — Working citizen journey `[COMPLETE]`
 
 **Outcome:** A reviewer can complete the main journey in a browser without assistance.
 
@@ -28,21 +28,21 @@ Deliver a live, independent, mobile-first prototype that lets a citizen trace a 
 - [x] Multiple synthetic scheme archetypes with a working switcher (works SNA, demand wage, central DBT, matching society).
 - [x] Responsive, accessible, low-bandwidth-friendly interface.
 - [x] Public deployment ([ourmoney.fyi](https://ourmoney.fyi)).
-- [ ] Scenario tests.
-- [ ] Evidence/provenance drawer identifying every record as synthetic.
+- [x] Scenario tests.
+- [x] Evidence/provenance drawer identifying every record as synthetic.
 
 ## Stage 2 — Credibility and polish `[IN PROGRESS]`
 
 - [x] Plain-language “Explain this status” assistant grounded only in the displayed scenario.
 - [x] Shareable evidence card and disclosure page.
-- [x] Citizen landing + place locator (fictional gazetteer).
+- [x] Citizen landing + place locator (fictional gazetteer) — now Ask-first with typeahead.
 - [x] Reconciliation flag layer on flow map.
 - [x] Information-request draft (copy/share; does not file).
 - [x] Cloudflare Worker proxy for OpenRouter (OpenAI primary).
-- [ ] Deterministic reconciliation engine with unit tests.
-- [ ] Evidence/provenance drawer identifying every record as synthetic.
-- [ ] Empty, loading, error, and slow-network states (partial: template AI fallback).
-- [ ] Submission video, project summary, and technical disclosure (draft in STAGE-2-SUBMISSION.md).
+- [x] Deterministic reconciliation engine with unit tests.
+- [x] Evidence/provenance drawer identifying every record as synthetic.
+- [x] Empty, loading, error, and slow-network states (template AI fallback + skeletons + retry).
+- [ ] Submission video (draft script in STAGE-2-SUBMISSION.md); written summary updated for Ask + Explore.
 
 ## Stage 3 — Post-competition expansion `[ ]`
 

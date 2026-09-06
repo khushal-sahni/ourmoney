@@ -1,5 +1,27 @@
 # Changelog
 
+## Session 16 — 2026-09-05
+
+### Built
+
+- **Ask-first dual view:** default Ask landing (composer, starters, gazetteer typeahead, EN/हि); Explore at `#explore` with deep links.
+- Persistent **Ask | Explore** switcher and shared session (scheme, node, chat, highlights).
+- Cross-scheme intent resolver (`resolve-question-intent.ts`) — roads/wage/health keywords, Orai → Uttar Raital honest miss.
+- Path artifact card + Open in Explore; API `followUps` surfaced as chips.
+- Evidence/provenance drawer (synthetic record trail per node).
+- Deterministic `reconciliation-engine.ts`; Vitest scenario tests (14 passing).
+- Loading skeletons, catalog/scenario error + retry states.
+
+### Changed
+
+- `App.tsx` → thin router + `SessionProvider`; explorer extracted to `features/explore/explore-app.tsx`.
+- Fixture load asserts `findStandingInconsistencies` at boot.
+
+### Verified
+
+- `npm run test` and `npm run build` pass.
+- Dev server at `localhost:5173`.
+
 ## Session 15 — 2026-09-05
 
 ### Changed

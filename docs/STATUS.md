@@ -1,21 +1,19 @@
 # Project Status
 
-> Last updated: 2026-09-05 · Session 15
+> Last updated: 2026-09-05 · Session 16
 
 ## Current state
 
-**Stage 2 resubmission build** for Build What Moves India (250 → 10). Live at [ourmoney.fyi](https://ourmoney.fyi) after deploy. Adds citizen landing, reconciliation flags, grounded AI narration + chat, information-request draft, share card, About page, and resizable pane layout — all on synthetic data.
+**Dual-view build** for Build What Moves India. **Ask** is the default landing (ChatGPT-style composer + starters); **Explore** is the full flow-map workbench at `#explore`. Stage 1/2 credibility items closed except the submission video — Vitest scenario tests, reconciliation engine, evidence drawer, and resilient loading/error states are in.
 
 ## What works
 
-- Everything from Stage 1 (four scheme archetypes, flow map, ledger, themes).
-- **Resizable panes:** metrics, workspace (map/ledger), inspector, and chat are independently resizable and collapsible on desktop and mobile; layouts persist per breakpoint in `localStorage`.
-- **Landing overlay:** component retained (gazetteer search + Piprahi CTA); not auto-shown on first visit.
-- **Flag layer:** `watch` / `needs-explanation` badges on flow-map nodes and inspector status chips.
-- **AI layer:** grounded narration in inspector + chat pane (EN/हि); chat resolves place names in the question (longest-span) before grounding; cites nodes and highlights path; template seeds instantly on node change; template fallback when API unavailable.
-- **Act:** draft information request (copy / share / WhatsApp) + shareable standing card.
-- **About page** (`#about`): honesty disclosure, PFMS/MGNREGA adoption story, mocked vs real.
-- **Cloudflare Pages Functions:** `/api/ask` and `/api/narrate` via OpenRouter (OpenAI primary, free backup).
+- **Ask (default):** cinematic empty state, gazetteer typeahead, EN/हि starters, cross-scheme intent resolution (e.g. roads → Rural Works + Uttar Raital), path artifact + Open in Explore, follow-up chips, template-then-model answers.
+- **Explore (`#explore`):** resizable panes, map/ledger, inspector narration, docked chat, scheme switcher, deep links `#explore?scheme=&node=`.
+- **Shared session:** scheme, selection, chat history, and highlights persist across Ask ↔ Explore.
+- **Evidence drawer:** synthetic provenance trail per node (equation, transfers, reconciliation lines).
+- **Tests:** Vitest — standing math, fixture coherence, intent resolver, reconciliation engine.
+- Everything from prior sessions (flags, information-request draft, About, Cloudflare `/api/ask` + `/api/narrate`).
 
 ## In progress
 
@@ -34,16 +32,16 @@ Deploy, set `OPENROUTER_API_KEY`, record video using [docs/STAGE-2-SUBMISSION.md
 
 ```text
 src/
-├── components/
-│   ├── panes/           # ShellLayout, WorkbenchLayout, DetailSplit, usePaneCollapse
-│   ├── explorer-shell.tsx
-│   ├── FlowCanvas, LandingOverlay, ChatPanel, AboutPage, …
-├── constants/           # golden-path
+├── app/                 # routing, session context
+├── features/
+│   ├── ask/             # Ask landing + conversation
+│   └── explore/         # Flow-map workbench
+├── components/          # AppChrome, EvidenceDrawer, PathArtifact, panes, …
+├── domain/              # intent resolver, reconciliation-engine, evidence, …
 ├── data/                # fixtures, place-index
-├── domain/              # fund-flow, explain-types, reconciliation-display, resolve-question-nodes
 ├── services/            # ledger.service, explain.service
 functions/
-├── api/ask.ts           # OpenRouter proxy
+├── api/ask.ts
 ├── api/narrate.ts
 └── _shared/openrouter.ts
 ```
@@ -51,9 +49,9 @@ functions/
 ## Data and safety boundary
 
 - All data synthetic; no live government integrations.
+- Unknown real places (e.g. Orai) get an honest miss + demo analogue — never invented rupees.
 - AI grounded only on displayed scenario slice; no misconduct language.
-- Information-request drafts do not file automatically.
 
 ## Open questions
 
-- None blocking submission.
+- None blocking submission except video.

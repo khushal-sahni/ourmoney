@@ -4,9 +4,9 @@ export function AboutPage({ onBack }: { onBack: () => void }): ReactElement {
   return (
     <main className="about-page">
       <header className="about-header">
-        <button type="button" className="about-back" onClick={onBack}>← Back to explorer</button>
+        <button type="button" className="about-back" onClick={onBack}>← Back</button>
         <h1>About the data</h1>
-        <p>How this prototype works · what is real · what comes next</p>
+        <p>Ask-first citizen entry · Explore flow map · honesty disclosure</p>
       </header>
 
       <article className="about-content">
@@ -31,9 +31,9 @@ export function AboutPage({ onBack }: { onBack: () => void }): ReactElement {
         <section>
           <h2>What ourmoney changes</h2>
           <p>
-            One continuous drill-down from programme release to a single last-mile body on a live map,
-            with plain-language reconciliation (never an accusation of wrongdoing) and an AI layer that
-            answers only from the displayed synthetic ledger.
+            Two modes: <strong>Ask</strong> answers in plain language from the displayed synthetic ledger;
+            <strong> Explore</strong> is the full flow map and inspector for citizens who want to poke the tree.
+            Reconciliation language never alleges wrongdoing.
           </p>
         </section>
 
