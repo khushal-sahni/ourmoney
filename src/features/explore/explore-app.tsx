@@ -7,6 +7,7 @@ import {
   type MouseEvent as ReactMouseEvent,
   type ReactElement
 } from 'react';
+import { navigateTo } from '../../app/routing';
 import { useSession } from '../../app/session-context';
 import { AppChrome } from '../../components/app-chrome';
 import { ChatPanel } from '../../components/chat-panel';
@@ -101,12 +102,18 @@ export function ExploreView({ onAbout }: { onAbout: () => void }): ReactElement 
   }, []);
 
   useEffect(() => {
+    let cancelled = false;
     setScenarioLoading(true);
     setScenarioError(null);
     void ledgerService.load(schemeId)
       .then((next) => {
-        const focusId = pendingFocusRef.current ?? session.selectedId ?? next.defaultFocusNodeId;
+        if (cancelled) return;
+        const preferred = pendingFocusRef.current ?? session.selectedId;
         pendingFocusRef.current = null;
+        // Node ids are scheme-local; keep selection only when it exists in the new tree.
+        const focusId = preferred && next.nodes.some((node) => node.id === preferred)
+          ? preferred
+          : next.defaultFocusNodeId;
         setScenario(next);
         session.setSelectedId(focusId);
         setBranchFocusId(focusId);
@@ -117,9 +124,13 @@ export function ExploreView({ onAbout }: { onAbout: () => void }): ReactElement 
         setScenarioLoading(false);
       })
       .catch(() => {
+        if (cancelled) return;
         setScenarioError('Could not load synthetic scenario.');
         setScenarioLoading(false);
       });
+    return () => {
+      cancelled = true;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [schemeId]);
 
@@ -166,18 +177,23 @@ export function ExploreView({ onAbout }: { onAbout: () => void }): ReactElement 
     session.setHighlightPathIds([]);
   }, [session]);
 
-  const openAsk = useCallback((question?: string): void => {
-    if (question) {
-      session.openAsk(question);
-      return;
-    }
+  const openAsk = useCallback((): void => {
     expandInspector();
     setChatOpen(true);
-  }, [expandInspector, session]);
+  }, [expandInspector]);
 
   const selectScheme = useCallback((id: string): void => {
+    if (id === schemeId) {
+      setMenuOpen(false);
+      return;
+    }
+    const entry = catalog.find((item) => item.id === id);
+    const focusId = entry?.defaultFocusNodeId;
+    if (focusId) pendingFocusRef.current = focusId;
+    session.setHighlightPathIds([]);
     session.setSchemeId(id);
-  }, [session]);
+    navigateTo('explore', { schemeId: id, nodeId: focusId });
+  }, [catalog, schemeId, session]);
 
   const selected = useMemo(
     () => (scenario ? ledgerService.findNode(scenario, selectedId) : undefined),
@@ -387,7 +403,7 @@ export function ExploreView({ onAbout }: { onAbout: () => void }): ReactElement 
         </nav>
 
         <div className="header-actions">
-          <button type="button" className="header-link" onClick={() => openAsk(suggestedQuestion)}>
+          <button type="button" className="header-link" onClick={() => openAsk()}>
             <ChatIcon />
             <span>Ask</span>
           </button>
@@ -492,7 +508,7 @@ export function ExploreView({ onAbout }: { onAbout: () => void }): ReactElement 
             narration={narration}
             narrationLoading={narrationLoading}
             narrationSource={narrationSource}
-            onOpenChat={() => openAsk(suggestedQuestion)}
+            onOpenChat={() => openAsk()}
             onDraftRequest={() => setInfoRequestOpen(true)}
             onShare={() => void shareStanding()}
             onShowEvidence={() => setEvidenceOpen(true)}

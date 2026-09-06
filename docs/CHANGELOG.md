@@ -1,5 +1,12 @@
 # Changelog
 
+## Session 17 — 2026-09-06
+
+### Fixed
+
+- **Scheme switcher stuck loading:** switching schemes kept the previous node id (e.g. Piprahi). When that id is absent from the new tree, `selected` stayed undefined and Explore never left the skeleton screen. Load now falls back to the scheme’s default focus; switcher also updates the `#explore?scheme=&node=` hash.
+- **Explore Ask CTAs:** header Ask and inspector “Ask about this” open the docked chat pane instead of navigating to the Ask landing. Chrome Ask | Explore switcher is unchanged.
+
 ## Session 16 — 2026-09-05
 
 ### Built
