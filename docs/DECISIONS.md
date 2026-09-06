@@ -1,5 +1,12 @@
 # Decisions
 
+## 2026-09-06 — Client-only session persistence
+
+- **Status:** Accepted
+- **Context:** Hard refresh wiped Ask transcripts and Explore selection because session lived only in React state. Judges and citizens need the demo thread to survive reload without a backend.
+- **Decision:** Persist a versioned `ourmoney-session` blob in `localStorage` (scheme, selection, highlights, locale, last ~40 chat messages). Store `schemeId` on messages, not full fixture trees; rehydrate scenarios from `ALL_SCENARIOS` on read. Route stays in the URL hash. Never send session data to a server.
+- **Consequences:** Refresh keeps the conversation. Explore deep links still override stored scheme/node. Private-mode / quota failures are ignored safely.
+
 ## 2026-09-05 — Ask-first dual view (Ask landing + Explore workbench)
 
 - **Status:** Accepted

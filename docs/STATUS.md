@@ -10,7 +10,7 @@
 
 - **Ask (default):** cinematic empty state, gazetteer typeahead, EN/हि starters, cross-scheme intent resolution (e.g. roads → Rural Works + Uttar Raital), path artifact + Open in Explore, follow-up chips, template-then-model answers.
 - **Explore (`#explore`):** resizable panes, map/ledger, inspector narration, docked chat, scheme switcher, deep links `#explore?scheme=&node=`.
-- **Shared session:** scheme, selection, chat history, and highlights persist across Ask ↔ Explore.
+- **Shared session:** scheme, selection, chat history, and highlights persist across Ask ↔ Explore and hard refresh (`localStorage`, client-only).
 - **Evidence drawer:** synthetic provenance trail per node (equation, transfers, reconciliation lines).
 - **Tests:** Vitest — standing math, fixture coherence, intent resolver, reconciliation engine.
 - Everything from prior sessions (flags, information-request draft, About, Cloudflare `/api/ask` + `/api/narrate`).

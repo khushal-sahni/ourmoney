@@ -12,6 +12,7 @@ import { AppChrome } from '../../components/app-chrome';
 import type { IChatMessage } from '../../components/chat-panel';
 import { PathArtifact } from '../../components/path-artifact';
 import { SendIcon } from '../../components/ui-icons';
+import { SCHEME_CATALOG, ALL_SCENARIOS } from '../../data/fixtures/catalog';
 import { buildPlaceIndex, searchPlaces, type IPlaceEntry } from '../../data/place-index';
 import { buildQuestionCorridor } from '../../domain/resolve-question-nodes';
 import {
@@ -55,6 +56,21 @@ export function AskView({ onAbout }: { onAbout: () => void }): ReactElement {
   }, [session.chatMessages, loading]);
 
   useEffect(() => {
+    if (activeScenario) return;
+    const fromMessage = [...session.chatMessages]
+      .reverse()
+      .find((message) => message.scenario)?.scenario;
+    if (fromMessage) {
+      setActiveScenario(fromMessage);
+      return;
+    }
+    const fromScheme = ALL_SCENARIOS.find((entry) => entry.id === session.schemeId);
+    if (fromScheme && session.chatMessages.length > 0) {
+      setActiveScenario(fromScheme);
+    }
+  }, [activeScenario, session.chatMessages, session.schemeId]);
+
+  useEffect(() => {
     const pending = session.consumePendingQuestion();
     if (pending) {
       void submitQuestion(pending);
@@ -62,9 +78,14 @@ export function AskView({ onAbout }: { onAbout: () => void }): ReactElement {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const contextLabel = activeIntent
-    ? `${activeIntent.schemeName}${activeIntent.placeLabel ? ` · ${activeIntent.placeLabel}` : ''}`
-    : undefined;
+  const contextLabel = useMemo((): string | undefined => {
+    if (activeIntent) {
+      return `${activeIntent.schemeName}${activeIntent.placeLabel ? ` · ${activeIntent.placeLabel}` : ''}`;
+    }
+    if (session.chatMessages.length === 0) return undefined;
+    const catalogName = SCHEME_CATALOG.find((entry) => entry.id === session.schemeId)?.schemeName;
+    return catalogName ?? activeScenario?.schemeName;
+  }, [activeIntent, activeScenario, session.chatMessages.length, session.schemeId]);
 
   const submitQuestion = useCallback(async (question: string): Promise<void> => {
     const trimmed = question.trim();
@@ -164,10 +185,10 @@ export function AskView({ onAbout }: { onAbout: () => void }): ReactElement {
     void submitQuestion(question);
   }, [session.chatLocale, submitQuestion]);
 
-  const openFromArtifact = useCallback((node: { readonly id: string }): void => {
-    if (!activeIntent) return;
+  const openFromArtifact = useCallback((node: { readonly id: string }, schemeId?: string): void => {
+    const resolvedSchemeId = schemeId ?? activeIntent?.schemeId ?? session.schemeId;
     session.openExplore({
-      schemeId: activeIntent.schemeId,
+      schemeId: resolvedSchemeId,
       nodeId: node.id
     });
   }, [activeIntent, session]);
@@ -310,7 +331,7 @@ function AskMessage({
   onOpenExplore
 }: {
   message: IChatMessage;
-  onOpenExplore: (node: { readonly id: string }) => void;
+  onOpenExplore: (node: { readonly id: string }, schemeId?: string) => void;
 }): ReactElement {
   return (
     <article className={`ask-message ask-message-${message.role}`}>
@@ -324,7 +345,7 @@ function AskMessage({
         <PathArtifact
           scenario={message.scenario}
           nodeIds={message.citedNodeIds}
-          onOpenExplore={onOpenExplore}
+          onOpenExplore={(node) => onOpenExplore(node, message.schemeId)}
         />
       ) : null}
     </article>

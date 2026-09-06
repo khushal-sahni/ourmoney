@@ -10,10 +10,9 @@ import {
   type ReactNode
 } from 'react';
 import type { IChatMessage } from '../components/chat-panel';
-import { DEFAULT_SCHEME_ID } from '../data/fixtures/catalog';
 import type { ExplainLocale } from '../domain/explain-types';
-import { GOLDEN_PATH } from '../constants/golden-path';
 import { navigateTo, parseExploreParams, readRouteFromHash, type AppRoute } from './routing';
+import { persistSession, readStoredSession } from './session-persist';
 
 export interface ISessionState {
   readonly route: AppRoute;
@@ -43,14 +42,25 @@ type SessionContextValue = ISessionState & ISessionActions;
 const SessionContext = createContext<SessionContextValue | undefined>(undefined);
 
 export function SessionProvider({ children }: { children: ReactNode }): ReactElement {
+  const stored = useMemo(() => readStoredSession(), []);
   const [route, setRouteState] = useState<AppRoute>(readRouteFromHash);
-  const [schemeId, setSchemeId] = useState(DEFAULT_SCHEME_ID);
-  const [selectedId, setSelectedId] = useState<string>(GOLDEN_PATH.nodeId);
-  const [highlightPathIds, setHighlightPathIds] = useState<readonly string[]>([]);
-  const [chatMessages, setChatMessages] = useState<readonly IChatMessage[]>([]);
-  const [chatLocale, setChatLocale] = useState<ExplainLocale>('en');
+  const [schemeId, setSchemeId] = useState(stored.schemeId);
+  const [selectedId, setSelectedId] = useState(stored.selectedId);
+  const [highlightPathIds, setHighlightPathIds] = useState<readonly string[]>(stored.highlightPathIds);
+  const [chatMessages, setChatMessages] = useState<readonly IChatMessage[]>(stored.chatMessages);
+  const [chatLocale, setChatLocale] = useState<ExplainLocale>(stored.chatLocale);
   const [pendingQuestion, setPendingQuestion] = useState<string | null>(null);
   const exploreBootRef = useRef(false);
+
+  useEffect(() => {
+    persistSession({
+      schemeId,
+      selectedId,
+      highlightPathIds,
+      chatLocale,
+      chatMessages
+    });
+  }, [schemeId, selectedId, highlightPathIds, chatLocale, chatMessages]);
 
   useEffect(() => {
     const onHashChange = (): void => {

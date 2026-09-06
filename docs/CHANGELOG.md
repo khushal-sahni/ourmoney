@@ -2,10 +2,15 @@
 
 ## Session 17 — 2026-09-06
 
+### Built
+
+- **Client session persist:** chat, locale, scheme, selection, and highlights survive hard refresh via `localStorage` (`ourmoney-session`). Full scenario trees are not stored — messages keep `schemeId` and rehydrate fixtures on load. Explore URL hash still overrides scheme/node on boot.
+
 ### Fixed
 
 - **Scheme switcher stuck loading:** switching schemes kept the previous node id (e.g. Piprahi). When that id is absent from the new tree, `selected` stayed undefined and Explore never left the skeleton screen. Load now falls back to the scheme’s default focus; switcher also updates the `#explore?scheme=&node=` hash.
 - **Explore Ask CTAs:** header Ask and inspector “Ask about this” open the docked chat pane instead of navigating to the Ask landing. Chrome Ask | Explore switcher is unchanged.
+- **Open in Explore no-op:** Ask’s path artifact required local `activeIntent`, which is cleared when Ask remounts while chat messages persist. CTA now uses the message’s `schemeId` (then session). AppRouter follows `session.route` so `openExplore` switches views reliably.
 
 ## Session 16 — 2026-09-05
 

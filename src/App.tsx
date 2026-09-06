@@ -1,18 +1,13 @@
-import { useCallback, useEffect, useState, type ReactElement } from 'react';
-import { navigateTo, readRouteFromHash, type AppRoute } from './app/routing';
-import { SessionProvider } from './app/session-context';
+import { useCallback, useEffect, type ReactElement } from 'react';
+import type { AppRoute } from './app/routing';
+import { SessionProvider, useSession } from './app/session-context';
 import { AboutPage } from './components/about-page';
 import { AskView } from './features/ask/ask-view';
 import { ExploreView } from './features/explore/explore-app';
 
 function AppRouter(): ReactElement {
-  const [route, setRoute] = useState<AppRoute>(readRouteFromHash);
-
-  useEffect(() => {
-    const onHashChange = (): void => setRoute(readRouteFromHash());
-    window.addEventListener('hashchange', onHashChange);
-    return () => window.removeEventListener('hashchange', onHashChange);
-  }, []);
+  const session = useSession();
+  const route = session.route;
 
   useEffect(() => {
     document.body.classList.toggle('route-about', route === 'about');
@@ -24,16 +19,14 @@ function AppRouter(): ReactElement {
   }, [route]);
 
   const goAbout = useCallback((): void => {
-    navigateTo('about');
-    setRoute('about');
-  }, []);
+    session.setRoute('about');
+  }, [session]);
 
   const goBack = useCallback((): void => {
     const previous = sessionStorage.getItem('ourmoney-back-route');
     const target: AppRoute = previous === 'explore' ? 'explore' : 'ask';
-    navigateTo(target);
-    setRoute(target);
-  }, []);
+    session.setRoute(target);
+  }, [session]);
 
   if (route === 'about') {
     return <AboutPage onBack={goBack} />;
