@@ -1,5 +1,19 @@
 # Decisions
 
+## 2026-09-06 — RTI composer as record request, not explanation ask
+
+- **Status:** Accepted
+- **Context:** The old information-request panel produced a single “seeking a plain-language explanation” paragraph. PIOs routinely reject “why” questions as seeking opinion; Section 2(f) covers records. Citizens chatting about a flagged node need a filing-ready instrument without the app filing anything.
+- **Decision:** Replace the draft panel with a four-step RTI composer. Resolve public authority / PIO / FAA from `node.level` + `bodyKind`. Generate numbered record requests from standing and reconciliation items. Encode fee (₹10, BPL exemption), 30-day reply, deemed refusal, and appeal clocks as data. Map the review step to rtionline.gov.in fields and split overflow past 3000 characters into Annexure A. Open from Ask, Explore chat, and inspector via `session.openRti`. Never auto-file; keep synthetic disclaimer in the draft.
+- **Consequences:** Stronger End-to-end / Honesty scores. Domain logic stays framework-free and unit tested.
+
+## 2026-09-06 — Ask-only site footer + static honesty pages
+
+- **Status:** Accepted
+- **Context:** Compare / Features / Scale / About need a home without mashing CTAs into Explore’s dense workbench.
+- **Decision:** Extend hash routes. Render a quiet footer only on Ask (empty state). Explore has no footer. Static pages share `StaticPage` shell. About becomes disclosure tables; comparison and adapter content live on `#compare` and `#scale`.
+- **Consequences:** Judges can score before/after and end-to-end thinking without hunting docs/.
+
 ## 2026-09-06 — Scheme-only Ask grounds on national root + named ranks
 
 - **Status:** Accepted

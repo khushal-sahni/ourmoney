@@ -37,12 +37,14 @@ Deliver a live, independent, mobile-first prototype that lets a citizen trace a 
 - [x] Shareable evidence card and disclosure page.
 - [x] Citizen landing + place locator (fictional gazetteer) — now Ask-first with typeahead.
 - [x] Reconciliation flag layer on flow map.
-- [x] Information-request draft (copy/share; does not file).
+- [x] Information-request draft → full RTI composer (copy/share/download; does not file).
 - [x] Cloudflare Worker proxy for OpenRouter (OpenAI primary).
 - [x] Deterministic reconciliation engine with unit tests.
 - [x] Evidence/provenance drawer identifying every record as synthetic.
 - [x] Empty, loading, error, and slow-network states (template AI fallback + skeletons + retry).
-- [ ] Submission video (draft script in STAGE-2-SUBMISSION.md); written summary updated for Ask + Explore.
+- [x] Compare / Features / How it scales / About honesty pages; Ask-only footer.
+- [x] Hindi UI strings + voice input; PWA offline shell.
+- [ ] Submission video (draft script in STAGE-2-SUBMISSION.md); written summary updated for Ask + Explore + RTI.
 
 ## Stage 3 — Post-competition expansion `[ ]`
 

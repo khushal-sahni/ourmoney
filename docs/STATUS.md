@@ -1,45 +1,46 @@
 # Project Status
 
-> Last updated: 2026-09-06 · Session 18
+> Last updated: 2026-09-06 · Session 19
 
 ## Current state
 
-**Dual-view build** for Build What Moves India. **Ask** is the default landing (ChatGPT-style composer + starters); **Explore** is the full flow-map workbench at `#explore`. Stage 1/2 credibility items closed except the submission video — Vitest scenario tests, reconciliation engine, evidence drawer, and resilient loading/error states are in.
+**Stage 2 final push** for Build What Moves India. Ask-first dual view plus Compare / Features / Scale / About pages, RTI composer, Hindi UI + voice input, and PWA offline shell. Production API key is live on Cloudflare. Remaining human task: **2-minute submission video** and resubmit by **7 September 2026**.
 
 ## What works
 
-- **Ask (default):** cinematic empty state, gazetteer typeahead, EN/हि starters, cross-scheme intent resolution (e.g. roads → Rural Works + Uttar Raital), **scheme-only** questions grounded on the national root with named-district ranks, path artifact + Open in Explore, follow-up chips, template-then-model answers. Guidance / optimistic replies no longer fake an API outage badge.
-- **Explore (`#explore`):** resizable panes, map/ledger, inspector narration, docked chat, scheme switcher, deep links `#explore?scheme=&node=`.
-- **Shared session:** scheme, selection, chat history, and highlights persist across Ask ↔ Explore and hard refresh (`localStorage`, client-only). Ambiguous follow-ups inherit the last ledger-backed context.
-- **Evidence drawer:** synthetic provenance trail per node (equation, transfers, reconciliation lines).
-- **Tests:** Vitest — standing math, fixture coherence, intent resolver, ranking helper, templateAsk comparison, reconciliation engine.
-- Everything from prior sessions (flags, information-request draft, About, Cloudflare `/api/ask` + `/api/narrate`).
+- **Ask (default):** composer, EN/हि UI + voice, gazetteer typeahead, grounded answers, path artifact, **Request the records** → RTI composer, Ask-only site footer.
+- **Explore (`#explore`):** flow map, ledger, inspector, docked chat with RTI affordance, evidence drawer, share standing.
+- **RTI composer:** authority resolution, record points, applicant details (browser-local), review with rtionline field mapping, 3000-char annexure split, copy / download / print / WhatsApp, 30-day tracking checklist.
+- **Static pages:** `#compare` (MIS before/after), `#features`, `#scale` (adapter field map), `#about` (honesty table).
+- **PWA:** service worker via `vite-plugin-pwa`; offline banner.
+- **Tests:** Vitest — standing, reconciliation, intent, ranking, templateAsk, session persist, routing, RTI domain.
 
 ## In progress
 
-- Deploy to production with `OPENROUTER_API_KEY` set in Cloudflare Pages env.
-- Record 2-minute submission video; submit by **7 September 2026**.
+- Record 2-minute submission video; resubmit with same email as Stage 1.
 
 ## Blockers
 
-- OpenRouter API key must be configured on Cloudflare Pages for live AI (template fallback works without it).
+- None for the live demo (API key set). Video is the only submission blocker.
 
 ## Next concrete step
 
-Deploy, set `OPENROUTER_API_KEY`, record video using [docs/STAGE-2-SUBMISSION.md](STAGE-2-SUBMISSION.md), resubmit with same email as Stage 1.
+Record video using [docs/STAGE-2-SUBMISSION.md](STAGE-2-SUBMISSION.md), then resubmit.
 
 ## Architecture snapshot
 
 ```text
 src/
-├── app/                 # routing, session context
+├── app/                 # routing, session (incl. openRti)
 ├── features/
 │   ├── ask/             # Ask landing + conversation
-│   └── explore/         # Flow-map workbench
-├── components/          # AppChrome, EvidenceDrawer, PathArtifact, panes, …
-├── domain/              # intent resolver, rank-named-places, reconciliation-engine, evidence, …
+│   ├── explore/         # Flow-map workbench
+│   └── pages/           # compare, features, scale
+├── components/          # chrome, footer, RTI composer, voice, static-page, …
+├── domain/              # rti-request, intent, reconciliation, standing, …
+├── i18n/                # strings + useT
 ├── data/                # fixtures, place-index
-├── services/            # ledger.service, explain.service
+├── services/            # ledger, explain
 functions/
 ├── api/ask.ts
 ├── api/narrate.ts
@@ -49,10 +50,5 @@ functions/
 ## Data and safety boundary
 
 - All data synthetic; no live government integrations.
-- Unknown real places (e.g. Orai) get an honest miss + demo analogue — never invented rupees.
-- Scheme-only ranks cite named offices on the synthetic ledger only.
+- RTI drafts never auto-file; disclaimer in every step.
 - AI grounded only on displayed scenario slice; no misconduct language.
-
-## Open questions
-
-- None blocking submission except video.

@@ -1,15 +1,24 @@
-export type AppRoute = 'ask' | 'explore' | 'about';
+export type AppRoute = 'ask' | 'explore' | 'about' | 'compare' | 'features' | 'scale';
 
 export interface IExploreRouteParams {
   readonly schemeId?: string;
   readonly nodeId?: string;
 }
 
-export function readRouteFromHash(): AppRoute {
-  const hash = window.location.hash.replace(/^#/, '');
-  if (hash === 'about' || hash.startsWith('about')) return 'about';
-  if (hash === 'explore' || hash.startsWith('explore')) return 'explore';
+const STATIC_ROUTES: readonly AppRoute[] = ['about', 'compare', 'features', 'scale'];
+
+export function routeFromHash(hash: string): AppRoute {
+  const cleaned = hash.replace(/^#/, '');
+  const path = cleaned.split('?')[0] ?? '';
+  if (path === 'explore' || path.startsWith('explore')) return 'explore';
+  for (const route of STATIC_ROUTES) {
+    if (path === route || path.startsWith(`${route}/`)) return route;
+  }
   return 'ask';
+}
+
+export function readRouteFromHash(): AppRoute {
+  return routeFromHash(window.location.hash);
 }
 
 export function parseExploreParams(hash: string): IExploreRouteParams {
@@ -33,7 +42,10 @@ export function buildExploreHash(params?: IExploreRouteParams): string {
 export function navigateTo(route: AppRoute, exploreParams?: IExploreRouteParams): void {
   switch (route) {
     case 'about':
-      window.location.hash = 'about';
+    case 'compare':
+    case 'features':
+    case 'scale':
+      window.location.hash = route;
       break;
     case 'explore':
       window.location.hash = buildExploreHash(exploreParams).replace(/^#/, '');

@@ -4,8 +4,8 @@
 
 - **Working name:** ourmoney
 - **Purpose:** An independent, citizen-facing prototype that makes the reported flow of public-scheme funds easier to understand, without asserting wrongdoing.
-- **Competition:** Build What Moves India, submission deadline 28 August 2026, 8:00 PM IST.
-- **Stage 1 scope:** A mobile-first, fully working synthetic-data journey through one fictional scheme, one state, and several districts.
+- **Competition:** Build What Moves India (OpenAI × Varun Mayya). Stage 1 shortlist complete; Stage 2 resubmission deadline **7 September 2026**.
+- **Stage 2 scope:** Ask-first dual-view prototype with grounded AI, RTI composer, Compare/Features/Scale honesty pages, Hindi + voice, PWA — all on synthetic data for one fictional geography across four scheme archetypes.
 
 ## Non-negotiable safety and competition rules
 

@@ -15,11 +15,7 @@ import { EvidenceDrawer } from '../../components/evidence-drawer';
 import { ExplorerShell, useExplorerPanes } from '../../components/explorer-shell';
 import { FlowCanvas } from '../../components/flow-canvas';
 import { ChatIcon, ChevronDownIcon, DraftIcon, MapIcon, ShareIcon, TableIcon } from '../../components/ui-icons';
-import {
-  buildInformationRequestDraft,
-  buildShareText,
-  InformationRequestPanel
-} from '../../components/information-request';
+import { buildShareText } from '../../components/information-request';
 import { GOLDEN_PATH } from '../../constants/golden-path';
 import { SyntheticScenarioSource } from '../../data/fixtures/synthetic-scenario.source';
 import { citizenStanding } from '../../domain/citizen-standing';
@@ -51,7 +47,7 @@ import { formatCrore, formatPaiseFull, percentOf } from '../../utils/money';
 const ledgerService = new LedgerService(new SyntheticScenarioSource());
 const explainService = new ExplainService(ledgerService);
 
-export function ExploreView({ onAbout }: { onAbout: () => void }): ReactElement {
+export function ExploreView(): ReactElement {
   const session = useSession();
   const [catalog, setCatalog] = useState<readonly ISchemeSummary[]>([]);
   const [catalogError, setCatalogError] = useState<string | null>(null);
@@ -75,7 +71,6 @@ export function ExploreView({ onAbout }: { onAbout: () => void }): ReactElement 
   const [narration, setNarration] = useState<string>('');
   const [narrationSource, setNarrationSource] = useState<'model' | 'template' | 'backup' | ''>('');
   const [narrationLoading, setNarrationLoading] = useState(false);
-  const [infoRequestOpen, setInfoRequestOpen] = useState(false);
   const [evidenceOpen, setEvidenceOpen] = useState(false);
   const switcherRef = useRef<HTMLDivElement>(null);
   const pendingFocusRef = useRef<string | null>(null);
@@ -153,15 +148,13 @@ export function ExploreView({ onAbout }: { onAbout: () => void }): ReactElement 
   }, [menuOpen]);
 
   useEffect(() => {
-    if (!chatOpen && !infoRequestOpen) return;
+    if (!chatOpen) return;
     const onKeyDown = (event: KeyboardEvent): void => {
-      if (event.key !== 'Escape') return;
-      if (infoRequestOpen) setInfoRequestOpen(false);
-      else setChatOpen(false);
+      if (event.key === 'Escape') setChatOpen(false);
     };
     document.addEventListener('keydown', onKeyDown);
     return () => document.removeEventListener('keydown', onKeyDown);
-  }, [chatOpen, infoRequestOpen]);
+  }, [chatOpen]);
 
   useEffect(() => {
     if (!chatOpen) return;
@@ -227,10 +220,6 @@ export function ExploreView({ onAbout }: { onAbout: () => void }): ReactElement 
     [scenario]
   );
   const activeSummary = catalog.find((entry) => entry.id === schemeId);
-  const infoRequestDraft = useMemo(() => {
-    if (!scenario || !selected || !standing) return '';
-    return buildInformationRequestDraft(scenario, selected, standing, reconciliation);
-  }, [scenario, selected, standing, reconciliation]);
 
   useEffect(() => {
     if (!scenario || !selected) return;
@@ -295,7 +284,7 @@ export function ExploreView({ onAbout }: { onAbout: () => void }): ReactElement 
       <main className="loading error-state">
         <p>{catalogError}</p>
         <button type="button" onClick={() => window.location.reload()}>Retry</button>
-        <button type="button" onClick={onAbout}>About</button>
+        <button type="button" onClick={() => session.setRoute('about')}>About</button>
       </main>
     );
   }
@@ -305,7 +294,7 @@ export function ExploreView({ onAbout }: { onAbout: () => void }): ReactElement 
       <main className="loading error-state">
         <p>{scenarioError}</p>
         <button type="button" onClick={() => void ledgerService.load(schemeId).then(setScenario)}>Retry</button>
-        <button type="button" onClick={onAbout}>About</button>
+        <button type="button" onClick={() => session.setRoute('about')}>About</button>
       </main>
     );
   }
@@ -341,7 +330,6 @@ export function ExploreView({ onAbout }: { onAbout: () => void }): ReactElement 
         locale={session.chatLocale}
         onRouteChange={session.setRoute}
         onLocaleChange={session.setChatLocale}
-        onAbout={onAbout}
         contextLabel={scenario.schemeName}
       />
 
@@ -509,7 +497,7 @@ export function ExploreView({ onAbout }: { onAbout: () => void }): ReactElement 
             narrationLoading={narrationLoading}
             narrationSource={narrationSource}
             onOpenChat={() => openAsk()}
-            onDraftRequest={() => setInfoRequestOpen(true)}
+            onDraftRequest={() => session.openRti(schemeId, selectedId)}
             onShare={() => void shareStanding()}
             onShowEvidence={() => setEvidenceOpen(true)}
           />
@@ -526,6 +514,8 @@ export function ExploreView({ onAbout }: { onAbout: () => void }): ReactElement 
             onClose={() => setChatOpen(false)}
             onCollapse={panes.chat.collapse}
             collapseIcon={<ChevronDownIcon />}
+            onRequestRecords={(scheme, node) => session.openRti(scheme, node)}
+            activeSchemeId={schemeId}
           />
         }
       />
@@ -535,13 +525,6 @@ export function ExploreView({ onAbout }: { onAbout: () => void }): ReactElement 
           records={evidenceRecords}
           title={selected.shortName}
           onClose={() => setEvidenceOpen(false)}
-        />
-      )}
-
-      {infoRequestOpen && (
-        <InformationRequestPanel
-          draft={infoRequestDraft}
-          onClose={() => setInfoRequestOpen(false)}
         />
       )}
     </main>
@@ -904,7 +887,7 @@ function Inspector({
         </button>
         <button type="button" className="clarify secondary" onClick={onDraftRequest}>
           <DraftIcon />
-          <span>Draft request</span>
+          <span>Request records</span>
         </button>
         <button type="button" className="clarify secondary" onClick={onShare}>
           <ShareIcon />

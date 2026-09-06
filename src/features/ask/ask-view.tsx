@@ -11,7 +11,9 @@ import { useSession } from '../../app/session-context';
 import { AppChrome } from '../../components/app-chrome';
 import type { IChatMessage } from '../../components/chat-panel';
 import { PathArtifact } from '../../components/path-artifact';
+import { SiteFooter } from '../../components/site-footer';
 import { SendIcon } from '../../components/ui-icons';
+import { VoiceInputButton } from '../../components/voice-input';
 import { SCHEME_CATALOG, ALL_SCENARIOS } from '../../data/fixtures/catalog';
 import { buildPlaceIndex, searchPlaces, type IPlaceEntry } from '../../data/place-index';
 import { rankNamedPlaces } from '../../domain/rank-named-places';
@@ -24,6 +26,7 @@ import type { ISchemeScenario } from '../../domain/fund-flow';
 import { ExplainService, formatCitationLabels, templateAsk } from '../../services/explain.service';
 import { LedgerService } from '../../services/ledger.service';
 import { SyntheticScenarioSource } from '../../data/fixtures/synthetic-scenario.source';
+import { useT } from '../../i18n/strings';
 
 const ledgerService = new LedgerService(new SyntheticScenarioSource());
 const explainService = new ExplainService(ledgerService);
@@ -41,7 +44,6 @@ function inheritFollowUpIntent(
   chatMessages: readonly IChatMessage[],
   selectedId: string
 ): IResolvedIntent | undefined {
-  // Only inherit after a ledger-backed answer — not after a gazetteer guidance bounce.
   const scenario = activeScenario
     ?? [...chatMessages].reverse().find((message) => message.scenario)?.scenario;
   if (!scenario) return undefined;
@@ -66,8 +68,16 @@ function inheritFollowUpIntent(
   };
 }
 
-export function AskView({ onAbout }: { onAbout: () => void }): ReactElement {
+function shouldPromoteRti(scenario: ISchemeScenario, nodeIds: readonly string[]): boolean {
+  return nodeIds.some((nodeId) => {
+    const recon = scenario.reconciliations.find((item) => item.nodeId === nodeId);
+    return recon?.status === 'watch' || recon?.status === 'needs-explanation';
+  });
+}
+
+export function AskView(): ReactElement {
   const session = useSession();
+  const t = useT();
   const [draft, setDraft] = useState('');
   const [loading, setLoading] = useState(false);
   const [activeScenario, setActiveScenario] = useState<ISchemeScenario>();
@@ -241,8 +251,8 @@ export function AskView({ onAbout }: { onAbout: () => void }): ReactElement {
   }, [activeIntent, session]);
 
   const placeholder = session.chatLocale === 'hi'
-    ? 'उदा. उत्तर रैतल में सड़कों के लिए पैसा कहाँ जा रहा है?'
-    : 'e.g. Where is the money going for roads at Uttar Raital?';
+    ? t('askPlaceholder')
+    : t('askPlaceholder');
 
   const hasConversation = session.chatMessages.length > 0;
   const showArtifactRail = Boolean(
@@ -256,7 +266,6 @@ export function AskView({ onAbout }: { onAbout: () => void }): ReactElement {
         locale={session.chatLocale}
         onRouteChange={session.setRoute}
         onLocaleChange={session.setChatLocale}
-        onAbout={onAbout}
         contextLabel={hasConversation ? contextLabel : undefined}
       />
 
@@ -264,11 +273,9 @@ export function AskView({ onAbout }: { onAbout: () => void }): ReactElement {
         <div className={`ask-body ${hasConversation ? 'ask-body-chat' : 'ask-body-empty'}`}>
         {!hasConversation ? (
           <section className="ask-hero">
-            <p className="ask-badge">Independent hackathon prototype · synthetic data</p>
-            <h1>Where did the reported rupee go?</h1>
-            <p className="ask-lead">
-              Ask in plain language. We answer only from fictional demo ledgers — not live government data.
-            </p>
+            <p className="ask-badge">{t('heroBadge')}</p>
+            <h1>{t('heroTitle')}</h1>
+            <p className="ask-lead">{t('heroLead')}</p>
 
             <div className="ask-composer-wrap">
               <form className="ask-composer" onSubmit={handleSubmit}>
@@ -281,16 +288,25 @@ export function AskView({ onAbout }: { onAbout: () => void }): ReactElement {
                   }}
                   onFocus={() => setTypeaheadOpen(true)}
                   placeholder={placeholder}
-                  aria-label="Ask a question"
+                  aria-label={t('ask')}
                   autoComplete="off"
                 />
-                <button type="submit" className="ask-send" disabled={!draft.trim() || loading} aria-label="Send">
+                <VoiceInputButton
+                  locale={session.chatLocale}
+                  disabled={loading}
+                  onTranscript={(text) => {
+                    setDraft('');
+                    setTypeaheadOpen(false);
+                    void submitQuestion(text);
+                  }}
+                />
+                <button type="submit" className="ask-send" disabled={!draft.trim() || loading} aria-label={t('send')}>
                   <SendIcon />
                 </button>
               </form>
 
               {typeaheadOpen && typeaheadResults.length > 0 && (
-                <ul className="ask-typeahead" role="listbox" aria-label="Place matches">
+                <ul className="ask-typeahead" role="listbox" aria-label={t('placeMatches')}>
                   {typeaheadResults.map((entry) => (
                     <li key={`${entry.schemeId}-${entry.nodeId}`}>
                       <button type="button" role="option" onClick={() => pickPlace(entry)}>
@@ -304,7 +320,7 @@ export function AskView({ onAbout }: { onAbout: () => void }): ReactElement {
               )}
             </div>
 
-            <div className="ask-starters" role="group" aria-label="Suggested questions">
+            <div className="ask-starters" role="group" aria-label={t('suggestedQuestions')}>
               {STARTER_QUESTIONS.map((starter) => (
                 <button
                   key={starter.en}
@@ -315,10 +331,6 @@ export function AskView({ onAbout }: { onAbout: () => void }): ReactElement {
                 </button>
               ))}
             </div>
-
-            <button type="button" className="ask-explore-link" onClick={() => session.openExplore()}>
-              Or open the flow map →
-            </button>
           </section>
         ) : (
           <>
@@ -328,9 +340,10 @@ export function AskView({ onAbout }: { onAbout: () => void }): ReactElement {
                   key={index}
                   message={message}
                   onOpenExplore={openFromArtifact}
+                  onRequestRecords={(schemeId, nodeId) => session.openRti(schemeId, nodeId)}
                 />
               ))}
-              {loading ? <p className="ask-loading">Reading the ledger…</p> : null}
+              {loading ? <p className="ask-loading">{t('readingLedger')}</p> : null}
             </div>
 
             {followUps.length > 0 && !loading ? (
@@ -347,11 +360,19 @@ export function AskView({ onAbout }: { onAbout: () => void }): ReactElement {
               <input
                 value={draft}
                 onChange={(event) => setDraft(event.target.value)}
-                placeholder={placeholder}
+                placeholder={t('followUpPlaceholder')}
                 disabled={loading}
-                aria-label="Ask a follow-up"
+                aria-label={t('ask')}
               />
-              <button type="submit" className="ask-send" disabled={loading || !draft.trim()} aria-label="Send">
+              <VoiceInputButton
+                locale={session.chatLocale}
+                disabled={loading}
+                onTranscript={(text) => {
+                  setDraft('');
+                  void submitQuestion(text);
+                }}
+              />
+              <button type="submit" className="ask-send" disabled={loading || !draft.trim()} aria-label={t('send')}>
                 <SendIcon />
               </button>
             </form>
@@ -369,31 +390,70 @@ export function AskView({ onAbout }: { onAbout: () => void }): ReactElement {
           </aside>
         ) : null}
       </div>
+
+      {!hasConversation ? (
+        <SiteFooter
+          onNavigate={session.setRoute}
+          labels={{
+            compare: t('compare'),
+            features: t('features'),
+            scale: t('scale'),
+            about: t('about'),
+            disclosure: t('footerDisclosure')
+          }}
+        />
+      ) : null}
     </main>
   );
 }
 
 function AskMessage({
   message,
-  onOpenExplore
+  onOpenExplore,
+  onRequestRecords
 }: {
   message: IChatMessage;
   onOpenExplore: (node: { readonly id: string }, schemeId?: string) => void;
+  onRequestRecords: (schemeId: string, nodeId: string) => void;
 }): ReactElement {
+  const t = useT();
+  const promote = Boolean(
+    message.scenario
+    && message.citedNodeIds
+    && shouldPromoteRti(message.scenario, message.citedNodeIds)
+  );
+
   return (
     <article className={`ask-message ask-message-${message.role}`}>
       <p>{message.text}</p>
-      {message.source === 'template' ? <small>Offline explanation (API unavailable)</small> : null}
-      {message.source === 'backup' ? <small>Answered via backup model</small> : null}
+      {message.source === 'template' ? <small>{t('offlineExplanation')}</small> : null}
+      {message.source === 'backup' ? <small>{t('backupAnswer')}</small> : null}
       {message.citedNodeLabels && message.citedNodeLabels.length > 0 ? (
-        <small>Cites: {message.citedNodeLabels.join(' → ')}</small>
+        <small>{t('citePrefix')} {message.citedNodeLabels.join(' → ')}</small>
       ) : null}
       {message.role === 'assistant' && message.scenario && message.citedNodeIds && message.citedNodeIds.length > 0 ? (
-        <PathArtifact
-          scenario={message.scenario}
-          nodeIds={message.citedNodeIds}
-          onOpenExplore={(node) => onOpenExplore(node, message.schemeId)}
-        />
+        <>
+          <PathArtifact
+            scenario={message.scenario}
+            nodeIds={message.citedNodeIds}
+            onOpenExplore={(node) => onOpenExplore(node, message.schemeId)}
+          />
+          {(() => {
+            const schemeId = message.schemeId;
+            const nodeId = message.citedNodeIds[0];
+            if (!schemeId || !nodeId) return null;
+            return (
+              <button
+                type="button"
+                className={`ask-rti-btn ${promote ? 'ask-rti-btn-promote' : ''}`}
+                onClick={() => onRequestRecords(schemeId, nodeId)}
+                title={t('requestRecordsHint')}
+              >
+                {t('requestRecords')}
+              </button>
+            );
+          })()}
+        </>
       ) : null}
     </article>
   );

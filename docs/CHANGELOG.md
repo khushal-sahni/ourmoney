@@ -1,5 +1,19 @@
 # Changelog
 
+## Session 19 — 2026-09-06
+
+### Built
+
+- **Static pages:** `#compare`, `#features`, `#scale`, redesigned `#about` on a shared `StaticPage` shell. Ask-only `SiteFooter` carries Compare / Features / How it scales / About — Explore stays chrome-dense without a footer.
+- **RTI composer:** domain `rti-request.ts` resolves PIO / appellate authority from `bodyKind` + level, builds Section 2(f) record points, encodes fee / 30-day / appeal scaffolding, and splits past rtionline.gov.in's 3000-char Text of Application into Annexure A. Four-step modal reachable from Ask answers, Explore docked chat, and inspector.
+- **Hindi + voice:** `src/i18n/strings.ts` + `useT()`; Web Speech API mic on Ask and chat composers (`hi-IN` / `en-IN`); `html lang` switches with locale.
+- **PWA:** `vite-plugin-pwa` autoUpdate + offline banner (Explore works offline; Ask falls back).
+
+### Changed
+
+- Information-request draft panel superseded by RTI composer; `buildShareText` retained.
+- Deleted unused `landing-overlay.tsx`. AGENTS.md Stage 2 deadline corrected.
+
 ## Session 18 — 2026-09-06
 
 ### Fixed
