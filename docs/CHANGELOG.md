@@ -1,5 +1,17 @@
 # Changelog
 
+## Session 18 — 2026-09-06
+
+### Fixed
+
+- **Ask scheme-only bounce:** questions that name a scheme but not a place (e.g. landholder income “which village got the most”) now ground on the national root, rank named district offices from the synthetic ledger, and answer instead of refusing with a gazetteer bounce.
+- **Fake “API unavailable” badge:** guidance and optimistic template replies no longer set `source: 'template'`. The offline badge appears only after a real `/api/ask` fallback.
+- **Ambiguous follow-ups:** cold-start “Hey?” still gets gazetteer guidance; after a ledger-backed answer, ambiguous messages inherit the active scheme and focus.
+
+### Built
+
+- `rankNamedPlaces` / `nationalRootNode` domain helpers; scheme-only Ask slice attaches top districts as `related` for template and model ranking.
+
 ## Session 17 — 2026-09-06
 
 ### Built

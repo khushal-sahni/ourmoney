@@ -1,5 +1,12 @@
 # Decisions
 
+## 2026-09-06 — Scheme-only Ask grounds on national root + named ranks
+
+- **Status:** Accepted
+- **Context:** Citizens ask scheme-wide questions (“which village got the most under landholder income”) without naming a demo place. Ask bounced these as gazetteer misses and labeled them “API unavailable,” even though the scheme was known and no API call ran.
+- **Decision:** `scheme_only` intents focus the national programme root (not the last-mile default pin). Top named district offices by received amount attach as `related` on the Ask slice. Template and model answers may rank those named offices only — never invent villages. Guidance / optimistic replies omit `source`; “Offline explanation (API unavailable)” is reserved for true `/api/ask` template fallback. Ambiguous follow-ups inherit the last ledger-backed scheme/focus; cold-start ambiguity still gets gazetteer guidance.
+- **Consequences:** Scheme comparison questions work offline. Ranking honesty stays within the synthetic tree. Explore selected-node Ask is unchanged.
+
 ## 2026-09-06 — Client-only session persistence
 
 - **Status:** Accepted

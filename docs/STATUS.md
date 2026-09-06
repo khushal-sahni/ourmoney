@@ -1,6 +1,6 @@
 # Project Status
 
-> Last updated: 2026-09-06 · Session 17
+> Last updated: 2026-09-06 · Session 18
 
 ## Current state
 
@@ -8,11 +8,11 @@
 
 ## What works
 
-- **Ask (default):** cinematic empty state, gazetteer typeahead, EN/हि starters, cross-scheme intent resolution (e.g. roads → Rural Works + Uttar Raital), path artifact + Open in Explore, follow-up chips, template-then-model answers.
+- **Ask (default):** cinematic empty state, gazetteer typeahead, EN/हि starters, cross-scheme intent resolution (e.g. roads → Rural Works + Uttar Raital), **scheme-only** questions grounded on the national root with named-district ranks, path artifact + Open in Explore, follow-up chips, template-then-model answers. Guidance / optimistic replies no longer fake an API outage badge.
 - **Explore (`#explore`):** resizable panes, map/ledger, inspector narration, docked chat, scheme switcher, deep links `#explore?scheme=&node=`.
-- **Shared session:** scheme, selection, chat history, and highlights persist across Ask ↔ Explore and hard refresh (`localStorage`, client-only).
+- **Shared session:** scheme, selection, chat history, and highlights persist across Ask ↔ Explore and hard refresh (`localStorage`, client-only). Ambiguous follow-ups inherit the last ledger-backed context.
 - **Evidence drawer:** synthetic provenance trail per node (equation, transfers, reconciliation lines).
-- **Tests:** Vitest — standing math, fixture coherence, intent resolver, reconciliation engine.
+- **Tests:** Vitest — standing math, fixture coherence, intent resolver, ranking helper, templateAsk comparison, reconciliation engine.
 - Everything from prior sessions (flags, information-request draft, About, Cloudflare `/api/ask` + `/api/narrate`).
 
 ## In progress
@@ -37,7 +37,7 @@ src/
 │   ├── ask/             # Ask landing + conversation
 │   └── explore/         # Flow-map workbench
 ├── components/          # AppChrome, EvidenceDrawer, PathArtifact, panes, …
-├── domain/              # intent resolver, reconciliation-engine, evidence, …
+├── domain/              # intent resolver, rank-named-places, reconciliation-engine, evidence, …
 ├── data/                # fixtures, place-index
 ├── services/            # ledger.service, explain.service
 functions/
@@ -50,6 +50,7 @@ functions/
 
 - All data synthetic; no live government integrations.
 - Unknown real places (e.g. Orai) get an honest miss + demo analogue — never invented rupees.
+- Scheme-only ranks cite named offices on the synthetic ledger only.
 - AI grounded only on displayed scenario slice; no misconduct language.
 
 ## Open questions

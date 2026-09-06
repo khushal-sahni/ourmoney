@@ -21,6 +21,22 @@ import type { LedgerService } from './ledger.service';
 const SYNTHETIC_DISCLAIMER =
   'All figures are from a synthetic hackathon scenario. This is not live government data.';
 
+function isComparisonQuestion(question: string): boolean {
+  const q = question.toLowerCase();
+  return (
+    q.includes('most')
+    || q.includes('highest')
+    || q.includes('maximum')
+    || q.includes('top ')
+    || q.includes('which village')
+    || q.includes('which district')
+    || q.includes('which place')
+    || q.includes('सबसे')
+    || q.includes('किस गाँव')
+    || q.includes('किस जिले')
+  );
+}
+
 function nodeSlice(scenario: ISchemeScenario, node: IFundingNode): IGroundedNodeSlice {
   const standing = citizenStanding(scenario, node);
   const levelWord = node.level === 'agency' ? scenario.lastMileLabel.toLowerCase() : node.level;
@@ -139,6 +155,8 @@ export function templateAsk(slice: IGroundedExplainSlice, question: string): IAs
     ? [...slice.mentionedNodeIds]
     : slice.path.map((step) => step.id);
   const q = question.toLowerCase();
+  const ranked = slice.related ?? [];
+  const topNamed = ranked[0];
 
   const endpointNames = citedNodeIds
     .map((nodeId) =>
@@ -149,7 +167,28 @@ export function templateAsk(slice: IGroundedExplainSlice, question: string): IAs
     .map((step) => step.shortName);
 
   let answer: string;
-  if (slice.locale === 'hi') {
+  let answerCitedIds = citedNodeIds;
+  let followUps = slice.locale === 'hi'
+    ? ['अगले कार्यालय का नाम क्यों नहीं दिख रहा?', 'यहाँ कितना उपयोग हुआ?']
+    : ['What is still on this ledger?', 'Which transfers connect here?'];
+
+  if (isComparisonQuestion(question) && topNamed) {
+    const runners = ranked.slice(1, 3).map((step) => `${step.shortName} (${step.receivedCrore})`).join(', ');
+    if (slice.locale === 'hi') {
+      answer = `${slice.schemeName} (${slice.period}) में नामित जिला कार्यालयों में सबसे अधिक ${topNamed.shortName} को ${topNamed.receivedCrore} रिपोर्ट किए गए।`
+        + (runners ? ` इसके बाद: ${runners}.` : '')
+        + ' यह केवल इस सिंथेटिक लेजर पर नामित कार्यालय हैं — पूरी गाँव सूची नहीं।';
+    } else {
+      answer = `Among named district offices in ${slice.schemeName} (${slice.period}), `
+        + `${topNamed.shortName} shows the highest reported receipt at ${topNamed.receivedCrore}.`
+        + (runners ? ` Next: ${runners}.` : '')
+        + ' These are named offices on this synthetic ledger — not a complete village ranking.';
+    }
+    answerCitedIds = [topNamed.id, ...ranked.slice(1, 3).map((step) => step.id)];
+    followUps = slice.locale === 'hi'
+      ? [`${topNamed.shortName} के लिए पैसा कहाँ गया?`, 'और कौन-से जिले नामित हैं?']
+      : [`Where did the reported money go for ${topNamed.shortName}?`, 'What is still on this ledger at the top district?'];
+  } else if (slice.locale === 'hi') {
     if (q.includes('late') || q.includes('देर') || q.includes('util')) {
       answer = slice.reconciliation
         ? `${focus?.shortName ?? 'इस नोड'} पर रिपोर्ट स्थिति "${slice.reconciliation.status}" है। `
@@ -179,11 +218,7 @@ export function templateAsk(slice: IGroundedExplainSlice, question: string): IAs
       + ' Answer grounded in synthetic demonstration data only.';
   }
 
-  const followUps = slice.locale === 'hi'
-    ? ['अगले कार्यालय का नाम क्यों नहीं दिख रहा?', 'यहाँ कितना उपयोग हुआ?']
-    : ['What is still on this ledger?', 'Which transfers connect here?'];
-
-  return { answer, citedNodeIds, followUps, source: 'template' };
+  return { answer, citedNodeIds: answerCitedIds, followUps, source: 'template' };
 }
 
 export function formatCitationLabels(
@@ -242,7 +277,8 @@ export class ExplainService {
     scenario: ISchemeScenario,
     selectedNodeId: string,
     question: string,
-    locale: ExplainLocale
+    locale: ExplainLocale,
+    options?: { readonly relatedNodes?: readonly IFundingNode[] }
   ): IGroundedExplainSlice {
     const corridor = buildQuestionCorridor(scenario, question, selectedNodeId);
     const focusNode = this.ledger.findNode(scenario, corridor.focusNodeId);
@@ -252,9 +288,15 @@ export class ExplainService {
 
     const focusPath = pathFor(scenario, focusNode);
     const pathIds = new Set(focusPath.map((step) => step.id));
-    const relatedNodes = corridor.mentionedNodeIds
+    const corridorRelated = corridor.mentionedNodeIds
       .map((nodeId) => this.ledger.findNode(scenario, nodeId))
       .filter((node): node is IFundingNode => node !== undefined && !pathIds.has(node.id));
+    const extraRelated = (options?.relatedNodes ?? []).filter((node) => !pathIds.has(node.id));
+    const relatedById = new Map<string, IFundingNode>();
+    for (const node of [...corridorRelated, ...extraRelated]) {
+      relatedById.set(node.id, node);
+    }
+    const relatedNodes = [...relatedById.values()];
 
     const corridorTransfers = corridor.mentionedNodeIds.length >= 2
       ? transfersAlongCorridor(scenario, corridor)

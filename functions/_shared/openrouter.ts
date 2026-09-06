@@ -18,6 +18,7 @@ Rules:
 - Use precise terms: unreconciled, late report, needs explanation, reported balance.
 - When mentionedNodeIds are present, cite those exact node ids in order. Do not substitute a parent for a more specific child named in the question.
 - Otherwise cite node ids from the slice path when explaining.
+- When ranking or comparing places, use ONLY nodes present in the slice (path, children, related). Never invent unnamed villages or offices.
 - Keep answers under 120 words unless asked for detail.
 - Respond in the locale requested (en or hi).`;
 

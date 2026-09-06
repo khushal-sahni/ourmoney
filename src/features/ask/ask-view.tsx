@@ -14,7 +14,7 @@ import { PathArtifact } from '../../components/path-artifact';
 import { SendIcon } from '../../components/ui-icons';
 import { SCHEME_CATALOG, ALL_SCENARIOS } from '../../data/fixtures/catalog';
 import { buildPlaceIndex, searchPlaces, type IPlaceEntry } from '../../data/place-index';
-import { buildQuestionCorridor } from '../../domain/resolve-question-nodes';
+import { rankNamedPlaces } from '../../domain/rank-named-places';
 import {
   resolveQuestionIntent,
   unknownPlaceMessage,
@@ -34,6 +34,37 @@ const STARTER_QUESTIONS = [
   { en: 'What is still on the ledger at Kharonda block?', hi: 'खरोंडा ब्लॉक पर कितना अभी भी लेजर में है?' },
   { en: 'Explain the health mission standing at Raital district', hi: 'रैतल जिले में स्वास्थ्य मिशन की स्थिति समझाइए' }
 ] as const;
+
+function inheritFollowUpIntent(
+  activeScenario: ISchemeScenario | undefined,
+  activeIntent: IResolvedIntent | undefined,
+  chatMessages: readonly IChatMessage[],
+  selectedId: string
+): IResolvedIntent | undefined {
+  // Only inherit after a ledger-backed answer — not after a gazetteer guidance bounce.
+  const scenario = activeScenario
+    ?? [...chatMessages].reverse().find((message) => message.scenario)?.scenario;
+  if (!scenario) return undefined;
+
+  const focusNodeId = activeIntent?.focusNodeId
+    ?? [...chatMessages].reverse().find((message) => message.citedNodeIds?.[0])?.citedNodeIds?.[0]
+    ?? selectedId;
+  const node = scenario.nodes.find((candidate) => candidate.id === focusNodeId)
+    ?? scenario.nodes.find((candidate) => candidate.id === scenario.defaultFocusNodeId);
+  if (!node) return undefined;
+
+  return {
+    kind: 'resolved',
+    schemeId: scenario.id,
+    schemeName: scenario.schemeName,
+    focusNodeId: node.id,
+    placeLabel: activeIntent?.placeLabel ?? node.shortName,
+    mentionedNodeIds: activeIntent?.mentionedNodeIds?.length
+      ? activeIntent.mentionedNodeIds
+      : [node.id],
+    scenario
+  };
+}
 
 export function AskView({ onAbout }: { onAbout: () => void }): ReactElement {
   const session = useSession();
@@ -95,18 +126,27 @@ export function AskView({ onAbout }: { onAbout: () => void }): ReactElement {
     setFollowUps([]);
     session.setChatMessages((prev) => [...prev, { role: 'user', text: trimmed }]);
 
-    const intent = resolveQuestionIntent(trimmed);
+    let intent = resolveQuestionIntent(trimmed);
 
-    if (!intent || intent.kind === 'ambiguous' || intent.kind === 'scheme_only') {
-      const suggestions = intent?.suggestions ?? searchPlaces(placeIndex, '', 3);
-      const locale = session.chatLocale;
-      const suggestionText = suggestions.map((entry) => entry.label).join(', ');
-      const text = locale === 'hi'
-        ? `यह डेमो केवल काल्पनिक स्थानों का उपयोग करता है। कृपया एक डेमो स्थान आज़माएँ: ${suggestionText}।`
-        : `This demo only covers fictional places in our gazetteer. Try a demo place such as ${suggestionText}.`;
-      session.setChatMessages((prev) => [...prev, { role: 'assistant', text, source: 'template' }]);
-      setLoading(false);
-      return;
+    if (!intent || intent.kind === 'ambiguous') {
+      const inherited = inheritFollowUpIntent(
+        activeScenario,
+        activeIntent,
+        session.chatMessages,
+        session.selectedId
+      );
+      if (inherited) {
+        intent = inherited;
+      } else {
+        const suggestions = intent?.suggestions ?? searchPlaces(placeIndex, '', 3);
+        const suggestionText = suggestions.map((entry) => entry.label).join(', ');
+        const text = session.chatLocale === 'hi'
+          ? `यह डेमो केवल काल्पनिक स्थानों का उपयोग करता है। कृपया एक डेमो स्थान आज़माएँ: ${suggestionText}।`
+          : `This demo only covers fictional places in our gazetteer. Try a demo place such as ${suggestionText}.`;
+        session.setChatMessages((prev) => [...prev, { role: 'assistant', text }]);
+        setLoading(false);
+        return;
+      }
     }
 
     session.focusNode(intent.schemeId, intent.focusNodeId, intent.mentionedNodeIds);
@@ -115,16 +155,19 @@ export function AskView({ onAbout }: { onAbout: () => void }): ReactElement {
 
     if (intent.kind === 'unknown_place') {
       const prefix = unknownPlaceMessage(intent, session.chatLocale);
-      session.setChatMessages((prev) => [...prev, { role: 'assistant', text: prefix, source: 'template' }]);
+      session.setChatMessages((prev) => [...prev, { role: 'assistant', text: prefix }]);
     }
 
     try {
-      const corridor = buildQuestionCorridor(intent.scenario, trimmed, intent.focusNodeId);
+      const relatedNodes = intent.kind === 'scheme_only'
+        ? rankNamedPlaces(intent.scenario, 'district', 3)
+        : undefined;
       const slice = explainService.buildAskSlice(
         intent.scenario,
-        corridor.focusNodeId,
+        intent.focusNodeId,
         trimmed,
-        session.chatLocale
+        session.chatLocale,
+        relatedNodes ? { relatedNodes } : undefined
       );
       const template = templateAsk(slice, trimmed);
       session.setChatMessages((prev) => [
@@ -134,7 +177,6 @@ export function AskView({ onAbout }: { onAbout: () => void }): ReactElement {
           text: template.answer,
           citedNodeIds: template.citedNodeIds,
           citedNodeLabels: formatCitationLabels(slice, template.citedNodeIds),
-          source: 'template',
           schemeId: intent.schemeId,
           scenario: intent.scenario
         }
@@ -144,11 +186,16 @@ export function AskView({ onAbout }: { onAbout: () => void }): ReactElement {
 
       const result = await explainService.ask(slice, trimmed);
       session.setChatMessages((prev) => {
-        const withoutTemplate = prev.filter(
-          (message, index) => !(index === prev.length - 1 && message.role === 'assistant' && message.source === 'template')
+        const withoutOptimistic = prev.filter(
+          (message, index) => !(
+            index === prev.length - 1
+            && message.role === 'assistant'
+            && message.schemeId === intent.schemeId
+            && (message.source === undefined || message.source === 'template')
+          )
         );
         return [
-          ...withoutTemplate,
+          ...withoutOptimistic,
           {
             role: 'assistant',
             text: result.answer,
@@ -165,7 +212,7 @@ export function AskView({ onAbout }: { onAbout: () => void }): ReactElement {
     } finally {
       setLoading(false);
     }
-  }, [loading, placeIndex, session]);
+  }, [activeIntent, activeScenario, loading, placeIndex, session]);
 
   const handleSubmit = useCallback((event?: FormEvent): void => {
     event?.preventDefault();

@@ -1,6 +1,7 @@
 import { ALL_SCENARIOS } from '../data/fixtures/catalog';
 import { buildPlaceIndex, searchPlaces, type IPlaceEntry } from '../data/place-index';
 import type { ISchemeScenario } from './fund-flow';
+import { nationalRootNode } from './rank-named-places';
 import { resolveQuestionNodes } from './resolve-question-nodes';
 
 export type IntentKind = 'resolved' | 'unknown_place' | 'scheme_only' | 'ambiguous';
@@ -175,13 +176,15 @@ export function resolveQuestionIntent(question: string): IResolvedIntent | undef
   }
 
   if (inferredSchemeId) {
+    const root = nationalRootNode(scenario);
+    const focusNodeId = root?.id ?? scenario.defaultFocusNodeId;
     return {
       kind: 'scheme_only',
       schemeId: scenario.id,
       schemeName: scenario.schemeName,
-      focusNodeId: scenario.defaultFocusNodeId,
+      focusNodeId,
       placeLabel: scenario.schemeName,
-      mentionedNodeIds: [],
+      mentionedNodeIds: [focusNodeId],
       scenario,
       suggestions: demoSuggestions(placeIndex)
     };

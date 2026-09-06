@@ -35,4 +35,19 @@ describe('resolveQuestionIntent', () => {
     expect(intent?.kind).toBe('unknown_place');
     expect(intent?.placeLabel).toBe('Uttar Raital');
   });
+
+  it('resolves landholder income scheme to scheme_only on the national root', () => {
+    const intent = resolveQuestionIntent(
+      'So which village got the most money in the landholder income scheme'
+    );
+    expect(intent?.kind).toBe('scheme_only');
+    expect(intent?.schemeId).toBe('landholder-income');
+    expect(intent?.focusNodeId).toBe('india');
+    expect(intent?.mentionedNodeIds).toEqual(['india']);
+  });
+
+  it('treats a bare greeting as ambiguous', () => {
+    const intent = resolveQuestionIntent('Hey?');
+    expect(intent?.kind).toBe('ambiguous');
+  });
 });

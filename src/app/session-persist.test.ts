@@ -79,4 +79,22 @@ describe('session-persist', () => {
     localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify({ v: 99, chatMessages: [{ role: 'user', text: 'x' }] }));
     expect(readStoredSession()).toEqual(defaultPersistedSession());
   });
+
+  it('round-trips guidance messages that omit source', () => {
+    persistSession({
+      ...defaultPersistedSession(),
+      chatMessages: [
+        { role: 'user', text: 'Hey?' },
+        {
+          role: 'assistant',
+          text: 'This demo only covers fictional places in our gazetteer. Try a demo place such as Piprahi.'
+        }
+      ]
+    });
+
+    const restored = readStoredSession();
+    expect(restored.chatMessages).toHaveLength(2);
+    expect(restored.chatMessages[1]?.source).toBeUndefined();
+    expect(restored.chatMessages[1]?.text).toContain('gazetteer');
+  });
 });
