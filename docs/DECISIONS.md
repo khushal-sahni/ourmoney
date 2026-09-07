@@ -1,5 +1,12 @@
 # Decisions
 
+## 2026-09-07 — Mobile Explore uses CTA + sheet; desktop panes unchanged
+
+- **Status:** Accepted (narrows the 2026-09-05 resizable-panes decision for mobile)
+- **Context:** On phones the stacked inspector pane sat on the flow map and was unreadable. iPhone Chrome also clipped the Ask chrome because `min-height: 100vh` used the large viewport while `overflow: hidden` blocked scroll.
+- **Decision:** Keep desktop resizable metrics / workspace / inspector / chat panes. On mobile Explore, the workspace fills the work region; a fixed bottom CTA (“View details”) opens a ~90% dismissible bottom sheet with the inspector. Explore chat on mobile uses the same sheet. Ask/Explore shells size to `--app-height` from `visualViewport` (not `100vh`); Ask empty state scrolls so starters sit above the footer.
+- **Consequences:** Map-first mobile Explore; Ask first paint no longer traps content under the browser URL bar. Mobile stack layout ids bump so old pane ratios do not reopen the cramped stack.
+
 ## 2026-09-07 — Voice dictation confirms into draft, never auto-sends
 
 - **Status:** Accepted

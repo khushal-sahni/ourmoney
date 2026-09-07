@@ -12,7 +12,6 @@ import {
 } from './ui-icons';
 import {
   DetailSplit,
-  MobileStackLayout,
   PaneEdgeToggle,
   PaneRail,
   ShellLayout,
@@ -78,7 +77,7 @@ export function ExplorerShell({
 
   const inspectorRail = (
     <PaneRail
-      placement={isMobile ? 'bottom' : 'right'}
+      placement="right"
       label="Show node details"
       onExpand={inspector.expand}
       icon={<DetailsIcon />}
@@ -87,7 +86,7 @@ export function ExplorerShell({
 
   const chatRail = (
     <PaneRail
-      placement={isMobile ? 'bottom' : 'right'}
+      placement="right"
       label="Show chat"
       onExpand={chat.expand}
       icon={<ChatIcon />}
@@ -124,7 +123,7 @@ export function ExplorerShell({
         className="inspector-edge-toggle"
         onCollapse={inspector.collapse}
         collapseLabel="Collapse node details"
-        collapseIcon={isMobile ? <ChevronDownIcon /> : <ChevronRightIcon />}
+        collapseIcon={<ChevronRightIcon />}
       />
       <div className="inspector-pane-body">{inspectorContent}</div>
     </div>
@@ -132,28 +131,21 @@ export function ExplorerShell({
 
   const chatBody = chatContent;
 
+  // Mobile: map/workspace fills the work region. Inspector + chat open as sheets
+  // from ExploreView — not as stacked resizable panes over the graph.
   if (isMobile) {
     return (
       <ShellLayout
         key="mobile-shell"
-        layoutId="om-shell-mobile-v2"
+        layoutId="om-shell-mobile-v3"
         metrics={metrics}
         metricsDefaultSize={40}
         metricsContent={metricsPane}
         metricsRail={metricsRail}
       >
-        <MobileStackLayout
-          layoutId="om-mobile-stack-v2"
-          workspace={workspace}
-          workspaceContent={workspacePane}
-          workspaceRail={workspaceRail}
-          inspector={inspector}
-          inspectorContent={inspectorBody}
-          inspectorRail={inspectorRail}
-          chat={chatOpen ? chat : undefined}
-          chatContent={chatOpen ? chatBody : undefined}
-          chatRail={chatOpen ? chatRail : undefined}
-        />
+        <div className="mobile-workspace-fill pane-fill">
+          {workspace.collapsed ? workspaceRail : workspacePane}
+        </div>
       </ShellLayout>
     );
   }

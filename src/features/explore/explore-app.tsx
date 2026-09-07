@@ -10,11 +10,12 @@ import {
 import { navigateTo } from '../../app/routing';
 import { useSession } from '../../app/session-context';
 import { AppChrome } from '../../components/app-chrome';
+import { BottomSheet } from '../../components/bottom-sheet';
 import { ChatPanel } from '../../components/chat-panel';
 import { EvidenceDrawer } from '../../components/evidence-drawer';
 import { ExplorerShell, useExplorerPanes } from '../../components/explorer-shell';
 import { FlowCanvas } from '../../components/flow-canvas';
-import { ChatIcon, ChevronDownIcon, DraftIcon, MapIcon, ShareIcon, TableIcon } from '../../components/ui-icons';
+import { ChatIcon, ChevronDownIcon, DetailsIcon, DraftIcon, MapIcon, ShareIcon, TableIcon } from '../../components/ui-icons';
 import { buildShareText } from '../../components/information-request';
 import { GOLDEN_PATH } from '../../constants/golden-path';
 import { SyntheticScenarioSource } from '../../data/fixtures/synthetic-scenario.source';
@@ -40,6 +41,7 @@ import {
   pathFor,
   type HierarchyMode
 } from '../../domain/flow-hierarchy';
+import { useT } from '../../i18n/strings';
 import { ExplainService, formatCitationLabels, templateNarration } from '../../services/explain.service';
 import { LedgerService } from '../../services/ledger.service';
 import { formatCrore, formatPaiseFull, percentOf } from '../../utils/money';
@@ -49,6 +51,7 @@ const explainService = new ExplainService(ledgerService);
 
 export function ExploreView(): ReactElement {
   const session = useSession();
+  const t = useT();
   const [catalog, setCatalog] = useState<readonly ISchemeSummary[]>([]);
   const [catalogError, setCatalogError] = useState<string | null>(null);
   const [scenario, setScenario] = useState<ISchemeScenario>();
@@ -66,6 +69,7 @@ export function ExploreView(): ReactElement {
   const expandInspector = panes.inspector.expand;
   const expandChat = panes.chat.expand;
   const [chatOpen, setChatOpen] = useState(false);
+  const [inspectorSheetOpen, setInspectorSheetOpen] = useState(false);
   const [chatLoading, setChatLoading] = useState(false);
   const [chatFollowUps, setChatFollowUps] = useState<readonly string[]>([]);
   const [narration, setNarration] = useState<string>('');
@@ -90,7 +94,13 @@ export function ExploreView(): ReactElement {
 
   useEffect(() => {
     const media = window.matchMedia('(max-width: 850px)');
-    const sync = (): void => setIsMobileLayout(media.matches);
+    const sync = (): void => {
+      const mobile = media.matches;
+      setIsMobileLayout(mobile);
+      if (!mobile) {
+        setInspectorSheetOpen(false);
+      }
+    };
     sync();
     media.addEventListener('change', sync);
     return () => media.removeEventListener('change', sync);
@@ -116,6 +126,7 @@ export function ExploreView(): ReactElement {
         setQuery('');
         setMenuOpen(false);
         setChatOpen(false);
+        setInspectorSheetOpen(false);
         setScenarioLoading(false);
       })
       .catch(() => {
@@ -157,10 +168,10 @@ export function ExploreView(): ReactElement {
   }, [chatOpen]);
 
   useEffect(() => {
-    if (!chatOpen) return;
+    if (!chatOpen || isMobileLayout) return;
     expandInspector();
     expandChat();
-  }, [chatOpen, expandInspector, expandChat]);
+  }, [chatOpen, isMobileLayout, expandInspector, expandChat]);
 
   const focusNode = useCallback((nodeId: string): void => {
     session.setSelectedId(nodeId);
@@ -171,9 +182,27 @@ export function ExploreView(): ReactElement {
   }, [session]);
 
   const openAsk = useCallback((): void => {
+    if (isMobileLayout) {
+      setInspectorSheetOpen(false);
+      setChatOpen(true);
+      return;
+    }
     expandInspector();
     setChatOpen(true);
-  }, [expandInspector]);
+  }, [expandInspector, isMobileLayout]);
+
+  const openInspectorSheet = useCallback((): void => {
+    setChatOpen(false);
+    setInspectorSheetOpen(true);
+  }, []);
+
+  const closeInspectorSheet = useCallback((): void => {
+    setInspectorSheetOpen(false);
+  }, []);
+
+  const closeChat = useCallback((): void => {
+    setChatOpen(false);
+  }, []);
 
   const selectScheme = useCallback((id: string): void => {
     if (id === schemeId) {
@@ -432,7 +461,7 @@ export function ExploreView(): ReactElement {
       <ExplorerShell
         isMobile={isMobileLayout}
         view={view}
-        chatOpen={chatOpen}
+        chatOpen={!isMobileLayout && chatOpen}
         panes={panes}
         metricsContent={
           <section className="metrics">
@@ -511,7 +540,7 @@ export function ExploreView(): ReactElement {
             suggestedQuestion={suggestedQuestion}
             followUps={chatFollowUps}
             onAsk={(question) => void handleAsk(question)}
-            onClose={() => setChatOpen(false)}
+            onClose={closeChat}
             onCollapse={panes.chat.collapse}
             collapseIcon={<ChevronDownIcon />}
             onRequestRecords={(scheme, node) => session.openRti(scheme, node)}
@@ -519,6 +548,55 @@ export function ExploreView(): ReactElement {
           />
         }
       />
+
+      {isMobileLayout ? (
+        <button
+          type="button"
+          className="inspector-cta"
+          onClick={openInspectorSheet}
+        >
+          <DetailsIcon />
+          <span>
+            <strong>{selected.shortName}</strong>
+            {t('viewDetails')}
+          </span>
+        </button>
+      ) : null}
+
+      {isMobileLayout && inspectorSheetOpen ? (
+        <BottomSheet title={selected.shortName} onClose={closeInspectorSheet}>
+          <Inspector
+            node={selected}
+            reconciliation={reconciliation}
+            transfers={ledgerService.transfersFor(scenario, selectedId)}
+            scenario={scenario}
+            narration={narration}
+            narrationLoading={narrationLoading}
+            narrationSource={narrationSource}
+            onOpenChat={() => openAsk()}
+            onDraftRequest={() => session.openRti(schemeId, selectedId)}
+            onShare={() => void shareStanding()}
+            onShowEvidence={() => setEvidenceOpen(true)}
+          />
+        </BottomSheet>
+      ) : null}
+
+      {isMobileLayout && chatOpen ? (
+        <BottomSheet title={t('ask')} onClose={closeChat} labelledBy="explore-chat-sheet-title">
+          <ChatPanel
+            locale={session.chatLocale}
+            onLocaleChange={session.setChatLocale}
+            messages={session.chatMessages}
+            loading={chatLoading}
+            suggestedQuestion={suggestedQuestion}
+            followUps={chatFollowUps}
+            onAsk={(question) => void handleAsk(question)}
+            onClose={closeChat}
+            onRequestRecords={(scheme, node) => session.openRti(scheme, node)}
+            activeSchemeId={schemeId}
+          />
+        </BottomSheet>
+      ) : null}
 
       {evidenceOpen && (
         <EvidenceDrawer

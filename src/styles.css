@@ -149,12 +149,22 @@
 }
 
 * { box-sizing: border-box; }
+html, body, #root {
+  height: 100%;
+  max-height: var(--app-height, 100dvh);
+}
 body { margin: 0; overflow: hidden; }
-body.route-about { overflow: auto; }
+body.route-about,
+body.route-compare,
+body.route-features,
+body.route-scale {
+  overflow: auto;
+  max-height: none;
+}
 button, input { font: inherit; }
 
 .loading {
-  min-height: 100vh;
+  min-height: var(--app-height, 100dvh);
   display: grid;
   place-items: center;
   color: var(--text-muted);
@@ -162,8 +172,7 @@ button, input { font: inherit; }
 }
 
 .app-shell {
-  height: 100dvh;
-  min-height: 100vh;
+  height: var(--app-height, 100dvh);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -1227,6 +1236,65 @@ button, input { font: inherit; }
   display: none;
 }
 
+.mobile-workspace-fill {
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+  width: 100%;
+}
+
+.bottom-sheet {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-height: min(90%, calc(var(--app-height, 100dvh) * 0.92));
+  margin-top: auto;
+  border-radius: 18px 18px 0 0;
+  border: 1px solid var(--border);
+  border-bottom: 0;
+  background: var(--bg-elevated);
+  box-shadow: var(--shadow-sheet);
+  overflow: hidden;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.bottom-sheet-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-shrink: 0;
+  padding: 14px 16px 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.bottom-sheet-header h2 {
+  margin: 0;
+  font-size: 1rem;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+}
+
+.bottom-sheet-body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  display: flex;
+  flex-direction: column;
+}
+
+.bottom-sheet-body .inspector {
+  padding: 12px 16px 28px;
+}
+
+.bottom-sheet-body .chat-panel {
+  flex: 1;
+  min-height: 0;
+  height: auto;
+}
+
 .crumb-text {
   color: var(--text-muted);
   font-size: 0.77rem;
@@ -1670,12 +1738,61 @@ button, input { font: inherit; }
 
   .map-controls {
     right: 8px;
-    bottom: 100px;
+    bottom: 72px;
   }
 
   .map-control-btn {
     width: 36px;
     height: 36px;
+  }
+
+  .inspector-cta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+    width: 100%;
+    margin: 0;
+    padding: 12px 16px;
+    padding-bottom: max(12px, env(safe-area-inset-bottom, 0px));
+    border: 0;
+    border-top: 1px solid var(--border);
+    background: var(--bg-header);
+    color: var(--text-primary);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    min-height: 52px;
+  }
+
+  .inspector-cta > span {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+    font-size: 0.78rem;
+    color: var(--text-muted);
+  }
+
+  .inspector-cta strong {
+    font-size: 0.95rem;
+    letter-spacing: -0.02em;
+    color: var(--text-primary);
+  }
+
+  .inspector-backdrop {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    position: fixed;
+    inset: 0;
+    z-index: 35;
+    background: rgba(8, 10, 12, 0.55);
+    padding: 0;
+  }
+
+  .inspector-sheet-chrome {
+    display: flex;
   }
 
   .ledger-wrap { padding: 20px 12px 110px; }
@@ -2152,7 +2269,7 @@ button, input { font: inherit; }
 
 /* About page */
 .about-page {
-  min-height: 100dvh;
+  min-height: var(--app-height, 100dvh);
   overflow: auto;
   background: var(--bg-page);
   color: var(--text-primary);
@@ -2237,6 +2354,7 @@ body.route-explore {
   gap: 12px 16px;
   width: 100%;
   padding: 12px 20px;
+  padding-top: max(12px, env(safe-area-inset-top, 0px));
   border-bottom: 1px solid var(--border);
   background: var(--bg-header);
   flex-shrink: 0;
@@ -2386,6 +2504,7 @@ body.route-explore {
       'brand actions'
       'mode mode';
     padding: 10px 14px;
+    padding-top: max(10px, env(safe-area-inset-top, 0px));
   }
 
   .app-chrome-brand { grid-area: brand; }
@@ -2407,7 +2526,7 @@ body.route-explore {
   display: flex;
   flex-direction: column;
   width: 100%;
-  height: 100dvh;
+  height: var(--app-height, 100dvh);
   color: var(--text-primary);
   background:
     radial-gradient(ellipse 90% 55% at 50% -10%, #1a2230 0%, transparent 55%),
@@ -2444,11 +2563,15 @@ body.route-explore {
 .ask-body-empty {
   align-items: center;
   justify-content: center;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
   padding: 32px 20px 48px;
 }
 
 .ask-body-chat {
   padding: 0;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 .ask-hero {
@@ -2719,6 +2842,10 @@ body.route-explore {
   .ask-shell-with-rail .ask-artifact-rail {
     display: none;
   }
+
+  .ask-body-empty {
+    justify-content: flex-start;
+  }
 }
 
 /* —— Path artifact —— */
@@ -2870,7 +2997,7 @@ body.route-explore {
   display: grid;
   gap: 12px;
   place-content: center;
-  min-height: 100dvh;
+  min-height: var(--app-height, 100dvh);
   text-align: center;
 }
 
@@ -2908,6 +3035,7 @@ body.route-explore {
 .site-footer {
   flex-shrink: 0;
   padding: 18px 20px 28px;
+  padding-bottom: max(28px, env(safe-area-inset-bottom, 0px));
   border-top: 1px solid var(--border);
   background: var(--bg-header);
   text-align: center;
@@ -2942,11 +3070,13 @@ body.route-explore {
 
 /* —— Static / doc pages —— */
 .doc-page {
-  min-height: 100dvh;
+  min-height: var(--app-height, 100dvh);
   overflow: auto;
   background: var(--bg-page);
   color: var(--text-primary);
   padding: 28px 38px 60px;
+  padding-top: max(28px, env(safe-area-inset-top, 0px));
+  padding-bottom: max(60px, env(safe-area-inset-bottom, 0px));
 }
 
 .doc-page-header {

@@ -91,6 +91,7 @@ const STRINGS = {
   },
   backupAnswer: { en: 'Answered via backup model', hi: 'बैकअप मॉडल से उत्तर' },
   suggestedQuestions: { en: 'Suggested questions', hi: 'सुझाए गए प्रश्न' },
+  viewDetails: { en: 'View details', hi: 'विवरण देखें' },
   placeMatches: { en: 'Place matches', hi: 'स्थान मिलान' }
 } as const;
 

@@ -1,5 +1,15 @@
 # Changelog
 
+## Session 23 — 2026-09-07
+
+### Fixed
+
+- **iPhone Ask first view:** shells size to `visualViewport` via `--app-height` (no `min-height: 100vh`). Ask empty body scrolls so chrome stays visible and all four starters sit above the footer; safe-area insets on chrome/footer. Static compare/features/scale pages can scroll like About.
+
+### Changed
+
+- **Mobile Explore:** map fills the work region; persistent bottom “View details” CTA opens a dismissible bottom sheet with the full inspector. Explore chat on mobile uses the same sheet. Desktop resizable panes unchanged.
+
 ## Session 22 — 2026-09-07
 
 ### Fixed
