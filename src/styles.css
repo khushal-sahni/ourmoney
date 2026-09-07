@@ -3067,6 +3067,28 @@ body.route-explore {
   color: var(--text-muted) !important;
 }
 
+.compare-shot {
+  margin: 0 0 12px;
+}
+
+.compare-shot img {
+  display: block;
+  width: 100%;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--bg-page);
+  object-fit: cover;
+  object-position: top left;
+  max-height: 220px;
+}
+
+.compare-shot figcaption {
+  margin-top: 6px;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
 .compare-before {
   border-color: color-mix(in srgb, #c45c4a 35%, var(--border));
 }
