@@ -1,5 +1,11 @@
 # Changelog
 
+## Session 21 — 2026-09-07
+
+### Changed
+
+- **Voice dictation UX:** mic opens a ChatGPT-style recording bar (waveform + live interim text, cancel / confirm). Confirm fills the composer draft for editing; voice never auto-sends. Escape cancels. Applies to Ask landing, Ask follow-up, and Explore chat.
+
 ## Session 20 — 2026-09-07
 
 ### Built

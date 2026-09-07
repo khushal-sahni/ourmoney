@@ -2025,6 +2025,10 @@ button, input { font: inherit; }
   border-top: 1px solid var(--border);
 }
 
+.chat-form.chat-form-dictating {
+  grid-template-columns: 1fr;
+}
+
 .chat-form input {
   padding: 10px 12px;
   border: 1px solid var(--border-ui);
@@ -2048,6 +2052,20 @@ button, input { font: inherit; }
   background: var(--bg-input);
   border: 1px solid var(--border-ui);
   color: var(--text-secondary);
+}
+
+.chat-form .voice-dictation-cancel {
+  background: var(--bg-input);
+  border: 1px solid var(--border-ui);
+  color: var(--text-secondary);
+  border-radius: 999px;
+}
+
+.chat-form .voice-dictation-confirm {
+  background: var(--gold);
+  border: 0;
+  color: #1a1408;
+  border-radius: 999px;
 }
 
 .chat-form button:disabled {
@@ -3506,10 +3524,102 @@ body.route-explore {
   flex-shrink: 0;
 }
 
-.voice-btn.listening {
-  border-color: #c45c4a;
+.voice-btn:hover:not(:disabled) {
+  color: var(--text-primary);
+  border-color: var(--gold-edge);
+}
+
+.ask-composer-dictating {
+  padding-left: 6px;
+}
+
+.voice-dictation {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 48px;
+}
+
+.voice-dictation-center {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  overflow: hidden;
+}
+
+.voice-waveform {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  height: 22px;
+  flex-shrink: 0;
+}
+
+.voice-wave-bar {
+  width: 3px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--gold-chip);
+  animation: voice-wave 0.9s ease-in-out infinite;
+}
+
+@keyframes voice-wave {
+  0%,
+  100% {
+    height: 6px;
+    opacity: 0.55;
+  }
+  50% {
+    height: 20px;
+    opacity: 1;
+  }
+}
+
+.voice-dictation-live {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-secondary);
+  font-size: 0.92rem;
+}
+
+.voice-dictation-cancel,
+.voice-dictation-confirm {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  border: 1px solid var(--border-ui);
+  padding: 0;
+}
+
+.voice-dictation-cancel {
+  background: var(--bg-input);
+  color: var(--text-secondary);
+}
+
+.voice-dictation-cancel:hover {
   color: #c45c4a;
-  box-shadow: 0 0 0 3px color-mix(in srgb, #c45c4a 25%, transparent);
+  border-color: #c45c4a;
+}
+
+.voice-dictation-confirm {
+  background: var(--gold);
+  border-color: transparent;
+  color: #1a1408;
+}
+
+.voice-dictation-confirm:hover {
+  filter: brightness(1.05);
 }
 
 .ask-rti-btn,

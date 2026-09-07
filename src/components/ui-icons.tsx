@@ -127,3 +127,11 @@ export function CloseIcon(): ReactElement {
     </IconSvg>
   );
 }
+
+export function CheckIcon(): ReactElement {
+  return (
+    <IconSvg>
+      <path d="M3.5 8.5l3 3 6-6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+    </IconSvg>
+  );
+}

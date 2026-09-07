@@ -45,6 +45,9 @@ const STRINGS = {
   },
   voiceListen: { en: 'Speak your question', hi: 'अपना प्रश्न बोलें' },
   voiceStop: { en: 'Stop listening', hi: 'सुनना बंद करें' },
+  voiceListening: { en: 'Listening…', hi: 'सुन रहे हैं…' },
+  voiceConfirm: { en: 'Use this transcription', hi: 'इस आवाज़ को इस्तेमाल करें' },
+  voiceCancel: { en: 'Cancel voice input', hi: 'आवाज़ इनपुट रद्द करें' },
   voiceUnsupported: {
     en: 'Voice input is not supported in this browser',
     hi: 'इस ब्राउज़र में आवाज़ इनपुट उपलब्ध नहीं है'

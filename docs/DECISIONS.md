@@ -1,5 +1,12 @@
 # Decisions
 
+## 2026-09-07 — Voice dictation confirms into draft, never auto-sends
+
+- **Status:** Accepted
+- **Context:** Mic used Web Speech with almost no recording cue and immediately submitted the transcript, so citizens could not review Hindi/English speech errors before Ask ran.
+- **Decision:** Tap mic → visible dictation bar (animated waveform + live interim text, cancel / confirm). Confirm stops recognition and appends text to the composer draft only; send remains a separate action. Escape or cancel discards. Continuous + interim recognition with restart on unexpected `onend`. Same component on Ask landing, Ask follow-up, and Explore chat.
+- **Consequences:** Voice matches ChatGPT-style review-before-send UX; no accidental asks from mic cutoffs.
+
 ## 2026-09-07 — Site pages via chrome Info menu (Ask landing footer kept)
 
 - **Status:** Accepted

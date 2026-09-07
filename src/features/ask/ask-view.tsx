@@ -80,6 +80,7 @@ export function AskView(): ReactElement {
   const t = useT();
   const [draft, setDraft] = useState('');
   const [loading, setLoading] = useState(false);
+  const [dictating, setDictating] = useState(false);
   const [activeScenario, setActiveScenario] = useState<ISchemeScenario>();
   const [activeIntent, setActiveIntent] = useState<IResolvedIntent>();
   const [followUps, setFollowUps] = useState<readonly string[]>([]);
@@ -278,31 +279,39 @@ export function AskView(): ReactElement {
             <p className="ask-lead">{t('heroLead')}</p>
 
             <div className="ask-composer-wrap">
-              <form className="ask-composer" onSubmit={handleSubmit}>
-                <input
-                  ref={inputRef}
-                  value={draft}
-                  onChange={(event) => {
-                    setDraft(event.target.value);
-                    setTypeaheadOpen(true);
-                  }}
-                  onFocus={() => setTypeaheadOpen(true)}
-                  placeholder={placeholder}
-                  aria-label={t('ask')}
-                  autoComplete="off"
-                />
+              <form className={`ask-composer ${dictating ? 'ask-composer-dictating' : ''}`} onSubmit={handleSubmit}>
+                {!dictating ? (
+                  <input
+                    ref={inputRef}
+                    value={draft}
+                    onChange={(event) => {
+                      setDraft(event.target.value);
+                      setTypeaheadOpen(true);
+                    }}
+                    onFocus={() => setTypeaheadOpen(true)}
+                    placeholder={placeholder}
+                    aria-label={t('ask')}
+                    autoComplete="off"
+                  />
+                ) : null}
                 <VoiceInputButton
                   locale={session.chatLocale}
                   disabled={loading}
-                  onTranscript={(text) => {
-                    setDraft('');
+                  onActiveChange={(active) => {
+                    setDictating(active);
+                    if (active) setTypeaheadOpen(false);
+                    else window.setTimeout(() => inputRef.current?.focus(), 0);
+                  }}
+                  onCommit={(text) => {
+                    setDraft((current) => (current.trim() ? `${current.trim()} ${text}` : text));
                     setTypeaheadOpen(false);
-                    void submitQuestion(text);
                   }}
                 />
-                <button type="submit" className="ask-send" disabled={!draft.trim() || loading} aria-label={t('send')}>
-                  <SendIcon />
-                </button>
+                {!dictating ? (
+                  <button type="submit" className="ask-send" disabled={!draft.trim() || loading} aria-label={t('send')}>
+                    <SendIcon />
+                  </button>
+                ) : null}
               </form>
 
               {typeaheadOpen && typeaheadResults.length > 0 && (
@@ -356,25 +365,33 @@ export function AskView(): ReactElement {
               </div>
             ) : null}
 
-            <form className="ask-composer ask-composer-docked" onSubmit={handleSubmit}>
-              <input
-                value={draft}
-                onChange={(event) => setDraft(event.target.value)}
-                placeholder={t('followUpPlaceholder')}
-                disabled={loading}
-                aria-label={t('ask')}
-              />
+            <form className={`ask-composer ask-composer-docked ${dictating ? 'ask-composer-dictating' : ''}`} onSubmit={handleSubmit}>
+              {!dictating ? (
+                <input
+                  ref={inputRef}
+                  value={draft}
+                  onChange={(event) => setDraft(event.target.value)}
+                  placeholder={t('followUpPlaceholder')}
+                  disabled={loading}
+                  aria-label={t('ask')}
+                />
+              ) : null}
               <VoiceInputButton
                 locale={session.chatLocale}
                 disabled={loading}
-                onTranscript={(text) => {
-                  setDraft('');
-                  void submitQuestion(text);
+                onActiveChange={(active) => {
+                  setDictating(active);
+                  if (!active) window.setTimeout(() => inputRef.current?.focus(), 0);
+                }}
+                onCommit={(text) => {
+                  setDraft((current) => (current.trim() ? `${current.trim()} ${text}` : text));
                 }}
               />
-              <button type="submit" className="ask-send" disabled={loading || !draft.trim()} aria-label={t('send')}>
-                <SendIcon />
-              </button>
+              {!dictating ? (
+                <button type="submit" className="ask-send" disabled={loading || !draft.trim()} aria-label={t('send')}>
+                  <SendIcon />
+                </button>
+              ) : null}
             </form>
           </>
         )}

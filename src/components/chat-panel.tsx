@@ -43,7 +43,9 @@ export function ChatPanel({
   activeSchemeId?: string;
 }): ReactElement {
   const [draft, setDraft] = useState('');
+  const [dictating, setDictating] = useState(false);
   const listRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     listRef.current?.scrollTo({ top: listRef.current.scrollHeight, behavior: 'smooth' });
@@ -140,25 +142,33 @@ export function ChatPanel({
         </div>
       )}
 
-      <form className="chat-form" onSubmit={submit}>
-        <input
-          value={draft}
-          onChange={(event) => setDraft(event.target.value)}
-          placeholder={locale === 'hi' ? 'अपना प्रश्न लिखें…' : 'Ask a question…'}
-          disabled={loading}
-          aria-label="Question"
-        />
+      <form className={`chat-form ${dictating ? 'chat-form-dictating' : ''}`} onSubmit={submit}>
+        {!dictating ? (
+          <input
+            ref={inputRef}
+            value={draft}
+            onChange={(event) => setDraft(event.target.value)}
+            placeholder={locale === 'hi' ? 'अपना प्रश्न लिखें…' : 'Ask a question…'}
+            disabled={loading}
+            aria-label="Question"
+          />
+        ) : null}
         <VoiceInputButton
           locale={locale}
           disabled={loading}
-          onTranscript={(text) => {
-            setDraft(text);
-            onAsk(text);
+          onActiveChange={(active) => {
+            setDictating(active);
+            if (!active) window.setTimeout(() => inputRef.current?.focus(), 0);
+          }}
+          onCommit={(text) => {
+            setDraft((current) => (current.trim() ? `${current.trim()} ${text}` : text));
           }}
         />
-        <button type="submit" className="icon-btn chat-send" disabled={loading || !draft.trim()} aria-label={t('send', locale)} title={t('send', locale)}>
-          <SendIcon />
-        </button>
+        {!dictating ? (
+          <button type="submit" className="icon-btn chat-send" disabled={loading || !draft.trim()} aria-label={t('send', locale)} title={t('send', locale)}>
+            <SendIcon />
+          </button>
+        ) : null}
       </form>
     </div>
   );
