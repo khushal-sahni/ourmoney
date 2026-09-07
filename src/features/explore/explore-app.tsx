@@ -500,20 +500,22 @@ export function ExploreView(): ReactElement {
                 onSelect={session.setSelectedId}
               />
             )}
-            <div className="workspace-footer">
-              <div className="breadcrumbs">
-                {pathFor(scenario, selected).map((node) => (
-                  <button key={node.id} type="button" onClick={() => session.setSelectedId(node.id)}>
-                    {node.shortName}
-                  </button>
-                ))}
+            {!isMobileLayout ? (
+              <div className="workspace-footer">
+                <div className="breadcrumbs">
+                  {pathFor(scenario, selected).map((node) => (
+                    <button key={node.id} type="button" onClick={() => session.setSelectedId(node.id)}>
+                      {node.shortName}
+                    </button>
+                  ))}
+                </div>
+                <div className="legend">
+                  <span><i /> Received</span>
+                  <span><i className="used" /> Used here</span>
+                  <span><i className="amber" /> Next office not named</span>
+                </div>
               </div>
-              <div className="legend">
-                <span><i /> Received</span>
-                <span><i className="used" /> Used here</span>
-                <span><i className="amber" /> Next office not named</span>
-              </div>
-            </div>
+            ) : null}
           </>
         }
         inspectorContent={

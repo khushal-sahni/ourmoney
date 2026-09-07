@@ -1659,18 +1659,10 @@ button, input { font: inherit; }
   }
 
   .workspace-footer {
-    bottom: 8px;
-    height: 36px;
-    padding: 0 10px;
+    display: none;
   }
 
   .legend { display: none; }
-  .breadcrumbs { overflow: auto; }
-  .breadcrumbs button {
-    white-space: nowrap;
-    padding: 5px 7px;
-    font-size: 0.62rem;
-  }
 
   .inspector {
     padding: 12px 48px 20px 16px;
@@ -1738,7 +1730,7 @@ button, input { font: inherit; }
 
   .map-controls {
     right: 8px;
-    bottom: 72px;
+    bottom: 16px;
   }
 
   .map-control-btn {

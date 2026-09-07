@@ -57,21 +57,43 @@ export function ExplorerShell({
 }): ReactElement {
   const { metrics, workspace, inspector, chat } = panes;
 
-  const metricsRail = (
-    <PaneRail
-      placement="top"
-      label="Show scheme totals"
-      onExpand={metrics.expand}
-      icon={<MetricsIcon />}
-    />
-  );
-
   const workspaceRail = (
     <PaneRail
       placement={isMobile ? 'top' : 'left'}
       label={view === 'flow' ? 'Show flow map' : 'Show ledger table'}
       onExpand={workspace.expand}
       icon={view === 'flow' ? <MapIcon /> : <TableIcon />}
+    />
+  );
+
+  const workspacePane = (
+    <div className="workspace-pane-wrap">
+      <PaneEdgeToggle
+        className="workspace-edge-toggle"
+        onCollapse={workspace.collapse}
+        collapseLabel={view === 'flow' ? 'Collapse flow map' : 'Collapse ledger table'}
+        collapseIcon={isMobile ? <ChevronDownIcon /> : <ChevronLeftIcon />}
+      />
+      <div className="workspace-pane-body">{workspaceContent}</div>
+    </div>
+  );
+
+  // Mobile: map/workspace fills the work region — no scheme-totals pane.
+  // Inspector + chat open as sheets from ExploreView.
+  if (isMobile) {
+    return (
+      <div className="explorer-shell mobile-workspace-fill pane-fill">
+        {workspace.collapsed ? workspaceRail : workspacePane}
+      </div>
+    );
+  }
+
+  const metricsRail = (
+    <PaneRail
+      placement="top"
+      label="Show scheme totals"
+      onExpand={metrics.expand}
+      icon={<MetricsIcon />}
     />
   );
 
@@ -105,18 +127,6 @@ export function ExplorerShell({
     </div>
   );
 
-  const workspacePane = (
-    <div className="workspace-pane-wrap">
-      <PaneEdgeToggle
-        className="workspace-edge-toggle"
-        onCollapse={workspace.collapse}
-        collapseLabel={view === 'flow' ? 'Collapse flow map' : 'Collapse ledger table'}
-        collapseIcon={isMobile ? <ChevronDownIcon /> : <ChevronLeftIcon />}
-      />
-      <div className="workspace-pane-body">{workspaceContent}</div>
-    </div>
-  );
-
   const inspectorBody = (
     <div className="inspector-pane-wrap">
       <PaneEdgeToggle
@@ -128,27 +138,6 @@ export function ExplorerShell({
       <div className="inspector-pane-body">{inspectorContent}</div>
     </div>
   );
-
-  const chatBody = chatContent;
-
-  // Mobile: map/workspace fills the work region. Inspector + chat open as sheets
-  // from ExploreView — not as stacked resizable panes over the graph.
-  if (isMobile) {
-    return (
-      <ShellLayout
-        key="mobile-shell"
-        layoutId="om-shell-mobile-v3"
-        metrics={metrics}
-        metricsDefaultSize={40}
-        metricsContent={metricsPane}
-        metricsRail={metricsRail}
-      >
-        <div className="mobile-workspace-fill pane-fill">
-          {workspace.collapsed ? workspaceRail : workspacePane}
-        </div>
-      </ShellLayout>
-    );
-  }
 
   return (
     <ShellLayout
@@ -170,7 +159,7 @@ export function ExplorerShell({
             layoutId="om-detail-v2"
             inspectorContent={inspectorBody}
             chat={chatOpen ? chat : undefined}
-            chatContent={chatOpen ? chatBody : undefined}
+            chatContent={chatOpen ? chatContent : undefined}
             chatRail={chatOpen ? chatRail : undefined}
           />
         }

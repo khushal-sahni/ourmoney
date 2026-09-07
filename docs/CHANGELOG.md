@@ -1,5 +1,11 @@
 # Changelog
 
+## Session 24 — 2026-09-07
+
+### Changed
+
+- **Mobile Explore declutter:** drop the scheme-totals metrics pane and the floating breadcrumb overlay so the flow map fills the screen. Keep only the bottom “View details” CTA (selected node name). Desktop metrics bar and breadcrumbs unchanged.
+
 ## Session 23 — 2026-09-07
 
 ### Fixed

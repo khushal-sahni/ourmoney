@@ -79,6 +79,16 @@ async function runViewport(browser, vp) {
     await page.waitForSelector('.inspector-cta', { timeout: 15000 });
     await assertVisible(page, '.inspector-cta', 'Details CTA');
 
+    if ((await page.locator('.metrics').count()) > 0) {
+      failures.push('scheme-totals .metrics still mounted on mobile');
+    }
+    if ((await page.locator('.shell-metrics-panel').count()) > 0) {
+      failures.push('shell-metrics-panel still mounted on mobile');
+    }
+    if ((await page.locator('.workspace-footer').count()) > 0) {
+      failures.push('workspace-footer breadcrumbs still mounted on mobile');
+    }
+
     if ((await page.locator('.mobile-inspector-panel').count()) > 0) {
       failures.push('mobile-inspector-panel still mounted');
     }
