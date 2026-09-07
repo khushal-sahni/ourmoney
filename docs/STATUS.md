@@ -1,6 +1,6 @@
 # Project Status
 
-> Last updated: 2026-09-06 · Session 19
+> Last updated: 2026-09-07 · Session 20
 
 ## Current state
 
@@ -8,8 +8,8 @@
 
 ## What works
 
-- **Ask (default):** composer, EN/हि UI + voice, gazetteer typeahead, grounded answers, path artifact, **Request the records** → RTI composer, Ask-only site footer.
-- **Explore (`#explore`):** flow map, ledger, inspector, docked chat with RTI affordance, evidence drawer, share standing.
+- **Ask (default):** composer, EN/हि UI + voice, gazetteer typeahead, grounded answers, path artifact, **Request the records** → RTI composer, Ask-empty `SiteFooter`, plus chrome Info menu for site pages during conversation.
+- **Explore (`#explore`):** flow map, ledger, inspector, docked chat with RTI affordance, evidence drawer, share standing; same chrome Info menu for site pages.
 - **RTI composer:** authority resolution, record points, applicant details (browser-local), review with rtionline field mapping, 3000-char annexure split, copy / download / print / WhatsApp, 30-day tracking checklist.
 - **Static pages:** `#compare` (MIS before/after), `#features`, `#scale` (adapter field map), `#about` (honesty table).
 - **PWA:** service worker via `vite-plugin-pwa`; offline banner.
@@ -36,7 +36,7 @@ src/
 │   ├── ask/             # Ask landing + conversation
 │   ├── explore/         # Flow-map workbench
 │   └── pages/           # compare, features, scale
-├── components/          # chrome, footer, RTI composer, voice, static-page, …
+├── components/          # chrome (+ Info site menu), footer, RTI composer, voice, static-page, …
 ├── domain/              # rti-request, intent, reconciliation, standing, …
 ├── i18n/                # strings + useT
 ├── data/                # fixtures, place-index

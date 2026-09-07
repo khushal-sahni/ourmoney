@@ -8,6 +8,7 @@ const STRINGS = {
   features: { en: 'Features', hi: 'विशेषताएँ' },
   scale: { en: 'How it scales', hi: 'वास्तविक डेटा' },
   about: { en: 'About', hi: 'परिचय' },
+  sitePages: { en: 'Info', hi: 'जानकारी' },
   back: { en: '← Back', hi: '← वापस' },
   language: { en: 'Language', hi: 'भाषा' },
   footerDisclosure: {

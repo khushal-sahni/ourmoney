@@ -1,8 +1,11 @@
-import type { ReactElement } from 'react';
+import { useEffect, useRef, useState, type ReactElement } from 'react';
 import type { ExplainLocale } from '../domain/explain-types';
 import type { AppRoute } from '../app/routing';
 import { ThemeToggle } from './theme-toggle';
+import { InfoIcon } from './ui-icons';
 import { useT } from '../i18n/strings';
+
+const SITE_PAGES: readonly AppRoute[] = ['compare', 'features', 'scale', 'about'];
 
 export function AppChrome({
   route,
@@ -18,6 +21,26 @@ export function AppChrome({
   contextLabel?: string;
 }): ReactElement {
   const t = useT();
+  const [pagesOpen, setPagesOpen] = useState(false);
+  const pagesRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!pagesOpen) return;
+    const onPointerDown = (event: MouseEvent): void => {
+      if (pagesRef.current && !pagesRef.current.contains(event.target as Node)) {
+        setPagesOpen(false);
+      }
+    };
+    const onKeyDown = (event: KeyboardEvent): void => {
+      if (event.key === 'Escape') setPagesOpen(false);
+    };
+    document.addEventListener('mousedown', onPointerDown);
+    document.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', onPointerDown);
+      document.removeEventListener('keydown', onKeyDown);
+    };
+  }, [pagesOpen]);
 
   return (
     <header className="app-chrome">
@@ -51,6 +74,38 @@ export function AppChrome({
           <button type="button" className={locale === 'hi' ? 'active' : ''} onClick={() => onLocaleChange('hi')}>हि</button>
         </div>
         <ThemeToggle />
+        <div className="chrome-pages" ref={pagesRef}>
+          <button
+            type="button"
+            className={`chrome-pages-trigger${pagesOpen ? ' active' : ''}`}
+            onClick={() => setPagesOpen((open) => !open)}
+            aria-haspopup="menu"
+            aria-expanded={pagesOpen}
+            aria-label={t('sitePages')}
+            title={t('sitePages')}
+          >
+            <InfoIcon />
+            <span>{t('sitePages')}</span>
+          </button>
+          {pagesOpen ? (
+            <div className="chrome-pages-menu" role="menu" aria-label={t('sitePages')}>
+              {SITE_PAGES.map((page) => (
+                <button
+                  key={page}
+                  type="button"
+                  role="menuitem"
+                  onClick={() => {
+                    setPagesOpen(false);
+                    onRouteChange(page);
+                  }}
+                >
+                  {t(page)}
+                </button>
+              ))}
+              <p className="chrome-pages-note">{t('footerDisclosure')}</p>
+            </div>
+          ) : null}
+        </div>
       </div>
     </header>
   );

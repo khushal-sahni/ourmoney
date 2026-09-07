@@ -1,5 +1,11 @@
 # Changelog
 
+## Session 20 — 2026-09-07
+
+### Built
+
+- **Chrome Info menu:** shared `AppChrome` Info overflow lists Compare / Features / How it scales / About plus the synthetic-data disclosure, so site pages stay reachable during Ask conversation and Explore without a footer under the docked composer. Ask empty-state `SiteFooter` unchanged.
+
 ## Session 19 — 2026-09-06
 
 ### Built

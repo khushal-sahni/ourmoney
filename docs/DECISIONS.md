@@ -1,5 +1,12 @@
 # Decisions
 
+## 2026-09-07 — Site pages via chrome Info menu (Ask landing footer kept)
+
+- **Status:** Accepted
+- **Context:** The Ask-only footer disappears once a conversation starts, so judges mid-Ask cannot reach Compare / Features / Scale / About. A footer under the docked composer fights the chat box; the path artifact rail is content chrome and hides on mobile.
+- **Decision:** Keep `SiteFooter` on the Ask empty state only. Add a single Info overflow in shared `AppChrome` (Ask + Explore) listing the four site pages plus the synthetic-data disclosure line. Click-outside and Escape dismiss the menu.
+- **Consequences:** Site pages stay one tap away during Ask conversation and Explore without a second bottom bar or sidebar clutter.
+
 ## 2026-09-06 — RTI composer as record request, not explanation ask
 
 - **Status:** Accepted
@@ -9,9 +16,9 @@
 
 ## 2026-09-06 — Ask-only site footer + static honesty pages
 
-- **Status:** Accepted
+- **Status:** Accepted (extended 2026-09-07: chrome Info menu)
 - **Context:** Compare / Features / Scale / About need a home without mashing CTAs into Explore’s dense workbench.
-- **Decision:** Extend hash routes. Render a quiet footer only on Ask (empty state). Explore has no footer. Static pages share `StaticPage` shell. About becomes disclosure tables; comparison and adapter content live on `#compare` and `#scale`.
+- **Decision:** Extend hash routes. Render a quiet footer only on Ask (empty state). Explore has no footer. Static pages share `StaticPage` shell. About becomes disclosure tables; comparison and adapter content live on `#compare` and `#scale`. Site pages also remain reachable from shared chrome via an Info overflow (see 2026-09-07).
 - **Consequences:** Judges can score before/after and end-to-end thinking without hunting docs/.
 
 ## 2026-09-06 — Scheme-only Ask grounds on national root + named ranks

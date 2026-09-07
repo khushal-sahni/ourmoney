@@ -2282,6 +2282,81 @@ body.route-explore {
   justify-self: end;
 }
 
+.chrome-pages {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.chrome-pages-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 32px;
+  padding: 4px 10px 4px 8px;
+  border: 1px solid var(--border-ui);
+  border-radius: 999px;
+  background: var(--bg-input);
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.chrome-pages-trigger svg {
+  flex-shrink: 0;
+}
+
+.chrome-pages-trigger:hover,
+.chrome-pages-trigger.active {
+  color: var(--text-primary);
+  background: var(--bg-active);
+}
+
+.chrome-pages-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 40;
+  display: grid;
+  gap: 2px;
+  min-width: min(240px, 80vw);
+  padding: 8px;
+  border: 1px solid var(--border-ui);
+  border-radius: 14px;
+  background: var(--bg-menu);
+  box-shadow: var(--shadow-overlay);
+}
+
+.chrome-pages-menu button {
+  width: 100%;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--gold-chip);
+  font: inherit;
+  font-size: 0.85rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.chrome-pages-menu button:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+  text-decoration: underline;
+}
+
+.chrome-pages-note {
+  margin: 6px 4px 2px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+  font-size: 0.68rem;
+  line-height: 1.45;
+  color: var(--text-muted);
+}
+
 .app-chrome .header-link span {
   display: inline;
 }
