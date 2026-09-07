@@ -1320,6 +1320,27 @@ button, input { font: inherit; }
   font-size: 0.87rem;
 }
 
+/* Beat `.inspector > p { margin: 0 }` so header stack spacing actually applies. */
+.inspector > p.status-chip {
+  margin: 8px 0 14px;
+}
+
+.inspector > p.work-label {
+  margin: 4px 0 0;
+}
+
+.inspector > p.body-kind {
+  margin: 6px 0 0;
+}
+
+.inspector > p.official-name {
+  margin: 8px 0 12px;
+}
+
+.inspector > p.scheme-kind-blurb {
+  margin: 0 0 10px;
+}
+
 .inspector section { margin-top: 53px; }
 .inspector h2 {
   margin: 0 0 20px;
@@ -1949,9 +1970,8 @@ button, input { font: inherit; }
 
 /* Header links — see pane section above for flex layout */
 
-/* Inspector status + AI */
+/* Inspector status + AI — margin set via `.inspector > p.status-chip` (specificity). */
 .status-chip {
-  margin: 8px 0 0;
   padding: 8px 10px;
   border-radius: 10px;
   font-size: 0.78rem;

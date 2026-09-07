@@ -1,5 +1,11 @@
 # Changelog
 
+## Session 25 — 2026-09-07
+
+### Fixed
+
+- **Inspector status chip spacing:** `.inspector > p { margin: 0 }` was overriding `.status-chip` / header paragraph margins, so “Needs explanation” sat flush against DWSM and the lines below. Restored margins via higher-specificity `.inspector > p.*` rules (14px below the chip; work-label / body-kind / official-name / scheme-kind-blurb stack intact). Applies to desktop pane and mobile details sheet.
+
 ## Session 24 — 2026-09-07
 
 ### Changed
