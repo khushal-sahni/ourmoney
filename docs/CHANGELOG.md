@@ -1,5 +1,11 @@
 # Changelog
 
+## Session 22 — 2026-09-07
+
+### Fixed
+
+- **RTI Print / PDF:** `window.open(..., 'noopener,noreferrer')` returned `null`, so the draft never wrote and print never ran (blank tab only). Print now uses a same-document hidden iframe, then the browser print dialog (Save as PDF still available).
+
 ## Session 21 — 2026-09-07
 
 ### Changed

@@ -122,17 +122,39 @@ export function RtiComposer({
   }, [assembled.fullText, node.shortName]);
 
   const printDraft = useCallback((): void => {
-    const popup = window.open('', '_blank', 'noopener,noreferrer,width=720,height=900');
-    if (!popup) return;
-    popup.document.write(
+    const frame = document.createElement('iframe');
+    frame.setAttribute('aria-hidden', 'true');
+    frame.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;opacity:0;pointer-events:none';
+    document.body.appendChild(frame);
+
+    const frameWindow = frame.contentWindow;
+    const frameDocument = frame.contentDocument;
+    if (!frameWindow || !frameDocument) {
+      frame.remove();
+      return;
+    }
+
+    frameDocument.open();
+    frameDocument.write(
       `<!doctype html><html><head><title>RTI draft</title>`
       + `<style>body{font:14px/1.5 system-ui,sans-serif;padding:24px;white-space:pre-wrap}</style>`
       + `</head><body></body></html>`
     );
-    popup.document.body.textContent = assembled.fullText;
-    popup.document.close();
-    popup.focus();
-    popup.print();
+    frameDocument.close();
+    frameDocument.body.textContent = assembled.fullText;
+
+    let cleaned = false;
+    const cleanup = (): void => {
+      if (cleaned) return;
+      cleaned = true;
+      window.clearTimeout(fallbackTimer);
+      frame.remove();
+    };
+    const fallbackTimer = window.setTimeout(cleanup, 60_000);
+    frameWindow.addEventListener('afterprint', cleanup, { once: true });
+
+    frameWindow.focus();
+    frameWindow.print();
   }, [assembled.fullText]);
 
   const whatsappUrl = useMemo(() => {
