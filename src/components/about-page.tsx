@@ -12,12 +12,42 @@ export function AboutPage({ onBack }: { onBack: () => void }): ReactElement {
     <StaticPage
       title={hi ? 'ईमानदारी और स्रोत' : 'Honesty and provenance'}
       lead={hi
-        ? 'स्वतंत्र हैकथॉन प्रोटोटाइप। सरकारी समर्थन का दावा नहीं।'
-        : 'Independent hackathon prototype. No government endorsement claimed.'}
+        ? 'स्वतंत्र प्रोटोटाइप। सरकारी समर्थन का दावा नहीं।'
+        : 'Independent prototype. No government endorsement claimed.'}
       badge="Disclosure"
       onBack={onBack}
       backLabel={t('back')}
     >
+      <section>
+        <h2>{hi ? 'Mock बनाम Live' : 'Mock vs Live'}</h2>
+        <div className="doc-table-wrap">
+          <table className="doc-table">
+            <thead>
+              <tr>
+                <th>{hi ? 'मोड' : 'Mode'}</th>
+                <th>{hi ? 'क्या है' : 'What you get'}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Mock</td>
+                <td>
+                  Four fictional scheme archetypes on a shared synthetic gazetteer.
+                  Every rupee is labelled synthetic.
+                </td>
+              </tr>
+              <tr>
+                <td>Live</td>
+                <td>
+                  One reconstructed public extract: Mahatma Gandhi NREGA · Himachal Pradesh · FY 2025–26,
+                  typed from the public Financial Statement schema. Not a live PFMS/MIS connection.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
       <section>
         <h2>{hi ? 'क्या वास्तविक है / क्या काल्पनिक' : 'What is real / what is mocked'}</h2>
         <div className="doc-table-wrap">
@@ -42,16 +72,20 @@ export function AboutPage({ onBack }: { onBack: () => void }): ReactElement {
                 <td><span className="pill pill-ok">Working draft only — never auto-files</span></td>
               </tr>
               <tr>
-                <td>All rupee amounts, places, transfer refs</td>
+                <td>Mock mode rupees / places</td>
                 <td><span className="pill pill-gap">Synthetic</span></td>
               </tr>
               <tr>
-                <td>PFMS / treasury / scheme MIS connection</td>
+                <td>Live mode rupees / places</td>
+                <td><span className="pill pill-watch">Public-record extract (reconstructed, cited)</span></td>
+              </tr>
+              <tr>
+                <td>PFMS / treasury runtime connection</td>
                 <td><span className="pill pill-gap">None — by design</span></td>
               </tr>
               <tr>
                 <td>AI answers</td>
-                <td><span className="pill pill-watch">Grounded on demo slice only; template fallback offline</span></td>
+                <td><span className="pill pill-watch">Grounded on active scenario slice only; template fallback offline</span></td>
               </tr>
               <tr>
                 <td>Applicant name / address in RTI flow</td>
@@ -81,7 +115,7 @@ export function AboutPage({ onBack }: { onBack: () => void }): ReactElement {
           Built with Codex. Product Q&amp;A uses an OpenAI model via OpenRouter on a serverless proxy.
           The model may only cite nodes in the loaded scenario. It must not allege corruption, theft,
           or misconduct — only terms like <em>unreconciled</em>, <em>late report</em>, or
-          <em> needs explanation</em>.
+          <em>needs explanation</em>.
         </p>
       </section>
 
@@ -95,7 +129,8 @@ export function AboutPage({ onBack }: { onBack: () => void }): ReactElement {
           <button type="button" className="doc-text-link" onClick={() => session.setRoute('features')}>
             {t('features')}
           </button>
-          . Calibration notes live in <code>docs/SYNTHETIC-CALIBRATION.md</code> in the repository.
+          . Calibration notes live in <code>docs/SYNTHETIC-CALIBRATION.md</code> and{' '}
+          <code>docs/LIVE-CALIBRATION.md</code>.
         </p>
       </section>
     </StaticPage>

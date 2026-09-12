@@ -1,5 +1,6 @@
-import { ALL_SCENARIOS } from '../data/fixtures/catalog';
 import { buildPlaceIndex, searchPlaces, type IPlaceEntry } from '../data/place-index';
+import { findScenarioInMode, scenariosForMode } from '../data/sources/source-for-mode';
+import type { DataMode } from '../utils/data-mode';
 import type { ISchemeScenario } from './fund-flow';
 import { nationalRootNode } from './rank-named-places';
 import { resolveQuestionNodes } from './resolve-question-nodes';
@@ -19,7 +20,7 @@ export interface IResolvedIntent {
   readonly unknownPlaceToken?: string;
 }
 
-const SCHEME_KEYWORDS: readonly { readonly schemeId: string; readonly keywords: readonly string[] }[] = [
+const MOCK_SCHEME_KEYWORDS: readonly { readonly schemeId: string; readonly keywords: readonly string[] }[] = [
   {
     schemeId: 'water-access',
     keywords: ['water', 'paani', 'pani', 'jjm', 'sanitation', 'cwam', 'piprahi', 'samiti']
@@ -38,21 +39,41 @@ const SCHEME_KEYWORDS: readonly { readonly schemeId: string; readonly keywords: 
   }
 ];
 
+const LIVE_SCHEME_KEYWORDS: readonly { readonly schemeId: string; readonly keywords: readonly string[] }[] = [
+  {
+    schemeId: 'mgnrega-hp-2025-26',
+    keywords: [
+      'nrega',
+      'mgnrega',
+      'rozgar',
+      'wage',
+      'panchayat',
+      'himachal',
+      'shimla',
+      'kangra',
+      'mandi',
+      'mashobra'
+    ]
+  }
+];
+
 const REAL_PLACE_REDIRECTS: Readonly<Record<string, string>> = {
   orai: 'Uttar Raital',
   jhansi: 'Raital',
   kanpur: 'Kanak Pradesh'
 };
 
-const DEMO_SUGGESTIONS = ['Piprahi', 'Uttar Raital', 'Kharonda', 'Bakul'] as const;
+const MOCK_DEMO_SUGGESTIONS = ['Piprahi', 'Uttar Raital', 'Kharonda', 'Bakul'] as const;
+const LIVE_DEMO_SUGGESTIONS = ['Mashobra', 'Shimla', 'Kangra', 'Dhalli'] as const;
 
 function normalizeQuestion(text: string): string {
   return text.trim().toLowerCase().replace(/\s+/g, ' ');
 }
 
-function inferSchemeId(question: string): string | undefined {
+function inferSchemeId(mode: DataMode, question: string): string | undefined {
   const normalized = normalizeQuestion(question);
-  for (const entry of SCHEME_KEYWORDS) {
+  const keywords = mode === 'live' ? LIVE_SCHEME_KEYWORDS : MOCK_SCHEME_KEYWORDS;
+  for (const entry of keywords) {
     if (entry.keywords.some((keyword) => normalized.includes(keyword))) {
       return entry.schemeId;
     }
@@ -60,7 +81,8 @@ function inferSchemeId(question: string): string | undefined {
   return undefined;
 }
 
-function detectUnknownRealPlace(question: string): string | undefined {
+function detectUnknownRealPlace(mode: DataMode, question: string): string | undefined {
+  if (mode === 'live') return undefined;
   const normalized = normalizeQuestion(question);
   for (const [token, label] of Object.entries(REAL_PLACE_REDIRECTS)) {
     if (normalized.includes(token)) {
@@ -68,10 +90,6 @@ function detectUnknownRealPlace(question: string): string | undefined {
     }
   }
   return undefined;
-}
-
-function findScenario(schemeId: string): ISchemeScenario | undefined {
-  return ALL_SCENARIOS.find((scenario) => scenario.id === schemeId);
 }
 
 function resolvePlaceInScenario(
@@ -94,28 +112,33 @@ function resolvePlaceInScenario(
   return { nodeIds: [] };
 }
 
-function demoSuggestions(placeIndex: readonly IPlaceEntry[]): readonly IPlaceEntry[] {
+function demoSuggestions(mode: DataMode, placeIndex: readonly IPlaceEntry[]): readonly IPlaceEntry[] {
+  const labels = mode === 'live' ? LIVE_DEMO_SUGGESTIONS : MOCK_DEMO_SUGGESTIONS;
   const picks: IPlaceEntry[] = [];
-  for (const label of DEMO_SUGGESTIONS) {
+  for (const label of labels) {
     const match = placeIndex.find((entry) => entry.label.toLowerCase() === label.toLowerCase());
     if (match) picks.push(match);
   }
   return picks.slice(0, 3);
 }
 
-/** Resolve a citizen question to a scheme + place across the full synthetic catalog. */
-export function resolveQuestionIntent(question: string): IResolvedIntent | undefined {
+/** Resolve a citizen question to a scheme + place in the active data mode catalog. */
+export function resolveQuestionIntent(
+  question: string,
+  mode: DataMode = 'mock'
+): IResolvedIntent | undefined {
   const trimmed = question.trim();
   if (!trimmed) return undefined;
 
-  const placeIndex = buildPlaceIndex();
+  const scenarios = scenariosForMode(mode);
+  const placeIndex = buildPlaceIndex(scenarios);
   const globalSearch = searchPlaces(placeIndex, trimmed, 6);
-  const inferredSchemeId = inferSchemeId(trimmed);
-  const unknownRedirect = detectUnknownRealPlace(trimmed);
+  const inferredSchemeId = inferSchemeId(mode, trimmed);
+  const unknownRedirect = detectUnknownRealPlace(mode, trimmed);
 
   if (globalSearch.length > 0) {
     const entry = globalSearch[0];
-    const scenario = findScenario(entry.schemeId);
+    const scenario = findScenarioInMode(mode, entry.schemeId);
     if (!scenario) return undefined;
     const nodeIds = resolveQuestionNodes(scenario, trimmed);
     const focusNodeId = nodeIds.length > 0 ? nodeIds[nodeIds.length - 1] ?? entry.nodeId : entry.nodeId;
@@ -131,8 +154,9 @@ export function resolveQuestionIntent(question: string): IResolvedIntent | undef
     };
   }
 
-  const schemeId = inferredSchemeId ?? ALL_SCENARIOS[0].id;
-  const scenario = findScenario(schemeId);
+  const schemeId = inferredSchemeId ?? scenarios[0]?.id;
+  if (!schemeId) return undefined;
+  const scenario = findScenarioInMode(mode, schemeId);
   if (!scenario) return undefined;
 
   const { entry, nodeIds } = resolvePlaceInScenario(scenario, trimmed, placeIndex);
@@ -157,7 +181,7 @@ export function resolveQuestionIntent(question: string): IResolvedIntent | undef
       (candidate) => candidate.label.toLowerCase() === unknownRedirect.toLowerCase()
     );
     if (redirectEntry) {
-      const redirectScenario = findScenario(redirectEntry.schemeId);
+      const redirectScenario = findScenarioInMode(mode, redirectEntry.schemeId);
       if (redirectScenario) {
         return {
           kind: 'unknown_place',
@@ -168,11 +192,26 @@ export function resolveQuestionIntent(question: string): IResolvedIntent | undef
           mentionedNodeIds: [redirectEntry.nodeId],
           scenario: redirectScenario,
           placeEntry: redirectEntry,
-          suggestions: demoSuggestions(placeIndex),
+          suggestions: demoSuggestions(mode, placeIndex),
           unknownPlaceToken: trimmed
         };
       }
     }
+  }
+
+  if (mode === 'live') {
+    const suggestions = demoSuggestions(mode, placeIndex);
+    const root = nationalRootNode(scenario);
+    return {
+      kind: 'ambiguous',
+      schemeId: scenario.id,
+      schemeName: scenario.schemeName,
+      focusNodeId: root?.id ?? scenario.defaultFocusNodeId,
+      placeLabel: '',
+      mentionedNodeIds: [],
+      scenario,
+      suggestions
+    };
   }
 
   if (inferredSchemeId) {
@@ -186,7 +225,7 @@ export function resolveQuestionIntent(question: string): IResolvedIntent | undef
       placeLabel: scenario.schemeName,
       mentionedNodeIds: [focusNodeId],
       scenario,
-      suggestions: demoSuggestions(placeIndex)
+      suggestions: demoSuggestions(mode, placeIndex)
     };
   }
 
@@ -198,12 +237,24 @@ export function resolveQuestionIntent(question: string): IResolvedIntent | undef
     placeLabel: '',
     mentionedNodeIds: [],
     scenario,
-    suggestions: demoSuggestions(placeIndex)
+    suggestions: demoSuggestions(mode, placeIndex)
   };
 }
 
-export function unknownPlaceMessage(intent: IResolvedIntent, locale: 'en' | 'hi'): string {
+export function unknownPlaceMessage(
+  intent: IResolvedIntent,
+  locale: 'en' | 'hi',
+  mode: DataMode = 'mock'
+): string {
   if (intent.kind !== 'unknown_place') return '';
+  if (mode === 'live') {
+    if (locale === 'hi') {
+      return `यह लाइव दृश्य केवल हिमाचल प्रदेश MGNREGA FY 2025–26 निकाल से है। `
+        + `आप "${intent.placeLabel}" देख सकते हैं।`;
+    }
+    return `This live view only covers the Himachal Pradesh MGNREGA FY 2025–26 extract. `
+      + `You can explore ${intent.placeLabel} under ${intent.schemeName}.`;
+  }
   if (locale === 'hi') {
     return `यह डेमो केवल काल्पनिक स्थानों का उपयोग करता है — वास्तविक शहरों के लिए लाइव डेटा नहीं है। `
       + `आप "${intent.placeLabel}" (${intent.schemeName}) देख सकते हैं, जो इस प्रश्न के लिए निकटतम डेमो स्थान है।`;

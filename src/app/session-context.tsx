@@ -12,7 +12,14 @@ import {
 import type { IChatMessage } from '../components/chat-panel';
 import type { ExplainLocale } from '../domain/explain-types';
 import { navigateTo, parseExploreParams, readRouteFromHash, type AppRoute } from './routing';
-import { persistSession, readStoredSession } from './session-persist';
+import { defaultPersistedSession, persistSession, readStoredSession } from './session-persist';
+import {
+  applyDataMode,
+  persistDataMode,
+  resolveInitialDataMode,
+  type DataMode
+} from '../utils/data-mode';
+import { defaultFocusForMode } from '../data/sources/source-for-mode';
 
 export interface IRtiTarget {
   readonly schemeId: string;
@@ -21,6 +28,7 @@ export interface IRtiTarget {
 
 export interface ISessionState {
   readonly route: AppRoute;
+  readonly dataMode: DataMode;
   readonly schemeId: string;
   readonly selectedId: string;
   readonly highlightPathIds: readonly string[];
@@ -32,6 +40,7 @@ export interface ISessionState {
 
 export interface ISessionActions {
   readonly setRoute: (route: AppRoute) => void;
+  readonly setDataMode: (mode: DataMode) => void;
   readonly setSchemeId: (id: string) => void;
   readonly setSelectedId: (id: string) => void;
   readonly setHighlightPathIds: (ids: readonly string[]) => void;
@@ -52,7 +61,9 @@ const SessionContext = createContext<SessionContextValue | undefined>(undefined)
 const STATIC_BACK_ROUTES: readonly AppRoute[] = ['about', 'compare', 'features', 'scale'];
 
 export function SessionProvider({ children }: { children: ReactNode }): ReactElement {
-  const stored = useMemo(() => readStoredSession(), []);
+  const initialMode = useMemo(() => resolveInitialDataMode(), []);
+  const stored = useMemo(() => readStoredSession(initialMode), [initialMode]);
+  const [dataMode, setDataModeState] = useState<DataMode>(initialMode);
   const [route, setRouteState] = useState<AppRoute>(readRouteFromHash);
   const [schemeId, setSchemeId] = useState(stored.schemeId);
   const [selectedId, setSelectedId] = useState(stored.selectedId);
@@ -64,14 +75,18 @@ export function SessionProvider({ children }: { children: ReactNode }): ReactEle
   const exploreBootRef = useRef(false);
 
   useEffect(() => {
-    persistSession({
+    applyDataMode(dataMode);
+  }, [dataMode]);
+
+  useEffect(() => {
+    persistSession(dataMode, {
       schemeId,
       selectedId,
       highlightPathIds,
       chatLocale,
       chatMessages
     });
-  }, [schemeId, selectedId, highlightPathIds, chatLocale, chatMessages]);
+  }, [dataMode, schemeId, selectedId, highlightPathIds, chatLocale, chatMessages]);
 
   useEffect(() => {
     document.documentElement.lang = chatLocale === 'hi' ? 'hi' : 'en';
@@ -106,6 +121,38 @@ export function SessionProvider({ children }: { children: ReactNode }): ReactEle
       setHighlightPathIds([params.nodeId]);
     }
   }, []);
+
+  const setDataMode = useCallback((next: DataMode): void => {
+    if (next === dataMode) return;
+    persistSession(dataMode, {
+      schemeId,
+      selectedId,
+      highlightPathIds,
+      chatLocale,
+      chatMessages
+    });
+    persistDataMode(next);
+    applyDataMode(next);
+    const nextSession = readStoredSession(next);
+    const focus = defaultFocusForMode(next);
+    const restored = nextSession.schemeId
+      ? nextSession
+      : defaultPersistedSession(next);
+    setDataModeState(next);
+    setSchemeId(restored.schemeId || focus.schemeId);
+    setSelectedId(restored.selectedId || focus.nodeId);
+    setHighlightPathIds(restored.highlightPathIds);
+    setChatMessages(restored.chatMessages);
+    setChatLocale(restored.chatLocale);
+    setPendingQuestion(null);
+    setRtiTarget(null);
+    if (route === 'explore') {
+      navigateTo('explore', {
+        schemeId: restored.schemeId || focus.schemeId,
+        nodeId: restored.selectedId || focus.nodeId
+      });
+    }
+  }, [chatLocale, chatMessages, dataMode, highlightPathIds, route, schemeId, selectedId]);
 
   const setRoute = useCallback((next: AppRoute): void => {
     if (STATIC_BACK_ROUTES.includes(next)) {
@@ -161,6 +208,7 @@ export function SessionProvider({ children }: { children: ReactNode }): ReactEle
 
   const value = useMemo<SessionContextValue>(() => ({
     route,
+    dataMode,
     schemeId,
     selectedId,
     highlightPathIds,
@@ -169,6 +217,7 @@ export function SessionProvider({ children }: { children: ReactNode }): ReactEle
     pendingQuestion,
     rtiTarget,
     setRoute,
+    setDataMode,
     setSchemeId,
     setSelectedId,
     setHighlightPathIds,
@@ -182,6 +231,7 @@ export function SessionProvider({ children }: { children: ReactNode }): ReactEle
     closeRti
   }), [
     route,
+    dataMode,
     schemeId,
     selectedId,
     highlightPathIds,
@@ -190,6 +240,7 @@ export function SessionProvider({ children }: { children: ReactNode }): ReactEle
     pendingQuestion,
     rtiTarget,
     setRoute,
+    setDataMode,
     openExplore,
     openAsk,
     focusNode,

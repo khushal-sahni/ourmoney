@@ -2,22 +2,28 @@ import { useEffect, useRef, useState, type ReactElement } from 'react';
 import type { ExplainLocale } from '../domain/explain-types';
 import type { AppRoute } from '../app/routing';
 import { ThemeToggle } from './theme-toggle';
+import { DataModeToggle } from './data-mode-toggle';
 import { InfoIcon } from './ui-icons';
 import { useT } from '../i18n/strings';
+import type { DataMode } from '../utils/data-mode';
 
 const SITE_PAGES: readonly AppRoute[] = ['compare', 'features', 'scale', 'about'];
 
 export function AppChrome({
   route,
   locale,
+  dataMode,
   onRouteChange,
   onLocaleChange,
+  onDataModeChange,
   contextLabel
 }: {
   route: AppRoute;
   locale: ExplainLocale;
+  dataMode: DataMode;
   onRouteChange: (route: AppRoute) => void;
   onLocaleChange: (locale: ExplainLocale) => void;
+  onDataModeChange: (mode: DataMode) => void;
   contextLabel?: string;
 }): ReactElement {
   const t = useT();
@@ -73,6 +79,7 @@ export function AppChrome({
           <button type="button" className={locale === 'en' ? 'active' : ''} onClick={() => onLocaleChange('en')}>EN</button>
           <button type="button" className={locale === 'hi' ? 'active' : ''} onClick={() => onLocaleChange('hi')}>हि</button>
         </div>
+        <DataModeToggle mode={dataMode} onChange={onDataModeChange} />
         <ThemeToggle />
         <div className="chrome-pages" ref={pagesRef}>
           <button
@@ -102,7 +109,9 @@ export function AppChrome({
                   {t(page)}
                 </button>
               ))}
-              <p className="chrome-pages-note">{t('footerDisclosure')}</p>
+              <p className="chrome-pages-note">
+                {dataMode === 'live' ? t('footerDisclosureLive') : t('footerDisclosure')}
+              </p>
             </div>
           ) : null}
         </div>

@@ -15,9 +15,17 @@ const STRINGS = {
     en: 'Independent hackathon prototype · all figures synthetic · not a government product',
     hi: 'स्वतंत्र हैकथॉन प्रोटोटाइप · सभी आँकड़े काल्पनिक · सरकारी उत्पाद नहीं'
   },
+  footerDisclosureLive: {
+    en: 'Independent prototype · public MIS extract · FY 2025–26 · not a government product',
+    hi: 'स्वतंत्र प्रोटोटाइप · सार्वजनिक MIS निकाल · FY 2025–26 · सरकारी उत्पाद नहीं'
+  },
   heroBadge: {
     en: 'Independent hackathon prototype · synthetic data',
     hi: 'स्वतंत्र हैकथॉन प्रोटोटाइप · काल्पनिक डेटा'
+  },
+  heroBadgeLive: {
+    en: 'Independent prototype · public MIS extract · Himachal Pradesh',
+    hi: 'स्वतंत्र प्रोटोटाइप · सार्वजनिक MIS निकाल · हिमाचल प्रदेश'
   },
   heroTitle: {
     en: 'Where did the reported rupee go?',
@@ -27,9 +35,17 @@ const STRINGS = {
     en: 'Ask in plain language. We answer only from fictional demo ledgers — not live government data.',
     hi: 'साधारण भाषा में पूछें। जवाब केवल काल्पनिक डेमो लेजर से — लाइव सरकारी डेटा से नहीं।'
   },
+  heroLeadLive: {
+    en: 'Ask in plain language. Live view answers from one reconstructed Himachal Pradesh MGNREGA FY 2025–26 extract.',
+    hi: 'साधारण भाषा में पूछें। लाइव दृश्य केवल हिमाचल प्रदेश MGNREGA FY 2025–26 निकाल से जवाब देता है।'
+  },
   askPlaceholder: {
     en: 'e.g. Where is the money going for roads at Uttar Raital?',
     hi: 'उदा. उत्तर रैतल में सड़कों के लिए पैसा कहाँ जा रहा है?'
+  },
+  askPlaceholderLive: {
+    en: 'e.g. What is still on the ledger at Mashobra?',
+    hi: 'उदा. मशोबरा पर कितना अभी भी लेजर में है?'
   },
   followUpPlaceholder: {
     en: 'Ask a follow-up…',
@@ -71,6 +87,10 @@ const STRINGS = {
   rtiDisclaimer: {
     en: 'Synthetic demo draft. Does not allege wrongdoing. Nothing is filed automatically. Review before using.',
     hi: 'काल्पनिक डेमो मसौदा। कोई आरोप नहीं। स्वतः दर्ज नहीं होता। उपयोग से पहले जाँचें।'
+  },
+  rtiDisclaimerLive: {
+    en: 'Public-record extract draft. Does not allege wrongdoing. Nothing is filed automatically. Review before using.',
+    hi: 'सार्वजनिक-अभिलेख निकाल मसौदा। कोई आरोप नहीं। स्वतः दर्ज नहीं होता। उपयोग से पहले जाँचें।'
   },
   rtiName: { en: 'Your name', hi: 'आपका नाम' },
   rtiAddress: { en: 'Postal address', hi: 'डाक पता' },

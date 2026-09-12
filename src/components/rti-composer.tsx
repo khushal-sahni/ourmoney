@@ -177,7 +177,9 @@ export function RtiComposer({
       <div className="rti-card">
         <header className="rti-header">
           <div>
-            <p className="rti-kicker">{t('rtiDisclaimer')}</p>
+            <p className="rti-kicker">
+              {scenario.provenance === 'public-record' ? t('rtiDisclaimerLive') : t('rtiDisclaimer')}
+            </p>
             <h2 id="rti-title">{t('rtiTitle')}</h2>
             <ol className="rti-steps" aria-label="Steps">
               {STEPS.map((entry, index) => (

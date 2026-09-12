@@ -14,8 +14,8 @@ import { PathArtifact } from '../../components/path-artifact';
 import { SiteFooter } from '../../components/site-footer';
 import { SendIcon } from '../../components/ui-icons';
 import { VoiceInputButton } from '../../components/voice-input';
-import { SCHEME_CATALOG, ALL_SCENARIOS } from '../../data/fixtures/catalog';
 import { buildPlaceIndex, searchPlaces, type IPlaceEntry } from '../../data/place-index';
+import { catalogForMode, findScenarioInMode, sourceForMode } from '../../data/sources/source-for-mode';
 import { rankNamedPlaces } from '../../domain/rank-named-places';
 import {
   resolveQuestionIntent,
@@ -25,17 +25,20 @@ import {
 import type { ISchemeScenario } from '../../domain/fund-flow';
 import { ExplainService, formatCitationLabels, templateAsk } from '../../services/explain.service';
 import { LedgerService } from '../../services/ledger.service';
-import { SyntheticScenarioSource } from '../../data/fixtures/synthetic-scenario.source';
 import { useT } from '../../i18n/strings';
 
-const ledgerService = new LedgerService(new SyntheticScenarioSource());
-const explainService = new ExplainService(ledgerService);
-
-const STARTER_QUESTIONS = [
+const MOCK_STARTERS = [
   { en: 'Why is the utilisation report late at Piprahi?', hi: 'पिपराही में उपयोग रिपोर्ट देर से क्यों है?' },
   { en: 'Where is the money going for roads at Uttar Raital?', hi: 'उत्तर रैतल में सड़कों के लिए पैसा कहाँ जा रहा है?' },
   { en: 'What is still on the ledger at Kharonda block?', hi: 'खरोंडा ब्लॉक पर कितना अभी भी लेजर में है?' },
   { en: 'Explain the health mission standing at Raital district', hi: 'रैतल जिले में स्वास्थ्य मिशन की स्थिति समझाइए' }
+] as const;
+
+const LIVE_STARTERS = [
+  { en: 'What is still on the ledger at Mashobra?', hi: 'मशोबरा पर कितना अभी भी लेजर में है?' },
+  { en: 'Where did reported MGNREGA money go in Shimla district?', hi: 'शिमला जिले में रिपोर्ट किया गया MGNREGA पैसा कहाँ गया?' },
+  { en: 'Explain payment due at Dhalli gram panchayat', hi: 'ढल्ली ग्राम पंचायत पर भुगतान देय समझाइए' },
+  { en: 'How much reached Kangra under MGNREGA?', hi: 'MGNREGA के तहत कांगड़ा तक कितना पहुँचा?' }
 ] as const;
 
 function inheritFollowUpIntent(
@@ -78,6 +81,11 @@ function shouldPromoteRti(scenario: ISchemeScenario, nodeIds: readonly string[])
 export function AskView(): ReactElement {
   const session = useSession();
   const t = useT();
+  const ledgerService = useMemo(
+    () => new LedgerService(sourceForMode(session.dataMode)),
+    [session.dataMode]
+  );
+  const explainService = useMemo(() => new ExplainService(ledgerService), [ledgerService]);
   const [draft, setDraft] = useState('');
   const [loading, setLoading] = useState(false);
   const [dictating, setDictating] = useState(false);
@@ -87,11 +95,18 @@ export function AskView(): ReactElement {
   const [typeaheadOpen, setTypeaheadOpen] = useState(false);
   const listRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const placeIndex = useMemo(() => buildPlaceIndex(), []);
+  const placeIndex = useMemo(() => buildPlaceIndex(session.dataMode), [session.dataMode]);
+  const starters = session.dataMode === 'live' ? LIVE_STARTERS : MOCK_STARTERS;
   const typeaheadResults = useMemo(
     () => (draft.trim() ? searchPlaces(placeIndex, draft, 6) : []),
     [draft, placeIndex]
   );
+
+  useEffect(() => {
+    setActiveScenario(undefined);
+    setActiveIntent(undefined);
+    setFollowUps([]);
+  }, [session.dataMode]);
 
   useEffect(() => {
     listRef.current?.scrollTo({ top: listRef.current.scrollHeight, behavior: 'smooth' });
@@ -106,11 +121,11 @@ export function AskView(): ReactElement {
       setActiveScenario(fromMessage);
       return;
     }
-    const fromScheme = ALL_SCENARIOS.find((entry) => entry.id === session.schemeId);
+    const fromScheme = findScenarioInMode(session.dataMode, session.schemeId);
     if (fromScheme && session.chatMessages.length > 0) {
       setActiveScenario(fromScheme);
     }
-  }, [activeScenario, session.chatMessages, session.schemeId]);
+  }, [activeScenario, session.chatMessages, session.dataMode, session.schemeId]);
 
   useEffect(() => {
     const pending = session.consumePendingQuestion();
@@ -125,9 +140,9 @@ export function AskView(): ReactElement {
       return `${activeIntent.schemeName}${activeIntent.placeLabel ? ` · ${activeIntent.placeLabel}` : ''}`;
     }
     if (session.chatMessages.length === 0) return undefined;
-    const catalogName = SCHEME_CATALOG.find((entry) => entry.id === session.schemeId)?.schemeName;
+    const catalogName = catalogForMode(session.dataMode).find((entry) => entry.id === session.schemeId)?.schemeName;
     return catalogName ?? activeScenario?.schemeName;
-  }, [activeIntent, activeScenario, session.chatMessages.length, session.schemeId]);
+  }, [activeIntent, activeScenario, session.chatMessages.length, session.dataMode, session.schemeId]);
 
   const submitQuestion = useCallback(async (question: string): Promise<void> => {
     const trimmed = question.trim();
@@ -137,7 +152,7 @@ export function AskView(): ReactElement {
     setFollowUps([]);
     session.setChatMessages((prev) => [...prev, { role: 'user', text: trimmed }]);
 
-    let intent = resolveQuestionIntent(trimmed);
+    let intent = resolveQuestionIntent(trimmed, session.dataMode);
 
     if (!intent || intent.kind === 'ambiguous') {
       const inherited = inheritFollowUpIntent(
@@ -151,9 +166,13 @@ export function AskView(): ReactElement {
       } else {
         const suggestions = intent?.suggestions ?? searchPlaces(placeIndex, '', 3);
         const suggestionText = suggestions.map((entry) => entry.label).join(', ');
-        const text = session.chatLocale === 'hi'
-          ? `यह डेमो केवल काल्पनिक स्थानों का उपयोग करता है। कृपया एक डेमो स्थान आज़माएँ: ${suggestionText}।`
-          : `This demo only covers fictional places in our gazetteer. Try a demo place such as ${suggestionText}.`;
+        const text = session.dataMode === 'live'
+          ? (session.chatLocale === 'hi'
+            ? `यह लाइव दृश्य केवल हिमाचल प्रदेश MGNREGA FY 2025–26 निकाल है। आज़माएँ: ${suggestionText}।`
+            : `This live view only covers the Himachal Pradesh MGNREGA FY 2025–26 extract. Try ${suggestionText}.`)
+          : (session.chatLocale === 'hi'
+            ? `यह डेमो केवल काल्पनिक स्थानों का उपयोग करता है। कृपया एक डेमो स्थान आज़माएँ: ${suggestionText}।`
+            : `This demo only covers fictional places in our gazetteer. Try a demo place such as ${suggestionText}.`);
         session.setChatMessages((prev) => [...prev, { role: 'assistant', text }]);
         setLoading(false);
         return;
@@ -165,7 +184,7 @@ export function AskView(): ReactElement {
     setActiveScenario(intent.scenario);
 
     if (intent.kind === 'unknown_place') {
-      const prefix = unknownPlaceMessage(intent, session.chatLocale);
+      const prefix = unknownPlaceMessage(intent, session.chatLocale, session.dataMode);
       session.setChatMessages((prev) => [...prev, { role: 'assistant', text: prefix }]);
     }
 
@@ -223,7 +242,7 @@ export function AskView(): ReactElement {
     } finally {
       setLoading(false);
     }
-  }, [activeIntent, activeScenario, loading, placeIndex, session]);
+  }, [activeIntent, activeScenario, explainService, loading, placeIndex, session]);
 
   const handleSubmit = useCallback((event?: FormEvent): void => {
     event?.preventDefault();
@@ -251,9 +270,7 @@ export function AskView(): ReactElement {
     });
   }, [activeIntent, session]);
 
-  const placeholder = session.chatLocale === 'hi'
-    ? t('askPlaceholder')
-    : t('askPlaceholder');
+  const placeholder = session.dataMode === 'live' ? t('askPlaceholderLive') : t('askPlaceholder');
 
   const hasConversation = session.chatMessages.length > 0;
   const showArtifactRail = Boolean(
@@ -265,8 +282,10 @@ export function AskView(): ReactElement {
       <AppChrome
         route="ask"
         locale={session.chatLocale}
+        dataMode={session.dataMode}
         onRouteChange={session.setRoute}
         onLocaleChange={session.setChatLocale}
+        onDataModeChange={session.setDataMode}
         contextLabel={hasConversation ? contextLabel : undefined}
       />
 
@@ -274,9 +293,9 @@ export function AskView(): ReactElement {
         <div className={`ask-body ${hasConversation ? 'ask-body-chat' : 'ask-body-empty'}`}>
         {!hasConversation ? (
           <section className="ask-hero">
-            <p className="ask-badge">{t('heroBadge')}</p>
+            <p className="ask-badge">{session.dataMode === 'live' ? t('heroBadgeLive') : t('heroBadge')}</p>
             <h1>{t('heroTitle')}</h1>
-            <p className="ask-lead">{t('heroLead')}</p>
+            <p className="ask-lead">{session.dataMode === 'live' ? t('heroLeadLive') : t('heroLead')}</p>
 
             <div className="ask-composer-wrap">
               <form className={`ask-composer ${dictating ? 'ask-composer-dictating' : ''}`} onSubmit={handleSubmit}>
@@ -330,7 +349,7 @@ export function AskView(): ReactElement {
             </div>
 
             <div className="ask-starters" role="group" aria-label={t('suggestedQuestions')}>
-              {STARTER_QUESTIONS.map((starter) => (
+              {starters.map((starter) => (
                 <button
                   key={starter.en}
                   type="button"
@@ -416,7 +435,7 @@ export function AskView(): ReactElement {
             features: t('features'),
             scale: t('scale'),
             about: t('about'),
-            disclosure: t('footerDisclosure')
+            disclosure: session.dataMode === 'live' ? t('footerDisclosureLive') : t('footerDisclosure')
           }}
         />
       ) : null}

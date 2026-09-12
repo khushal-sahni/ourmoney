@@ -1,10 +1,15 @@
 import type { IChatMessage } from '../components/chat-panel';
-import { ALL_SCENARIOS, DEFAULT_SCHEME_ID } from '../data/fixtures/catalog';
 import type { ExplainLocale } from '../domain/explain-types';
-import { GOLDEN_PATH } from '../constants/golden-path';
+import type { DataMode } from '../utils/data-mode';
+import {
+  defaultFocusForMode,
+  defaultSchemeIdForMode,
+  findScenarioInMode,
+  scenariosForMode
+} from '../data/sources/source-for-mode';
 
 export const SESSION_STORAGE_KEY = 'ourmoney-session';
-export const SESSION_STORAGE_VERSION = 1;
+export const SESSION_STORAGE_VERSION = 2;
 const MAX_STORED_MESSAGES = 40;
 
 export interface IPersistedSession {
@@ -33,18 +38,25 @@ interface IStoredSessionBlob {
   readonly chatMessages: readonly IStoredMessage[];
 }
 
-function knownSchemeIds(): ReadonlySet<string> {
-  return new Set(ALL_SCENARIOS.map((scenario) => scenario.id));
+interface IModeSessionMap {
+  readonly v: number;
+  readonly modes: Partial<Record<DataMode, IStoredSessionBlob>>;
 }
 
-function rehydrateMessage(raw: IStoredMessage): IChatMessage | null {
+function sessionKeyForMode(mode: DataMode): string {
+  return `${SESSION_STORAGE_KEY}:${mode}`;
+}
+
+function knownSchemeIds(mode: DataMode): ReadonlySet<string> {
+  return new Set(scenariosForMode(mode).map((scenario) => scenario.id));
+}
+
+function rehydrateMessage(mode: DataMode, raw: IStoredMessage): IChatMessage | null {
   if (raw.role !== 'user' && raw.role !== 'assistant') return null;
   if (typeof raw.text !== 'string') return null;
 
   const schemeId = typeof raw.schemeId === 'string' ? raw.schemeId : undefined;
-  const scenario = schemeId
-    ? ALL_SCENARIOS.find((entry) => entry.id === schemeId)
-    : undefined;
+  const scenario = schemeId ? findScenarioInMode(mode, schemeId) : undefined;
 
   return {
     role: raw.role,
@@ -74,61 +86,86 @@ function stripMessage(message: IChatMessage): IStoredMessage {
   };
 }
 
-export function defaultPersistedSession(): IPersistedSession {
+export function defaultPersistedSession(mode: DataMode = 'mock'): IPersistedSession {
+  const focus = defaultFocusForMode(mode);
   return {
-    schemeId: DEFAULT_SCHEME_ID,
-    selectedId: GOLDEN_PATH.nodeId,
+    schemeId: focus.schemeId,
+    selectedId: focus.nodeId,
     highlightPathIds: [],
     chatLocale: 'en',
     chatMessages: []
   };
 }
 
-export function readStoredSession(): IPersistedSession {
-  const fallback = defaultPersistedSession();
+function parseBlob(mode: DataMode, parsed: unknown): IPersistedSession {
+  const fallback = defaultPersistedSession(mode);
+  if (!parsed || typeof parsed !== 'object') return fallback;
+
+  const blob = parsed as Partial<IStoredSessionBlob>;
+  if (blob.v !== SESSION_STORAGE_VERSION && blob.v !== 1) return fallback;
+
+  const schemes = knownSchemeIds(mode);
+  const schemeId = typeof blob.schemeId === 'string' && schemes.has(blob.schemeId)
+    ? blob.schemeId
+    : fallback.schemeId;
+  const selectedId = typeof blob.selectedId === 'string' && blob.selectedId.length > 0
+    ? blob.selectedId
+    : fallback.selectedId;
+  const highlightPathIds = Array.isArray(blob.highlightPathIds)
+    ? blob.highlightPathIds.filter((id): id is string => typeof id === 'string')
+    : fallback.highlightPathIds;
+  const chatLocale = blob.chatLocale === 'hi' || blob.chatLocale === 'en'
+    ? blob.chatLocale
+    : fallback.chatLocale;
+  const chatMessages = Array.isArray(blob.chatMessages)
+    ? blob.chatMessages
+      .map((message) => rehydrateMessage(mode, message))
+      .filter((message): message is IChatMessage => message !== null)
+      .slice(-MAX_STORED_MESSAGES)
+    : fallback.chatMessages;
+
+  // Drop stale mock scheme ids when reading a live slot (and vice versa).
+  if (!schemes.has(schemeId)) {
+    return fallback;
+  }
+
+  return {
+    schemeId,
+    selectedId,
+    highlightPathIds,
+    chatLocale,
+    chatMessages
+  };
+}
+
+export function readStoredSession(mode: DataMode = 'mock'): IPersistedSession {
+  const fallback = defaultPersistedSession(mode);
   try {
-    const raw = localStorage.getItem(SESSION_STORAGE_KEY);
-    if (!raw) return fallback;
+    const keyed = localStorage.getItem(sessionKeyForMode(mode));
+    if (keyed) {
+      return parseBlob(mode, JSON.parse(keyed));
+    }
 
-    const parsed: unknown = JSON.parse(raw);
-    if (!parsed || typeof parsed !== 'object') return fallback;
+    // Migrate legacy single-key blob into the mock slot only.
+    if (mode === 'mock') {
+      const legacy = localStorage.getItem(SESSION_STORAGE_KEY);
+      if (legacy) {
+        const parsed: unknown = JSON.parse(legacy);
+        if (parsed && typeof parsed === 'object' && 'modes' in (parsed as object)) {
+          const map = parsed as IModeSessionMap;
+          if (map.modes?.mock) return parseBlob(mode, map.modes.mock);
+        }
+        return parseBlob(mode, parsed);
+      }
+    }
 
-    const blob = parsed as Partial<IStoredSessionBlob>;
-    if (blob.v !== SESSION_STORAGE_VERSION) return fallback;
-
-    const schemes = knownSchemeIds();
-    const schemeId = typeof blob.schemeId === 'string' && schemes.has(blob.schemeId)
-      ? blob.schemeId
-      : fallback.schemeId;
-    const selectedId = typeof blob.selectedId === 'string' && blob.selectedId.length > 0
-      ? blob.selectedId
-      : fallback.selectedId;
-    const highlightPathIds = Array.isArray(blob.highlightPathIds)
-      ? blob.highlightPathIds.filter((id): id is string => typeof id === 'string')
-      : fallback.highlightPathIds;
-    const chatLocale = blob.chatLocale === 'hi' || blob.chatLocale === 'en'
-      ? blob.chatLocale
-      : fallback.chatLocale;
-    const chatMessages = Array.isArray(blob.chatMessages)
-      ? blob.chatMessages
-        .map(rehydrateMessage)
-        .filter((message): message is IChatMessage => message !== null)
-        .slice(-MAX_STORED_MESSAGES)
-      : fallback.chatMessages;
-
-    return {
-      schemeId,
-      selectedId,
-      highlightPathIds,
-      chatLocale,
-      chatMessages
-    };
+    return fallback;
   } catch {
     return fallback;
   }
 }
 
-export function persistSession(session: IPersistedSession): void {
+export function persistSession(mode: DataMode, session: IPersistedSession): void {
   try {
     const blob: IStoredSessionBlob = {
       v: SESSION_STORAGE_VERSION,
@@ -138,8 +175,12 @@ export function persistSession(session: IPersistedSession): void {
       chatLocale: session.chatLocale,
       chatMessages: session.chatMessages.slice(-MAX_STORED_MESSAGES).map(stripMessage)
     };
-    localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(blob));
+    localStorage.setItem(sessionKeyForMode(mode), JSON.stringify(blob));
   } catch {
     // Ignore storage access errors (private mode, quota, etc.).
   }
+}
+
+export function defaultSchemeId(mode: DataMode): string {
+  return defaultSchemeIdForMode(mode);
 }

@@ -8,6 +8,7 @@ import type {
   ExplainLocale
 } from '../domain/explain-types';
 import type { IFundingNode, ISchemeScenario, ITransfer } from '../domain/fund-flow';
+import { scenarioProvenance } from '../domain/fund-flow';
 import { pathFor } from '../domain/flow-hierarchy';
 import { reconciliationStatusLabel } from '../domain/reconciliation-display';
 import {
@@ -20,6 +21,9 @@ import type { LedgerService } from './ledger.service';
 
 const SYNTHETIC_DISCLAIMER =
   'All figures are from a synthetic hackathon scenario. This is not live government data.';
+
+const PUBLIC_RECORD_DISCLAIMER =
+  'Figures are from a reconstructed public MGNREGA MIS Financial Statement extract for Himachal Pradesh FY 2025–26. Independent prototype — not a government product. Do not allege misconduct.';
 
 function isComparisonQuestion(question: string): boolean {
   const q = question.toLowerCase();
@@ -121,7 +125,9 @@ export function buildGroundedSlice(
         }
       : undefined,
     transfers: mapTransfers(transferRows, node.id),
-    syntheticDisclaimer: SYNTHETIC_DISCLAIMER
+    syntheticDisclaimer: scenarioProvenance(scenario) === 'public-record'
+      ? PUBLIC_RECORD_DISCLAIMER
+      : SYNTHETIC_DISCLAIMER
   };
 }
 

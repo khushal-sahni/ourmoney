@@ -18,7 +18,7 @@ import { FlowCanvas } from '../../components/flow-canvas';
 import { ChatIcon, ChevronDownIcon, DetailsIcon, DraftIcon, MapIcon, ShareIcon, TableIcon } from '../../components/ui-icons';
 import { buildShareText } from '../../components/information-request';
 import { GOLDEN_PATH } from '../../constants/golden-path';
-import { SyntheticScenarioSource } from '../../data/fixtures/synthetic-scenario.source';
+import { sourceForMode } from '../../data/sources/source-for-mode';
 import { citizenStanding } from '../../domain/citizen-standing';
 import { buildEvidenceBundle } from '../../domain/evidence';
 import {
@@ -34,7 +34,7 @@ import type {
   ITransfer,
   ReconciliationStatus
 } from '../../domain/fund-flow';
-import { bodyKindLabel, schemeKindDescription } from '../../domain/fund-flow';
+import { bodyKindLabel, scenarioProvenance, schemeKindDescription } from '../../domain/fund-flow';
 import {
   computeSchemeMetrics,
   ledgerRows,
@@ -46,12 +46,14 @@ import { ExplainService, formatCitationLabels, templateNarration } from '../../s
 import { LedgerService } from '../../services/ledger.service';
 import { formatCrore, formatPaiseFull, percentOf } from '../../utils/money';
 
-const ledgerService = new LedgerService(new SyntheticScenarioSource());
-const explainService = new ExplainService(ledgerService);
-
 export function ExploreView(): ReactElement {
   const session = useSession();
   const t = useT();
+  const ledgerService = useMemo(
+    () => new LedgerService(sourceForMode(session.dataMode)),
+    [session.dataMode]
+  );
+  const explainService = useMemo(() => new ExplainService(ledgerService), [ledgerService]);
   const [catalog, setCatalog] = useState<readonly ISchemeSummary[]>([]);
   const [catalogError, setCatalogError] = useState<string | null>(null);
   const [scenario, setScenario] = useState<ISchemeScenario>();
@@ -90,7 +92,7 @@ export function ExploreView(): ReactElement {
         setCatalogError(null);
       })
       .catch(() => setCatalogError('Could not load scheme catalog.'));
-  }, []);
+  }, [ledgerService]);
 
   useEffect(() => {
     const media = window.matchMedia('(max-width: 850px)');
@@ -131,14 +133,18 @@ export function ExploreView(): ReactElement {
       })
       .catch(() => {
         if (cancelled) return;
-        setScenarioError('Could not load synthetic scenario.');
+        setScenarioError(
+          session.dataMode === 'live'
+            ? 'Could not load public-record scenario.'
+            : 'Could not load synthetic scenario.'
+        );
         setScenarioLoading(false);
       });
     return () => {
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [schemeId]);
+  }, [schemeId, ledgerService, session.dataMode]);
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -334,7 +340,9 @@ export function ExploreView(): ReactElement {
         <div className="skeleton-header" />
         <div className="skeleton-metrics" />
         <div className="skeleton-workspace" />
-        <p className="loading-hint">Loading synthetic scenario…</p>
+        <p className="loading-hint">
+          {session.dataMode === 'live' ? 'Loading public-record extract…' : 'Loading synthetic scenario…'}
+        </p>
       </main>
     );
   }
@@ -357,8 +365,10 @@ export function ExploreView(): ReactElement {
       <AppChrome
         route="explore"
         locale={session.chatLocale}
+        dataMode={session.dataMode}
         onRouteChange={session.setRoute}
         onLocaleChange={session.setChatLocale}
+        onDataModeChange={session.setDataMode}
         contextLabel={scenario.schemeName}
       />
 
@@ -474,7 +484,9 @@ export function ExploreView(): ReactElement {
               detail={`${metrics.awaitingSharePercent}% of scheme`}
             />
             <p className="metrics-note">
-              Independent prototype · all data synthetic
+              {session.dataMode === 'live'
+                ? 'Independent prototype · public MIS extract · FY 2025–26'
+                : 'Independent prototype · all data synthetic'}
               <span>Double-tap a node to see its immediate branches</span>
             </p>
           </section>
@@ -975,7 +987,11 @@ function Inspector({
         </button>
       </div>
       <small className="updated">
-        Synthetic scenario · reported {node.reportedAt}
+        {scenarioProvenance(scenario) === 'public-record'
+          ? 'Public-record extract'
+          : 'Synthetic scenario'}
+        {' · reported '}
+        {node.reportedAt}
         <br />
         {transfers.length} connected transfer{transfers.length === 1 ? '' : 's'} · {scenario.sourceLabel}
       </small>

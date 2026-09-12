@@ -1,5 +1,12 @@
 # Changelog
 
+## Session 26 — 2026-09-12
+
+### Built
+
+- **Mock / Live toggle:** chrome control next to theme; per-mode session persistence; `PublicRecordSource` vs `SyntheticScenarioSource`.
+- **Live extract:** MGNREGA Himachal Pradesh FY 2025–26 — all districts and blocks, Mashobra GPs; provenance-aware evidence, Ask starters, About/Scale honesty, `docs/LIVE-CALIBRATION.md`.
+
 ## Session 25 — 2026-09-07
 
 ### Fixed

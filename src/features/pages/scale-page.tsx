@@ -33,8 +33,10 @@ export function ScalePage({ onBack }: { onBack: () => void }): ReactElement {
   loadScenario(schemeId: string): Promise<ISchemeScenario>;
 }`}</pre>
         <p>
-          Today <code>SyntheticScenarioSource</code> fills that contract.
-          Tomorrow a licensed MGNREGA MIS or PFMS extract adapter can swap in without rewriting Ask, Explore, or reconciliation.
+          Today two adapters fill that contract:{' '}
+          <code>SyntheticScenarioSource</code> (Mock) and <code>PublicRecordSource</code> (Live ·
+          MGNREGA Himachal FY 2025–26 extract). A licensed feed can swap in without rewriting Ask,
+          Explore, or reconciliation.
         </p>
       </section>
 
@@ -96,10 +98,12 @@ export function ScalePage({ onBack }: { onBack: () => void }): ReactElement {
       </section>
 
       <section>
-        <h2>First post-hackathon adapter target</h2>
+        <h2>First live extract (shipped)</h2>
         <p>
-          <strong>MGNREGA MIS</strong> public expenditure reports at panchayat level — already published —
-          after licensing and legal review. No scraping. No reverse-engineering of private APIs.
+          <strong>MGNREGA MIS</strong> Financial Statement reconstruct for Himachal Pradesh FY 2025–26 —
+          Centre → state → all districts → blocks, with gram panchayats under Shimla · Mashobra only.
+          Toggle <strong>Live</strong> in the chrome. No runtime scrape. See{' '}
+          <code>docs/LIVE-CALIBRATION.md</code>.
         </p>
         <button type="button" className="doc-cta" onClick={() => session.setRoute('compare')}>
           See the before / after →

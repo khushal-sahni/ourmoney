@@ -96,6 +96,9 @@ export interface ISchemeSummary {
   readonly defaultFocusNodeId: string;
 }
 
+/** Where the scenario figures come from — drives evidence badges and disclaimers. */
+export type ScenarioProvenance = 'synthetic' | 'public-record';
+
 export interface ISchemeScenario {
   readonly id: string;
   readonly schemeName: string;
@@ -104,12 +107,18 @@ export interface ISchemeScenario {
   readonly lastMileLabel: string;
   readonly period: string;
   readonly sourceLabel: string;
+  /** Defaults to synthetic when omitted (legacy fixtures). */
+  readonly provenance?: ScenarioProvenance;
   readonly defaultFocusNodeId: string;
   readonly centreSharePaise?: number;
   readonly stateSharePaise?: number;
   readonly nodes: readonly IFundingNode[];
   readonly transfers: readonly ITransfer[];
   readonly reconciliations: readonly IReconciliation[];
+}
+
+export function scenarioProvenance(scenario: ISchemeScenario): ScenarioProvenance {
+  return scenario.provenance ?? 'synthetic';
 }
 
 export function schemeKindDescription(kind: SchemeKind): string {

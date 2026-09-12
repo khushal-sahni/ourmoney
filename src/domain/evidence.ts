@@ -5,6 +5,7 @@ import type {
   ISchemeScenario,
   ITransfer
 } from './fund-flow';
+import { scenarioProvenance } from './fund-flow';
 import { formatCrore } from '../utils/money';
 
 export type EvidenceKind = 'node' | 'transfer' | 'reconciliation' | 'formula';
@@ -18,18 +19,23 @@ export interface IEvidenceRecord {
   readonly amountPaise?: number;
   readonly amountDisplay?: string;
   readonly sourceLabel: string;
-  readonly synthetic: true;
+  readonly synthetic: boolean;
   readonly reference?: string;
 }
 
 const FORMULA_LINE =
   'Received = sent to named offices + used here + what\'s left';
 
+function isSynthetic(scenario: ISchemeScenario): boolean {
+  return scenarioProvenance(scenario) === 'synthetic';
+}
+
 export function buildNodeEvidence(
   scenario: ISchemeScenario,
   node: IFundingNode
 ): readonly IEvidenceRecord[] {
   const standing = citizenStanding(scenario, node);
+  const synthetic = isSynthetic(scenario);
   const records: IEvidenceRecord[] = [
     {
       id: `node-${node.id}-received`,
@@ -40,7 +46,7 @@ export function buildNodeEvidence(
       amountPaise: standing.receivedPaise,
       amountDisplay: formatCrore(standing.receivedPaise),
       sourceLabel: scenario.sourceLabel,
-      synthetic: true
+      synthetic
     },
     {
       id: `formula-${node.id}`,
@@ -48,7 +54,7 @@ export function buildNodeEvidence(
       label: 'Citizen equation',
       detail: FORMULA_LINE,
       sourceLabel: scenario.sourceLabel,
-      synthetic: true
+      synthetic
     }
   ];
 
@@ -57,11 +63,13 @@ export function buildNodeEvidence(
       id: `node-${node.id}-onward`,
       kind: 'node',
       label: 'Sent onward',
-      detail: 'Sum of named next offices in this synthetic tree.',
+      detail: synthetic
+        ? 'Sum of named next offices in this synthetic tree.'
+        : 'Sum of named next offices in this public-record extract.',
       amountPaise: standing.sentOnwardPaise,
       amountDisplay: formatCrore(standing.sentOnwardPaise),
       sourceLabel: scenario.sourceLabel,
-      synthetic: true
+      synthetic
     });
   }
 
@@ -74,7 +82,7 @@ export function buildNodeEvidence(
       amountPaise: standing.usedHerePaise,
       amountDisplay: formatCrore(standing.usedHerePaise),
       sourceLabel: scenario.sourceLabel,
-      synthetic: true
+      synthetic
     });
   }
 
@@ -87,7 +95,7 @@ export function buildNodeEvidence(
       amountPaise: standing.ledgerOpenPaise,
       amountDisplay: formatCrore(standing.ledgerOpenPaise),
       sourceLabel: scenario.sourceLabel,
-      synthetic: true
+      synthetic
     });
   }
 
@@ -106,7 +114,7 @@ export function buildTransferEvidence(
     amountPaise: transfer.amountPaise,
     amountDisplay: formatCrore(transfer.amountPaise),
     sourceLabel: scenario.sourceLabel,
-    synthetic: true,
+    synthetic: isSynthetic(scenario),
     reference: transfer.reference,
     reportedAt: transfer.date
   };
@@ -116,6 +124,7 @@ export function buildReconciliationEvidence(
   scenario: ISchemeScenario,
   reconciliation: IReconciliation
 ): readonly IEvidenceRecord[] {
+  const synthetic = isSynthetic(scenario);
   return reconciliation.items.map((item, index) => ({
     id: `recon-${reconciliation.nodeId}-${index}`,
     kind: 'reconciliation' as const,
@@ -124,7 +133,7 @@ export function buildReconciliationEvidence(
     amountPaise: item.amountPaise,
     amountDisplay: formatCrore(item.amountPaise),
     sourceLabel: scenario.sourceLabel,
-    synthetic: true
+    synthetic
   }));
 }
 

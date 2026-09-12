@@ -11,6 +11,7 @@ export function EvidenceDrawer({
   title: string;
   onClose: () => void;
 }): ReactElement {
+  const synthetic = records.every((record) => record.synthetic);
   return (
     <div className="evidence-drawer-backdrop" role="presentation" onClick={onClose}>
       <aside
@@ -22,7 +23,9 @@ export function EvidenceDrawer({
       >
         <header className="evidence-drawer-header">
           <div>
-            <p className="evidence-drawer-badge">Synthetic record trail</p>
+            <p className="evidence-drawer-badge">
+              {synthetic ? 'Synthetic record trail' : 'Public record trail'}
+            </p>
             <h2 id="evidence-drawer-title">{title}</h2>
           </div>
           <button type="button" className="icon-btn" onClick={onClose} aria-label="Close evidence drawer">
@@ -31,7 +34,9 @@ export function EvidenceDrawer({
         </header>
 
         <p className="evidence-drawer-lead">
-          Every figure below is from a fictional hackathon scenario. This is not live government data.
+          {synthetic
+            ? 'Every figure below is from a fictional hackathon scenario. This is not live government data.'
+            : 'Figures below are reconstructed from a public MGNREGA MIS Financial Statement extract. Independent prototype — not a government product. Verify current totals on the official MIS.'}
         </p>
 
         <ul className="evidence-list">
@@ -47,7 +52,7 @@ export function EvidenceDrawer({
                 {record.reportedAt ? `reported ${record.reportedAt} · ` : ''}
                 {record.sourceLabel}
                 {' · '}
-                <em>synthetic</em>
+                <em>{record.synthetic ? 'synthetic' : 'public record'}</em>
               </small>
             </li>
           ))}

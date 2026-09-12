@@ -46,9 +46,12 @@ Deliver a live, independent, mobile-first prototype that lets a citizen trace a 
 - [x] Hindi UI strings + voice input; PWA offline shell.
 - [ ] Submission video (draft script in STAGE-2-SUBMISSION.md); written summary updated for Ask + Explore + RTI.
 
-## Stage 3 — Post-competition expansion `[ ]`
+## Stage 3 — Post-competition expansion `[IN PROGRESS]`
 
-- [ ] Add a licensed-open-data adapter after legal and licensing review.
+- [x] Mock / Live data-mode toggle with replaceable `IFundFlowSource`.
+- [x] First public-record extract: MGNREGA Himachal Pradesh FY 2025–26 (local fixture, no scrape).
+- [ ] Refresh / expand extracts when official MIS Excel/HTML is reliably available.
+- [ ] Add further licensed-open-data adapters after legal and licensing review.
 - [ ] Add approved partner-data adapters only when access is explicitly authorized.
 - [ ] Create scenario authoring tools for researchers; never an unapproved scraper.
 

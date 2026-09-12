@@ -1,5 +1,6 @@
 import { useMemo, type ReactElement } from 'react';
-import { ALL_SCENARIOS } from '../data/fixtures/catalog';
+import { useSession } from '../app/session-context';
+import { findScenarioInMode } from '../data/sources/source-for-mode';
 import { RtiComposer } from './rti-composer';
 
 export function RtiComposerHost({
@@ -11,9 +12,10 @@ export function RtiComposerHost({
   nodeId: string;
   onClose: () => void;
 }): ReactElement | null {
+  const session = useSession();
   const scenario = useMemo(
-    () => ALL_SCENARIOS.find((entry) => entry.id === schemeId),
-    [schemeId]
+    () => findScenarioInMode(session.dataMode, schemeId),
+    [schemeId, session.dataMode]
   );
   const node = useMemo(
     () => scenario?.nodes.find((candidate) => candidate.id === nodeId),

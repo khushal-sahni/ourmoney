@@ -50,4 +50,15 @@ describe('resolveQuestionIntent', () => {
     const intent = resolveQuestionIntent('Hey?');
     expect(intent?.kind).toBe('ambiguous');
   });
+
+  it('resolves Shimla in live mode and ignores Piprahi', () => {
+    const shimla = resolveQuestionIntent('Where did reported money go in Shimla?', 'live');
+    expect(shimla?.kind).toBe('resolved');
+    expect(shimla?.schemeId).toBe('mgnrega-hp-2025-26');
+    expect(shimla?.placeLabel.toLowerCase()).toContain('shimla');
+
+    const piprahi = resolveQuestionIntent('Why is utilisation late at Piprahi?', 'live');
+    expect(piprahi?.kind).not.toBe('resolved');
+    expect(piprahi?.scenario.id).toBe('mgnrega-hp-2025-26');
+  });
 });

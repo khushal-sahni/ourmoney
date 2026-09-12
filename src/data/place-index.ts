@@ -1,5 +1,6 @@
-import { ALL_SCENARIOS } from './fixtures/catalog';
-import type { IFundingNode, NodeLevel } from '../domain/fund-flow';
+import type { IFundingNode, ISchemeScenario, NodeLevel } from '../domain/fund-flow';
+import type { DataMode } from '../utils/data-mode';
+import { scenariosForMode } from './sources/source-for-mode';
 
 export interface IPlaceEntry {
   readonly nodeId: string;
@@ -26,10 +27,15 @@ function buildSearchText(node: IFundingNode, schemeName: string): string {
   ].filter(Boolean).join(' ').toLowerCase();
 }
 
-/** Searchable fictional places across all synthetic scenarios. */
-export function buildPlaceIndex(): readonly IPlaceEntry[] {
+/** Searchable places across scenarios in the active data mode. */
+export function buildPlaceIndex(
+  scenariosOrMode?: readonly ISchemeScenario[] | DataMode
+): readonly IPlaceEntry[] {
+  const scenarios = Array.isArray(scenariosOrMode)
+    ? scenariosOrMode
+    : scenariosForMode(scenariosOrMode ?? 'mock');
   const entries: IPlaceEntry[] = [];
-  for (const scenario of ALL_SCENARIOS) {
+  for (const scenario of scenarios) {
     for (const node of scenario.nodes) {
       if (node.level === 'national') continue;
       entries.push({
@@ -42,7 +48,9 @@ export function buildPlaceIndex(): readonly IPlaceEntry[] {
           : levelSublabel(node.level, scenario.lastMileLabel),
         level: node.level,
         searchText: buildSearchText(node, scenario.schemeName),
-        prototypeCode: node.level === 'agency' ? `LOC-${node.id.slice(0, 6).toUpperCase()}` : undefined
+        prototypeCode: node.level === 'agency' && scenario.provenance !== 'public-record'
+          ? `LOC-${node.id.slice(0, 6).toUpperCase()}`
+          : undefined
       });
     }
   }
@@ -54,12 +62,21 @@ export function searchPlaces(
   query: string,
   limit = 8
 ): readonly IPlaceEntry[] {
-  const q = query.trim().toLowerCase();
-  if (!q) return index.slice(0, limit);
-  const matches = index.filter((entry) =>
-    entry.searchText.includes(q)
-    || entry.label.toLowerCase().includes(q)
-    || (entry.prototypeCode?.toLowerCase().includes(q) ?? false)
-  );
-  return matches.slice(0, limit);
+  const needle = query.trim().toLowerCase();
+  if (!needle) return index.slice(0, limit);
+
+  const scored = index
+    .map((entry) => {
+      const label = entry.label.toLowerCase();
+      let score = 0;
+      if (label === needle) score = 100;
+      else if (label.startsWith(needle)) score = 80;
+      else if (entry.searchText.includes(needle)) score = 50;
+      else return null;
+      return { entry, score };
+    })
+    .filter((row): row is { entry: IPlaceEntry; score: number } => row !== null)
+    .sort((a, b) => b.score - a.score || a.entry.label.localeCompare(b.entry.label));
+
+  return scored.slice(0, limit).map((row) => row.entry);
 }

@@ -1,5 +1,12 @@
 # Decisions
 
+## 2026-09-12 — Mock / Live data modes; first public-record extract is MGNREGA HP FY 2025–26
+
+- **Status:** Accepted
+- **Context:** Post-hackathon, the product needs a clear separation between synthetic demos and any public-record reconstruction, without becoming an unauthorized live MIS publisher.
+- **Decision:** Chrome Mock/Live toggle (mirrors theme). Mock keeps four synthetic archetypes. Live is one reconstructed scheme — Mahatma Gandhi NREGA · Himachal Pradesh · FY 2025–26 — served by `PublicRecordSource` from a local extract (no runtime scrape). Sessions, place index, and Ask intent are mode-scoped. Scenario `provenance` drives evidence badges and disclaimers.
+- **Consequences:** Citizens can compare synthetic pedagogy with one cited public extract. Incomplete official trees stay honest via “not in this extract” / payment-due language. Future licensed adapters swap through the same `IFundFlowSource` seam.
+
 ## 2026-09-07 — Mobile Explore uses CTA + sheet; desktop panes unchanged
 
 - **Status:** Accepted (narrows the 2026-09-05 resizable-panes decision for mobile)

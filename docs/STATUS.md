@@ -1,55 +1,55 @@
 # Project Status
 
-> Last updated: 2026-09-07 · Session 25
+> Last updated: 2026-09-12 · Session 26
 
 ## Current state
 
-**Stage 2 final push** for Build What Moves India. Ask-first dual view plus Compare / Features / Scale / About pages, RTI composer, Hindi UI + voice input (confirm-to-draft dictation), and PWA offline shell. Mobile Ask uses visual-viewport height + scrollable empty state; mobile Explore is map-first with a bottom details CTA + sheet (no scheme-totals bar or breadcrumb overlay). Production API key is live on Cloudflare. Remaining human task: **2-minute submission video** and resubmit by **7 September 2026**.
+Post-competition expansion: **Mock / Live** chrome toggle. Mock keeps the four synthetic scheme archetypes. Live is one reconstructed public extract — **MGNREGA · Himachal Pradesh · FY 2025–26** — with Centre → state → 12 districts → blocks and gram panchayats under Shimla · Mashobra. No runtime government API. Domain still at [ourmoney.fyi](https://ourmoney.fyi).
 
 ## What works
 
-- **Ask (default):** composer, EN/हि UI + voice dictation (waveform + check/cross → edit in draft), gazetteer typeahead, grounded answers, path artifact, **Request the records** → RTI composer, Ask-empty `SiteFooter`, plus chrome Info menu for site pages during conversation. Mobile empty state scrolls; chrome respects safe-area / visual viewport.
-- **Explore (`#explore`):** flow map, ledger, inspector, docked chat with RTI affordance and the same voice dictation, evidence drawer, share standing; same chrome Info menu for site pages. On mobile: map fills under the header (no metrics pane / breadcrumb pills); bottom “View details” CTA → dismissible inspector sheet; chat also as a sheet. Desktop keeps scheme totals and breadcrumbs.
-- **RTI composer:** authority resolution, record points, applicant details (browser-local), review with rtionline field mapping, 3000-char annexure split, copy / download / print (hidden-iframe Print / PDF) / WhatsApp, 30-day tracking checklist.
-- **Static pages:** `#compare` (MIS before/after), `#features`, `#scale` (adapter field map), `#about` (honesty table).
-- **PWA:** service worker via `vite-plugin-pwa`; offline banner.
-- **Tests:** Vitest — standing, reconciliation, intent, ranking, templateAsk, session persist, routing, RTI domain.
+- **Ask (default):** composer, EN/हि UI + voice dictation, gazetteer typeahead, grounded answers, path artifact, RTI composer. Starters and disclaimers switch with Mock/Live.
+- **Explore (`#explore`):** flow map, ledger, inspector, docked chat, evidence drawer. Live chrome line says public MIS extract.
+- **Data modes:** `DataModeToggle` next to theme; per-mode session persist; `SyntheticScenarioSource` vs `PublicRecordSource`.
+- **RTI composer:** authority resolution, record points, never auto-files; live drafts cite public-record extract.
+- **Static pages:** `#compare`, `#features`, `#scale` (adapter + live extract note), `#about` (Mock vs Live honesty).
+- **PWA:** service worker; offline banner.
+- **Tests:** Vitest — standing (incl. live extract), reconciliation, intent (mock + live), ranking, templateAsk, session persist (per mode), routing, RTI domain.
 
 ## In progress
 
-- Record 2-minute submission video; resubmit with same email as Stage 1.
+- None for Mock/Live extract. Optional: refresh extract figures when MIS hosts are up; LinkedIn / outreach are human tasks.
 
 ## Blockers
 
-- None for the live demo (API key set). Video is the only submission blocker. True iPhone Chrome confirmation of the mobile viewport fix remains a human pass after deploy.
+- Official MGNREGA MIS hosts returned HTTP 503 during extract authoring — figures are reconstructed from the public Financial Statement schema; see [docs/LIVE-CALIBRATION.md](LIVE-CALIBRATION.md).
 
 ## Next concrete step
 
-Record video using [docs/STAGE-2-SUBMISSION.md](STAGE-2-SUBMISSION.md), then resubmit.
+Verify Mock ↔ Live toggle in the browser (desktop + narrow), then draft the LinkedIn post around the Mashobra corridor.
 
 ## Architecture snapshot
 
 ```text
 src/
-├── app/                 # routing, session (incl. openRti)
+├── app/                 # routing, session (dataMode + openRti)
 ├── features/
 │   ├── ask/             # Ask landing + conversation
 │   ├── explore/         # Flow-map workbench
 │   └── pages/           # compare, features, scale
-├── components/          # chrome, bottom-sheet, footer, RTI, voice, …
-├── domain/              # rti-request, intent, reconciliation, standing, …
-├── i18n/                # strings + useT
-├── data/                # fixtures, place-index
+├── components/          # chrome, data-mode toggle, RTI, evidence, …
+├── domain/              # rti, intent, reconciliation, standing, evidence
+├── data/
+│   ├── fixtures/        # synthetic scenarios
+│   ├── live/            # public-record extracts
+│   └── sources/         # IFundFlowSource adapters
 ├── services/            # ledger, explain
-├── utils/               # money, theme, viewport height
-functions/
-├── api/ask.ts
-├── api/narrate.ts
-└── _shared/openrouter.ts
+└── utils/               # money, theme, data-mode, viewport
 ```
 
 ## Data and safety boundary
 
-- All data synthetic; no live government integrations.
-- RTI drafts never auto-file; disclaimer in every step.
-- AI grounded only on displayed scenario slice; no misconduct language.
+- Mock: all synthetic.
+- Live: reconstructed public MIS extract only; no PFMS scrape; no misconduct language.
+- RTI drafts never auto-file.
+- AI grounded only on displayed scenario slice.
