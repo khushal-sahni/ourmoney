@@ -39,8 +39,8 @@ export function AboutPage({ onBack }: { onBack: () => void }): ReactElement {
               <tr>
                 <td>Live</td>
                 <td>
-                  One reconstructed public extract: Mahatma Gandhi NREGA · Himachal Pradesh · FY 2025–26,
-                  typed from the public Financial Statement schema. Not a live PFMS/MIS connection.
+                  One reconstructed public extract: Mahatma Gandhi NREGA · FY 2025–26
+                  (all states named; deep corridor in Himachal Pradesh). Not a live PFMS/MIS connection.
                 </td>
               </tr>
             </tbody>

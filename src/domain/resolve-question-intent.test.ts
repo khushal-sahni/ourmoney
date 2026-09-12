@@ -61,4 +61,11 @@ describe('resolveQuestionIntent', () => {
     expect(piprahi?.kind).not.toBe('resolved');
     expect(piprahi?.scenario.id).toBe('mgnrega-hp-2025-26');
   });
+
+  it('resolves a shallow other state in live mode', () => {
+    const intent = resolveQuestionIntent('How much reached Rajasthan under MGNREGA?', 'live');
+    expect(intent?.kind).toBe('resolved');
+    expect(intent?.schemeId).toBe('mgnrega-hp-2025-26');
+    expect(intent?.focusNodeId).toBe('rajasthan');
+  });
 });

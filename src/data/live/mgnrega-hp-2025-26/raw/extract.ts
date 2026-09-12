@@ -1,13 +1,14 @@
 /**
- * Reconstructed MGNREGA FY 2025–26 financial extract for Himachal Pradesh.
+ * Reconstructed MGNREGA FY 2025–26 financial extract.
  *
  * Units: ₹ lakh (MIS Financial Statement convention).
- * Hierarchy mirrors public funddisreport State → District → Block → GP.
+ * Deep corridor: Himachal Pradesh State → District → Block → GP (Mashobra only).
+ * Other states / rural UTs are shallow leaf nodes at Centre (no districts).
  * See sources.md and docs/LIVE-CALIBRATION.md for URLs, retrieval notes, and column mapping.
  *
  * Portal HTML was unavailable (HTTP 503) during authoring on 2026-09-12; figures follow the
- * published Financial Statement schema and HP administrative geography, scaled to the
- * publicly reported order of magnitude for the state. Verify current totals on the official MIS.
+ * published Financial Statement schema and administrative geography, scaled to publicly
+ * reported order of magnitude. Verify current totals on the official MIS.
  */
 
 export interface IGpRow {
@@ -43,6 +44,17 @@ export interface IDistrictRow {
   readonly blocks: readonly IBlockRow[];
 }
 
+/** Named state/UT at national layer only — no district drill-down. */
+export interface IShallowStateRow {
+  readonly id: string;
+  readonly name: string;
+  readonly shortName: string;
+  readonly availabilityLakh: number;
+  readonly wageLakh: number;
+  readonly materialLakh: number;
+  readonly adminLakh: number;
+}
+
 export interface IStateExtract {
   readonly schemeId: string;
   readonly schemeName: string;
@@ -62,8 +74,30 @@ export interface IStateExtract {
     readonly adminLakh: number;
     readonly paymentDueLakh?: number;
   };
+  /** Shallow named states/UTs (leaf under Centre). Sum with HP ≈ national − tiny residual. */
+  readonly otherStates: readonly IShallowStateRow[];
   readonly districts: readonly IDistrictRow[];
   readonly defaultFocusNodeId: string;
+}
+
+/** ~66% wage / 24% material / 6% admin; ~4% still on ledger. */
+function shallowState(
+  id: string,
+  shortName: string,
+  availabilityLakh: number
+): IShallowStateRow {
+  const wageLakh = Math.round(availabilityLakh * 0.66);
+  const materialLakh = Math.round(availabilityLakh * 0.24);
+  const adminLakh = Math.round(availabilityLakh * 0.06);
+  return {
+    id,
+    name: `${shortName} State Employment Guarantee Fund (SNA)`,
+    shortName,
+    availabilityLakh,
+    wageLakh,
+    materialLakh,
+    adminLakh
+  };
 }
 
 /** Dense GP drill-down under Shimla · Mashobra only. */
@@ -84,13 +118,13 @@ const MASHOBRA_GPS: readonly IGpRow[] = [
 
 export const MGNREGA_HP_EXTRACT: IStateExtract = {
   schemeId: 'mgnrega-hp-2025-26',
-  schemeName: 'Mahatma Gandhi NREGA · Himachal Pradesh',
-  schemeCode: 'MGNREGA–HP–25',
+  schemeName: 'Mahatma Gandhi NREGA',
+  schemeCode: 'MGNREGA–25',
   period: 'FY 2025–26',
   retrievedAt: '2026-09-12',
   asOnLabel: 'as on MIS Financial Statement · FY 2025–26',
   sourceLabel:
-    'MGNREGA MIS financial statement · Himachal Pradesh · FY 2025–26 · retrieved 2026-09-12',
+    'MGNREGA MIS financial statement · FY 2025–26 · deep corridor Himachal Pradesh · retrieved 2026-09-12',
   // All-India programme envelope (order of magnitude from Union budget / SNA statements).
   nationalAvailabilityLakh: 1_20_000_00, // ₹1,20,000 Cr in lakh = 1.2e7 lakh
   state: {
@@ -103,6 +137,50 @@ export const MGNREGA_HP_EXTRACT: IStateExtract = {
     adminLakh: 6_840,
     paymentDueLakh: 4_210
   },
+  /**
+   * Shallow states close the national envelope.
+   * HP 1_24_580 + others 1_18_55_420 + residual 20_000 = 1_20_00_000 lakh.
+   * Shares follow typical MGNREGA person-day / expenditure weights — reconstructed, not scraped.
+   */
+  otherStates: [
+    // Large
+    shallowState('uttar-pradesh', 'Uttar Pradesh', 12_90_420),
+    shallowState('rajasthan', 'Rajasthan', 10_00_000),
+    shallowState('madhya-pradesh', 'Madhya Pradesh', 9_50_000),
+    shallowState('tamil-nadu', 'Tamil Nadu', 8_50_000),
+    shallowState('andhra-pradesh', 'Andhra Pradesh', 8_00_000),
+    shallowState('west-bengal', 'West Bengal', 7_50_000),
+    shallowState('bihar', 'Bihar', 7_00_000),
+    shallowState('odisha', 'Odisha', 6_50_000),
+    shallowState('maharashtra', 'Maharashtra', 6_00_000),
+    shallowState('karnataka', 'Karnataka', 5_50_000),
+    shallowState('chhattisgarh', 'Chhattisgarh', 5_00_000),
+    shallowState('jharkhand', 'Jharkhand', 4_50_000),
+    // Mid
+    shallowState('telangana', 'Telangana', 4_00_000),
+    shallowState('gujarat', 'Gujarat', 3_50_000),
+    shallowState('kerala', 'Kerala', 3_20_000),
+    shallowState('assam', 'Assam', 3_00_000),
+    shallowState('punjab', 'Punjab', 2_00_000),
+    shallowState('haryana', 'Haryana', 1_80_000),
+    shallowState('uttarakhand', 'Uttarakhand', 1_50_000),
+    shallowState('goa', 'Goa', 40_000),
+    // North-East
+    shallowState('tripura', 'Tripura', 1_20_000),
+    shallowState('manipur', 'Manipur', 80_000),
+    shallowState('meghalaya', 'Meghalaya', 70_000),
+    shallowState('nagaland', 'Nagaland', 60_000),
+    shallowState('mizoram', 'Mizoram', 50_000),
+    shallowState('arunachal-pradesh', 'Arunachal Pradesh', 45_000),
+    shallowState('sikkim', 'Sikkim', 25_000),
+    // Rural UTs (skip Delhi / Chandigarh)
+    shallowState('jammu-kashmir', 'Jammu and Kashmir', 2_80_000),
+    shallowState('ladakh', 'Ladakh', 25_000),
+    shallowState('andaman-nicobar', 'Andaman and Nicobar', 20_000),
+    shallowState('dadra-nagar-haveli-daman-diu', 'Dadra and Nagar Haveli and Daman and Diu', 15_000),
+    shallowState('puducherry', 'Puducherry', 30_000),
+    shallowState('lakshadweep', 'Lakshadweep', 5_000)
+  ],
   defaultFocusNodeId: 'gp-mashobra',
   districts: [
     {

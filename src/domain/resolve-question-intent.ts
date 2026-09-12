@@ -64,7 +64,7 @@ const REAL_PLACE_REDIRECTS: Readonly<Record<string, string>> = {
 };
 
 const MOCK_DEMO_SUGGESTIONS = ['Piprahi', 'Uttar Raital', 'Kharonda', 'Bakul'] as const;
-const LIVE_DEMO_SUGGESTIONS = ['Mashobra', 'Shimla', 'Kangra', 'Dhalli'] as const;
+const LIVE_DEMO_SUGGESTIONS = ['Mashobra', 'Shimla', 'Rajasthan', 'Kangra'] as const;
 
 function normalizeQuestion(text: string): string {
   return text.trim().toLowerCase().replace(/\s+/g, ' ');
@@ -249,10 +249,10 @@ export function unknownPlaceMessage(
   if (intent.kind !== 'unknown_place') return '';
   if (mode === 'live') {
     if (locale === 'hi') {
-      return `यह लाइव दृश्य केवल हिमाचल प्रदेश MGNREGA FY 2025–26 निकाल से है। `
+      return `यह लाइव दृश्य MGNREGA FY 2025–26 निकाल है (गहराई हिमाचल में)। `
         + `आप "${intent.placeLabel}" देख सकते हैं।`;
     }
-    return `This live view only covers the Himachal Pradesh MGNREGA FY 2025–26 extract. `
+    return `This live view covers the MGNREGA FY 2025–26 extract (deep corridor in Himachal). `
       + `You can explore ${intent.placeLabel} under ${intent.schemeName}.`;
   }
   if (locale === 'hi') {

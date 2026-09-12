@@ -24,8 +24,8 @@ const STRINGS = {
     hi: 'स्वतंत्र हैकथॉन प्रोटोटाइप · काल्पनिक डेटा'
   },
   heroBadgeLive: {
-    en: 'Independent prototype · public MIS extract · Himachal Pradesh',
-    hi: 'स्वतंत्र प्रोटोटाइप · सार्वजनिक MIS निकाल · हिमाचल प्रदेश'
+    en: 'Independent prototype · public MIS extract · MGNREGA FY 2025–26',
+    hi: 'स्वतंत्र प्रोटोटाइप · सार्वजनिक MIS निकाल · MGNREGA FY 2025–26'
   },
   heroTitle: {
     en: 'Where did the reported rupee go?',
@@ -36,8 +36,8 @@ const STRINGS = {
     hi: 'साधारण भाषा में पूछें। जवाब केवल काल्पनिक डेमो लेजर से — लाइव सरकारी डेटा से नहीं।'
   },
   heroLeadLive: {
-    en: 'Ask in plain language. Live view answers from one reconstructed Himachal Pradesh MGNREGA FY 2025–26 extract.',
-    hi: 'साधारण भाषा में पूछें। लाइव दृश्य केवल हिमाचल प्रदेश MGNREGA FY 2025–26 निकाल से जवाब देता है।'
+    en: 'Ask in plain language. Live view answers from a reconstructed MGNREGA FY 2025–26 extract — deep drill in Himachal Pradesh.',
+    hi: 'साधारण भाषा में पूछें। लाइव दृश्य MGNREGA FY 2025–26 निकाल से जवाब देता है — गहराई हिमाचल प्रदेश में।'
   },
   askPlaceholder: {
     en: 'e.g. Where is the money going for roads at Uttar Raital?',

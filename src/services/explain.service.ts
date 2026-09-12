@@ -23,7 +23,7 @@ const SYNTHETIC_DISCLAIMER =
   'All figures are from a synthetic hackathon scenario. This is not live government data.';
 
 const PUBLIC_RECORD_DISCLAIMER =
-  'Figures are from a reconstructed public MGNREGA MIS Financial Statement extract for Himachal Pradesh FY 2025–26. Independent prototype — not a government product. Do not allege misconduct.';
+  'Figures are from a reconstructed public MGNREGA MIS Financial Statement extract (FY 2025–26; deep corridor Himachal Pradesh). Independent prototype — not a government product. Do not allege misconduct.';
 
 function isComparisonQuestion(question: string): boolean {
   const q = question.toLowerCase();

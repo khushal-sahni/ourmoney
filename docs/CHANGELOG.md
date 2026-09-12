@@ -5,7 +5,11 @@
 ### Built
 
 - **Mock / Live toggle:** chrome control next to theme; per-mode session persistence; `PublicRecordSource` vs `SyntheticScenarioSource`.
-- **Live extract:** MGNREGA Himachal Pradesh FY 2025–26 — all districts and blocks, Mashobra GPs; provenance-aware evidence, Ask starters, About/Scale honesty, `docs/LIVE-CALIBRATION.md`.
+- **Live extract:** MGNREGA FY 2025–26 — all states named at Centre; deep corridor Himachal (districts/blocks/Mashobra GPs); provenance-aware evidence, Ask starters, About/Scale honesty, `docs/LIVE-CALIBRATION.md`.
+
+### Fixed
+
+- **Live national leftover:** naming only Himachal made ~99% of Centre look unnamed; other states/UTs are now shallow leaves so leftover is a tiny residual.
 
 ## Session 25 — 2026-09-07
 

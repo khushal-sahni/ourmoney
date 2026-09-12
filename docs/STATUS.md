@@ -4,7 +4,7 @@
 
 ## Current state
 
-Post-competition expansion: **Mock / Live** chrome toggle. Mock keeps the four synthetic scheme archetypes. Live is one reconstructed public extract — **MGNREGA · Himachal Pradesh · FY 2025–26** — with Centre → state → 12 districts → blocks and gram panchayats under Shimla · Mashobra. No runtime government API. Domain still at [ourmoney.fyi](https://ourmoney.fyi).
+Post-competition expansion: **Mock / Live** chrome toggle. Mock keeps the four synthetic scheme archetypes. Live is one reconstructed public extract — **MGNREGA · FY 2025–26** — with all states named at Centre and a deep corridor in Himachal (12 districts → blocks → Mashobra GPs). No runtime government API. Domain still at [ourmoney.fyi](https://ourmoney.fyi).
 
 ## What works
 

@@ -10,6 +10,7 @@ import {
   type IBlockRow,
   type IDistrictRow,
   type IGpRow,
+  type IShallowStateRow,
   type IStateExtract
 } from './raw/extract';
 
@@ -128,8 +129,25 @@ function buildDistrict(
   };
 }
 
+function buildShallowStateNode(row: IShallowStateRow, asOn: string): IFundingNode {
+  // Leaf state: utilisation as used here; remainder still on this ledger (no unpublishedPaise).
+  const used = utilisationLakh(row) + row.adminLakh;
+  return {
+    id: row.id,
+    name: row.name,
+    shortName: row.shortName,
+    level: 'state',
+    bodyKind: 'segf',
+    workLabel: 'SEGF · SNA',
+    receivedPaise: lakhToPaise(row.availabilityLakh),
+    reportedPaise: lakhToPaise(used),
+    reportedAt: asOn,
+    parentId: 'india',
+    usedHereLabel: 'Wages, material & admin'
+  };
+}
+
 function buildTransfers(
-  extract: IStateExtract,
   nodes: readonly IFundingNode[],
   asOn: string
 ): readonly ITransfer[] {
@@ -138,13 +156,13 @@ function buildTransfers(
   for (const node of nodes) {
     if (!node.parentId) continue;
     transfers.push({
-      id: `hp-t${index}`,
+      id: `mgn-t${index}`,
       fromNodeId: node.parentId,
       toNodeId: node.id,
       amountPaise: node.receivedPaise,
       date: asOn,
       reference: `MIS/funddisreport/${node.id.toUpperCase()}/FY2025-26`,
-      component: node.level === 'agency' ? 'wage' : node.level === 'state' ? 'wage' : 'wage'
+      component: 'wage'
     });
     index += 1;
   }
@@ -212,21 +230,6 @@ function buildReconciliations(extract: IStateExtract): readonly IReconciliation[
     }
   }
 
-  items.push({
-    nodeId: 'india',
-    status: 'clear',
-    items: [
-      {
-        label: 'Other states not in this extract',
-        amountPaise: lakhToPaise(
-          extract.nationalAvailabilityLakh - extract.state.availabilityLakh
-        ),
-        description:
-          'This live view names only Himachal Pradesh. Remaining national availability is not expanded here.'
-      }
-    ]
-  });
-
   return items;
 }
 
@@ -245,7 +248,7 @@ export function buildMgnregaHpScenario(
   const stateReceived = Math.max(stateAvailability, districtSum + stateAdmin);
   const stateUnpublished = Math.max(0, stateReceived - districtSum - stateAdmin);
 
-  const stateNode: IFundingNode = {
+  const himachalNode: IFundingNode = {
     id: extract.state.id,
     name: extract.state.name,
     shortName: extract.state.shortName,
@@ -261,8 +264,11 @@ export function buildMgnregaHpScenario(
     unpublishedPaise: stateUnpublished
   };
 
+  const otherStateNodes = extract.otherStates.map((row) => buildShallowStateNode(row, asOn));
+  const namedStateSum = stateReceived
+    + otherStateNodes.reduce((sum, node) => sum + node.receivedPaise, 0);
   const nationalReceived = lakhToPaise(extract.nationalAvailabilityLakh);
-  const nationalUnpublished = Math.max(0, nationalReceived - stateReceived);
+  const nationalUnpublished = Math.max(0, nationalReceived - namedStateSum);
 
   const nationalNode: IFundingNode = {
     id: 'india',
@@ -272,13 +278,19 @@ export function buildMgnregaHpScenario(
     bodyKind: 'national-account',
     workLabel: 'Programme account',
     receivedPaise: nationalReceived,
-    reportedPaise: stateReceived,
+    reportedPaise: namedStateSum,
     reportedAt: asOn,
     unpublishedPaise: nationalUnpublished
   };
 
-  const nodes: IFundingNode[] = [nationalNode, stateNode, ...districtNodes, ...lowerNodes];
-  const transfers = buildTransfers(extract, nodes, asOn);
+  const nodes: IFundingNode[] = [
+    nationalNode,
+    himachalNode,
+    ...otherStateNodes,
+    ...districtNodes,
+    ...lowerNodes
+  ];
+  const transfers = buildTransfers(nodes, asOn);
 
   return {
     id: extract.schemeId,

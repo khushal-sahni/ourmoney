@@ -1,4 +1,4 @@
-# MGNREGA Himachal Pradesh · FY 2025–26 sources
+# MGNREGA FY 2025–26 sources (deep corridor: Himachal Pradesh)
 
 Independent prototype extract. Not a government product. Not an official mirror of PFMS or NREGASoft.
 
@@ -8,7 +8,8 @@ Independent prototype extract. Not a government product. Not an official mirror 
 | --- | --- |
 | Retrieved | 2026-09-12 |
 | Financial year | 2025–26 |
-| State | Himachal Pradesh (MIS state_code `13`) |
+| Deep state | Himachal Pradesh (MIS state_code `13`) |
+| Shallow layer | All other states + rural UTs named at Centre (no district trees) |
 | Schema | Citizen **Financial Statement** (`funddisreport`) — availability, wage, material, admin, payment due (₹ lakh) |
 
 ## Official report URLs (verify live figures here)
@@ -22,10 +23,11 @@ Portal hosts were returning HTTP 503 / 404 during authoring. Use these entry poi
 
 ## What we typed
 
+- All states and rural UTs at national layer (shallow leaves) so Centre leftover is a small residual, not ~99% of the scheme.
 - All 12 Himachal districts and their major development blocks (public administrative geography).
 - Gram panchayat last-mile only under **Shimla · Mashobra** (12 GPs). Other GP spend appears as “next office not named” / leftover at the parent.
 - Column mapping: see [docs/LIVE-CALIBRATION.md](../../../../docs/LIVE-CALIBRATION.md).
 
 ## Honesty
 
-Figures in `extract.ts` follow the public Financial Statement schema and HP geography, scaled to the publicly reported order of magnitude for the state. They are a **reconstructed extract for the citizen prototype**, not a live scrape and not a certified government publication. Always re-check the official MIS before citing a rupee amount outside this demo.
+Figures in `extract.ts` follow the public Financial Statement schema and administrative geography, scaled to publicly reported order of magnitude. Shallow-state shares are reconstructed weights, not live MIS rows. Always re-check the official MIS before citing a rupee amount outside this demo.

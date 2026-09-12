@@ -21,11 +21,25 @@ describe('live MGNREGA HP extract', () => {
     expect(records.every((record) => record.synthetic === false)).toBe(true);
   });
 
+  it('names other states so national leftover is a small residual', () => {
+    const india = MGNREGA_HP_SCENARIO.nodes.find((node) => node.id === 'india');
+    expect(india).toBeDefined();
+    if (!india) return;
+    const leftover = india.unpublishedPaise ?? 0;
+    const traced = india.reportedPaise;
+    expect(MGNREGA_HP_SCENARIO.nodes.some((node) => node.id === 'rajasthan')).toBe(true);
+    expect(MGNREGA_HP_SCENARIO.nodes.some((node) => node.id === 'uttar-pradesh')).toBe(true);
+    expect(leftover).toBeLessThan(traced);
+    // Residual stays under 1% of Centre (planned ₹200 Cr; ~₹154 Cr after HP standing raise).
+    expect(leftover / india.receivedPaise).toBeLessThan(0.01);
+  });
+
   it('exposes one scheme via PublicRecordSource', async () => {
     const source = new PublicRecordSource();
     const catalog = await source.loadCatalog();
     expect(catalog).toHaveLength(1);
     expect(catalog[0]?.id).toBe('mgnrega-hp-2025-26');
+    expect(catalog[0]?.schemeName).toBe('Mahatma Gandhi NREGA');
     const scenario = await source.loadScenario('mgnrega-hp-2025-26');
     expect(scenario.nodes.some((node) => node.id === 'shimla')).toBe(true);
     expect(scenario.nodes.some((node) => node.id === 'gp-mashobra')).toBe(true);

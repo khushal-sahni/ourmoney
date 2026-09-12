@@ -168,8 +168,8 @@ export function AskView(): ReactElement {
         const suggestionText = suggestions.map((entry) => entry.label).join(', ');
         const text = session.dataMode === 'live'
           ? (session.chatLocale === 'hi'
-            ? `यह लाइव दृश्य केवल हिमाचल प्रदेश MGNREGA FY 2025–26 निकाल है। आज़माएँ: ${suggestionText}।`
-            : `This live view only covers the Himachal Pradesh MGNREGA FY 2025–26 extract. Try ${suggestionText}.`)
+            ? `यह लाइव दृश्य MGNREGA FY 2025–26 निकाल है (गहराई हिमाचल में)। आज़माएँ: ${suggestionText}।`
+            : `This live view covers the MGNREGA FY 2025–26 extract (deep corridor in Himachal). Try ${suggestionText}.`)
           : (session.chatLocale === 'hi'
             ? `यह डेमो केवल काल्पनिक स्थानों का उपयोग करता है। कृपया एक डेमो स्थान आज़माएँ: ${suggestionText}।`
             : `This demo only covers fictional places in our gazetteer. Try a demo place such as ${suggestionText}.`);

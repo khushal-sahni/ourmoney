@@ -100,9 +100,9 @@ export function ScalePage({ onBack }: { onBack: () => void }): ReactElement {
       <section>
         <h2>First live extract (shipped)</h2>
         <p>
-          <strong>MGNREGA MIS</strong> Financial Statement reconstruct for Himachal Pradesh FY 2025–26 —
-          Centre → state → all districts → blocks, with gram panchayats under Shimla · Mashobra only.
-          Toggle <strong>Live</strong> in the chrome. No runtime scrape. See{' '}
+          <strong>MGNREGA MIS</strong> Financial Statement reconstruct for FY 2025–26 —
+          all states named at Centre; Centre → Himachal → districts → blocks, with gram panchayats
+          under Shimla · Mashobra. Toggle <strong>Live</strong> in the chrome. No runtime scrape. See{' '}
           <code>docs/LIVE-CALIBRATION.md</code>.
         </p>
         <button type="button" className="doc-cta" onClick={() => session.setRoute('compare')}>
