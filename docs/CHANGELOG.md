@@ -6,6 +6,7 @@
 
 - **Mock / Live toggle:** chrome control next to theme; per-mode session persistence; `PublicRecordSource` vs `SyntheticScenarioSource`.
 - **Live extract:** MGNREGA FY 2025–26 — all states named at Centre; deep corridor Himachal (districts/blocks/Mashobra GPs); provenance-aware evidence, Ask starters, About/Scale honesty, `docs/LIVE-CALIBRATION.md`.
+- **Evidence source links:** optional `sourceCitations` on scenarios; Live MGNREGA drawer shows clickable official MIS verify URLs; Mock stays text-only.
 
 ### Fixed
 

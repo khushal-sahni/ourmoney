@@ -55,6 +55,11 @@ export interface IShallowStateRow {
   readonly adminLakh: number;
 }
 
+export interface ISourceCitationRow {
+  readonly label: string;
+  readonly url: string;
+}
+
 export interface IStateExtract {
   readonly schemeId: string;
   readonly schemeName: string;
@@ -63,6 +68,8 @@ export interface IStateExtract {
   readonly retrievedAt: string;
   readonly asOnLabel: string;
   readonly sourceLabel: string;
+  /** Official MIS pages to verify figures — not runtime scrape targets. */
+  readonly sourceCitations: readonly ISourceCitationRow[];
   readonly nationalAvailabilityLakh: number;
   readonly state: {
     readonly id: string;
@@ -125,6 +132,16 @@ export const MGNREGA_HP_EXTRACT: IStateExtract = {
   asOnLabel: 'as on MIS Financial Statement · FY 2025–26',
   sourceLabel:
     'MGNREGA MIS financial statement · FY 2025–26 · deep corridor Himachal Pradesh · retrieved 2026-09-12',
+  sourceCitations: [
+    {
+      label: 'Himachal Pradesh financial statement (MIS)',
+      url: 'https://mnregaweb4.nic.in/netnrega/citizen_html/funddisreport.aspx?lflag=eng&fin_year=2025-2026&state_code=13&state_name=HIMACHAL+PRADESH&page=s'
+    },
+    {
+      label: 'Public MIS report selector',
+      url: 'https://nregarep1.nic.in/netnrega/dynamic2/dynamicreport_new4.aspx'
+    }
+  ],
   // All-India programme envelope (order of magnitude from Union budget / SNA statements).
   nationalAvailabilityLakh: 1_20_000_00, // ₹1,20,000 Cr in lakh = 1.2e7 lakh
   state: {

@@ -1,5 +1,12 @@
 # Decisions
 
+## 2026-09-12 — Evidence source citations are verify-links, not scrapes
+
+- **Status:** Accepted
+- **Context:** Public-record evidence showed only a text `sourceLabel`; official MIS URLs lived in markdown and were invisible in the product.
+- **Decision:** Optional `ISchemeScenario.sourceCitations` (`label` + `url`). Live extracts populate them; Mock omits them. The evidence drawer renders a **Sources** list of external links (`target=_blank`, `rel=noopener noreferrer`). Citations mean “verify here,” not “we fetched this URL at runtime.”
+- **Consequences:** Citizens can open the documented MIS entry points from Explore. No new network dependency; honesty about reconstructed figures stays in the drawer lead copy.
+
 ## 2026-09-12 — Mock / Live data modes; first public-record extract is MGNREGA HP FY 2025–26
 
 - **Status:** Accepted

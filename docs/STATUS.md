@@ -9,7 +9,7 @@ Post-competition expansion: **Mock / Live** chrome toggle. Mock keeps the four s
 ## What works
 
 - **Ask (default):** composer, EN/हि UI + voice dictation, gazetteer typeahead, grounded answers, path artifact, RTI composer. Starters and disclaimers switch with Mock/Live.
-- **Explore (`#explore`):** flow map, ledger, inspector, docked chat, evidence drawer. Live chrome line says public MIS extract.
+- **Explore (`#explore`):** flow map, ledger, inspector, docked chat, evidence drawer. Live chrome line says public MIS extract; evidence **Sources** lists official MIS verify links.
 - **Data modes:** `DataModeToggle` next to theme; per-mode session persist; `SyntheticScenarioSource` vs `PublicRecordSource`.
 - **RTI composer:** authority resolution, record points, never auto-files; live drafts cite public-record extract.
 - **Static pages:** `#compare`, `#features`, `#scale` (adapter + live extract note), `#about` (Mock vs Live honesty).

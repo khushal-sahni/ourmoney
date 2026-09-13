@@ -616,6 +616,7 @@ export function ExploreView(): ReactElement {
         <EvidenceDrawer
           records={evidenceRecords}
           title={selected.shortName}
+          sourceCitations={scenario.sourceCitations}
           onClose={() => setEvidenceOpen(false)}
         />
       )}

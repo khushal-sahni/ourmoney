@@ -3018,6 +3018,41 @@ body.route-explore {
   font-size: 0.9rem;
 }
 
+.evidence-sources {
+  margin: 16px 0 0;
+}
+
+.evidence-sources-title {
+  margin: 0 0 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: var(--text-faint);
+}
+
+.evidence-sources-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.evidence-sources-list a {
+  color: var(--accent, var(--gold-chip));
+  font-size: 0.9rem;
+  line-height: 1.4;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  word-break: break-word;
+}
+
+.evidence-sources-list a:focus-visible {
+  outline: 2px solid var(--focus-ring, var(--gold-chip));
+  outline-offset: 2px;
+}
+
 .evidence-list {
   list-style: none;
   margin: 16px 0 0;

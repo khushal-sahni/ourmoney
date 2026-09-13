@@ -21,6 +21,14 @@ describe('live MGNREGA HP extract', () => {
     expect(records.every((record) => record.synthetic === false)).toBe(true);
   });
 
+  it('exposes official MIS verify links as source citations', () => {
+    const citations = MGNREGA_HP_SCENARIO.sourceCitations ?? [];
+    expect(citations.length).toBeGreaterThanOrEqual(2);
+    expect(citations.every((c) => c.url.startsWith('https://'))).toBe(true);
+    expect(citations.some((c) => c.url.includes('funddisreport.aspx'))).toBe(true);
+    expect(citations.some((c) => c.url.includes('nregarep1.nic.in'))).toBe(true);
+  });
+
   it('names other states so national leftover is a small residual', () => {
     const india = MGNREGA_HP_SCENARIO.nodes.find((node) => node.id === 'india');
     expect(india).toBeDefined();
@@ -55,5 +63,11 @@ describe('sourceForMode', () => {
     expect(mockCatalog).toHaveLength(4);
     expect(liveCatalog).toHaveLength(1);
     expect(scenariosForMode('live')[0]?.id).toBe('mgnrega-hp-2025-26');
+  });
+
+  it('keeps mock schemes without source citations', () => {
+    for (const scenario of scenariosForMode('mock')) {
+      expect(scenario.sourceCitations ?? []).toEqual([]);
+    }
   });
 });

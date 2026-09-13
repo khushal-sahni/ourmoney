@@ -47,6 +47,8 @@ Other-state shares follow typical MGNREGA expenditure weights — reconstructed 
 
 Authoring notes and official URL patterns: [`src/data/live/mgnrega-hp-2025-26/sources.md`](../src/data/live/mgnrega-hp-2025-26/sources.md).
 
+The Explore **View evidence** drawer surfaces those URLs as clickable **Sources** citations (`ISchemeScenario.sourceCitations`). They are verify-here links — not a claim that figures were scraped from those pages at runtime.
+
 MIS hosts returned HTTP 503 during authoring. Figures follow the public Financial Statement schema and administrative geography, scaled to publicly reported order of magnitude. They are **not** a certified government publication.
 
 ## Safety copy

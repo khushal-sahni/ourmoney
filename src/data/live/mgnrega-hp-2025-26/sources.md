@@ -14,7 +14,7 @@ Independent prototype extract. Not a government product. Not an official mirror 
 
 ## Official report URLs (verify live figures here)
 
-Portal hosts were returning HTTP 503 / 404 during authoring. Use these entry points when the MIS is up:
+Portal hosts were returning HTTP 503 / 404 during authoring. Use these entry points when the MIS is up — the same URLs are exposed as clickable **Sources** in the Explore evidence drawer (`sourceCitations` on the scenario):
 
 - State financial statement pattern: `https://mnregaweb4.nic.in/netnrega/citizen_html/funddisreport.aspx?lflag=eng&fin_year=2025-2026&state_code=13&state_name=HIMACHAL+PRADESH&page=s`
 - District example (Shimla `1309`): open from the state page drill-down, or cached citizen_out HTML when published: `funddisreport_1309_eng_2526_.html` on the MoRD MIS host

@@ -301,6 +301,7 @@ export function buildMgnregaHpScenario(
     period: extract.period,
     sourceLabel: extract.sourceLabel,
     provenance: 'public-record',
+    sourceCitations: extract.sourceCitations,
     defaultFocusNodeId: extract.defaultFocusNodeId,
     nodes,
     transfers,

@@ -99,6 +99,12 @@ export interface ISchemeSummary {
 /** Where the scenario figures come from — drives evidence badges and disclaimers. */
 export type ScenarioProvenance = 'synthetic' | 'public-record';
 
+/** Official page to verify figures — not a claim that we scraped this URL at runtime. */
+export interface ISourceCitation {
+  readonly label: string;
+  readonly url: string;
+}
+
 export interface ISchemeScenario {
   readonly id: string;
   readonly schemeName: string;
@@ -109,6 +115,8 @@ export interface ISchemeScenario {
   readonly sourceLabel: string;
   /** Defaults to synthetic when omitted (legacy fixtures). */
   readonly provenance?: ScenarioProvenance;
+  /** Verify-here links for public-record schemes; omit on synthetic fixtures. */
+  readonly sourceCitations?: readonly ISourceCitation[];
   readonly defaultFocusNodeId: string;
   readonly centreSharePaise?: number;
   readonly stateSharePaise?: number;
