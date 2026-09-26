@@ -14,7 +14,7 @@ import { PathArtifact } from '../../components/path-artifact';
 import { SiteFooter } from '../../components/site-footer';
 import { SendIcon } from '../../components/ui-icons';
 import { VoiceInputButton } from '../../components/voice-input';
-import { buildPlaceIndex, searchPlaces, type IPlaceEntry } from '../../data/place-index';
+import { buildPlaceIndexForMode, searchPlaces, type IPlaceEntry } from '../../data/place-index';
 import { catalogForMode, findScenarioInMode, sourceForMode } from '../../data/sources/source-for-mode';
 import { rankNamedPlaces } from '../../domain/rank-named-places';
 import {
@@ -95,7 +95,7 @@ export function AskView(): ReactElement {
   const [typeaheadOpen, setTypeaheadOpen] = useState(false);
   const listRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const placeIndex = useMemo(() => buildPlaceIndex(session.dataMode), [session.dataMode]);
+  const placeIndex = useMemo(() => buildPlaceIndexForMode(session.dataMode), [session.dataMode]);
   const starters = session.dataMode === 'live' ? LIVE_STARTERS : MOCK_STARTERS;
   const typeaheadResults = useMemo(
     () => (draft.trim() ? searchPlaces(placeIndex, draft, 6) : []),

@@ -1,6 +1,6 @@
 # Project Status
 
-> Last updated: 2026-09-12 · Session 26
+> Last updated: 2026-09-25 · Session 27
 
 ## Current state
 
@@ -26,7 +26,7 @@ Post-competition expansion: **Mock / Live** chrome toggle. Mock keeps the four s
 
 ## Next concrete step
 
-Verify Mock ↔ Live toggle in the browser (desktop + narrow), then draft the LinkedIn post around the Mashobra corridor.
+Push the Session 27 typecheck fix so Cloudflare Pages redeploys Mock/Live to ourmoney.fyi (the 2026-09-13 build failed on `tsc`). Then draft the LinkedIn post around the Mashobra corridor.
 
 ## Architecture snapshot
 

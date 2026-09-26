@@ -28,12 +28,12 @@ function buildSearchText(node: IFundingNode, schemeName: string): string {
 }
 
 /** Searchable places across scenarios in the active data mode. */
-export function buildPlaceIndex(
-  scenariosOrMode?: readonly ISchemeScenario[] | DataMode
-): readonly IPlaceEntry[] {
-  const scenarios = Array.isArray(scenariosOrMode)
-    ? scenariosOrMode
-    : scenariosForMode(scenariosOrMode ?? 'mock');
+export function buildPlaceIndexForMode(mode: DataMode = 'mock'): readonly IPlaceEntry[] {
+  return buildPlaceIndex(scenariosForMode(mode));
+}
+
+/** Searchable places across the given scenarios. */
+export function buildPlaceIndex(scenarios: readonly ISchemeScenario[]): readonly IPlaceEntry[] {
   const entries: IPlaceEntry[] = [];
   for (const scenario of scenarios) {
     for (const node of scenario.nodes) {

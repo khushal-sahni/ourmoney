@@ -1,5 +1,15 @@
 # Changelog
 
+## Session 27 — 2026-09-25
+
+### Fixed
+
+- **Cloudflare Pages build:** `tsc -b` failed on `buildPlaceIndex`'s `readonly ISchemeScenario[] | DataMode` union (`Array.isArray` does not narrow readonly arrays), so ourmoney.fyi stayed on the pre-Live build. Split into `buildPlaceIndex(scenarios)` and `buildPlaceIndexForMode(mode)`.
+
+### Changed
+
+- **Dev typecheck:** `vite-plugin-checker` runs `tsc` in build mode during `npm run dev`, so type errors that would fail the Pages build show in the terminal and overlay.
+
 ## Session 26 — 2026-09-12
 
 ### Built
